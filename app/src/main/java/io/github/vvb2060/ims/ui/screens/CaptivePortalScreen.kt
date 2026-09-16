@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
@@ -63,8 +64,9 @@ fun CaptivePortalScreen(
     }
     LaunchedEffect(state.notice, noticeText) {
         if (state.notice != CaptivePortalNotice.NONE) {
-            snackbarHostState.showSnackbar(noticeText)
+            // 先消费一次性事件，避免用户在 Snackbar 展示期间离开再返回后重复提示。
             onNoticeShown()
+            snackbarHostState.showSnackbar(noticeText)
         }
     }
 
@@ -99,9 +101,10 @@ fun CaptivePortalScreen(
                 ) {
                     if (state.saving) {
                         CircularProgressIndicator(
-                            modifier = Modifier.padding(end = 8.dp),
+                            modifier = Modifier.size(18.dp),
                             strokeWidth = 2.dp,
                         )
+                        Spacer(modifier = Modifier.size(8.dp))
                     }
                     Text(
                         if (state.mode == CaptivePortalMode.SYSTEM_DEFAULT) {
@@ -190,7 +193,7 @@ fun CaptivePortalScreen(
                         .padding(vertical = 20.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
                     Text(
                         text = stringResource(R.string.loading),
                         modifier = Modifier.padding(start = 12.dp),
@@ -249,7 +252,11 @@ private fun CaptivePortalTextField(
         label = { Text(label) },
         singleLine = true,
         isError = error != null,
-        supportingText = error?.let { { Text(it) } },
+        supportingText = if (error != null) {
+            { Text(error) }
+        } else {
+            null
+        },
     )
 }
 
