@@ -6,12 +6,12 @@
 - 生成或修改的文档、代码注释使用中文；日志打印使用英文。
 - 可保留 Shizuku、Instrumentation、CarrierConfig、IMS、VoLTE、VoWiFi、VoNR、AIDL 等通用英文技术名词。
 - 修改代码前先理解当前实现和设备兼容约束，避免只针对一个 Android 版本做硬编码修复。
-- 本项目不要求添加单元测试。代码变更后至少运行 `.\gradlew.bat :app:assembleDebug --stacktrace --console=plain` 验证编译。
+- 本项目不要求添加单元测试。代码变更后至少运行 `.\gradlew.bat :app:assembleDebug --stacktrace --console=plain` 验证编译；适合纯 Kotlin 行为的新增逻辑可增加针对性单元测试。
 - Git 提交信息使用中文；自动生成提交信息时也必须生成中文内容。
 
 ## 项目概览
 
-TensorIMS 是一个面向 Google Pixel Tensor 设备的 Android 应用，用于读取和修改 IMS/运营商相关配置，开启或关闭 VoLTE、VoWiFi、VT、VoNR、Cross-SIM Calling、UT、5G NR 等功能。项目依赖 Shizuku 执行特权操作，不要求 root。
+TensorIMS 是一个面向 Google Pixel Tensor 设备的 Android 应用，用于读取和修改 IMS/运营商相关配置，开启或关闭 VoLTE、VoWiFi、VT、VoNR、Cross-SIM Calling、UT、5G NR 等功能，并提供少量与 Pixel 网络使用相关的设备级系统设置。项目依赖 Shizuku 执行特权操作，不要求 root。
 
 主要适配和维护范围为中国大陆的中国移动、中国联通、中国电信网络下的 Pixel Tensor 设备。其他运营商因缺少相应测试条件，不作为主要适配和维护对象。此约定限定维护范围，不代表需要在代码中按地区或运营商限制使用，也不保证所有机型、系统版本和网络功能均可用。
 
@@ -29,7 +29,7 @@ TensorIMS 是一个面向 Google Pixel Tensor 设备的 Android 应用，用于�
 - `minSdk`：`33`
 - Java/Kotlin JVM target：`21`
 - ABI：仅 `arm64-v8a`
-- UI：Jetpack Compose + Material 3
+- UI：Jetpack Compose + Material 3 + Navigation Compose
 - 版本号：`versionCode` 由 Git commit 数生成，`versionName` 来自 `gradle/libs.versions.toml` 的 `app-version`
 
 常用命令：
@@ -37,6 +37,7 @@ TensorIMS 是一个面向 Google Pixel Tensor 设备的 Android 应用，用于�
 ```powershell
 .\gradlew.bat :app:assembleDebug --stacktrace --console=plain
 .\gradlew.bat :app:assembleRelease --stacktrace --console=plain
+.\gradlew.bat :app:testDebugUnitTest --stacktrace --console=plain
 .\gradlew.bat lint --stacktrace --console=plain
 .\gradlew.bat clean
 ```
@@ -52,11 +53,13 @@ TensorIMS 是一个面向 Google Pixel Tensor 设备的 Android 应用，用于�
 
 ## 核心包结构
 
-- `io.github.vvb2060.ims.model`：数据模型和功能映射。
-- `io.github.vvb2060.ims.viewmodel`：界面状态和业务调度，主要是 `MainViewModel` 与 `LogcatViewModel`。
-- `io.github.vvb2060.ims.ui`：Activity、Compose UI、组件和主题。
+- `io.github.vvb2060.ims.model`：数据模型和功能映射；`CaptivePortalSettings` 负责设备级联网检测地址的纯数据与校验。
+- `io.github.vvb2060.ims.viewmodel`：界面状态和业务调度；`MainViewModel` 管理 SIM/IMS/Shizuku，`SystemNetworkViewModel` 管理设备级系统网络设置，`LogcatViewModel` 管理日志。
+- `io.github.vvb2060.ims.ui`：Activity、Compose UI、组件和主题；`MainActivity` 只承担状态连接与导航承载。
+- `io.github.vvb2060.ims.ui.screens`：首页、IMS 配置、系统网络、Captive Portal 和高级工具页面。
+- `io.github.vvb2060.ims.ui.components`：跨页面复用的 Compose 组件。
 - `io.github.vvb2060.ims.privileged`：通过 Instrumentation 执行的特权逻辑。
-- `ShizukuProvider.kt`：主进程到特权 Instrumentation 的桥接层。
+- `ShizukuProvider.kt`：主进程到特权 Instrumentation 的桥接层，同时对所有 Instrumentation 调用做串行互斥。
 - `LogcatRepository.kt`：应用日志采集和导出相关逻辑。
 - `ConfigurationRepository.kt`：共用配置历史、应用参数构造、自动恢复操作顺序和开机进度。
 - `AutoRestoreController.kt`：按用户开关监听 Shizuku 连接与授权结果，执行有限重试的自动恢复。
@@ -69,14 +72,14 @@ TensorIMS 是一个面向 Google Pixel Tensor 设备的 Android 应用，用于�
 
 1. 主应用进程负责 Compose UI、ViewModel 状态管理、Shizuku 状态检查和用户交互。
 2. `ShizukuProvider` 使用 Shizuku 包装后的 `IActivityManager.startInstrumentation()` 启动特权 Instrumentation。
-3. Instrumentation 通过 shell permission delegation 访问受限 API，例如 `CarrierConfigManager`、`SubscriptionManager`、`ITelephony`、`ISub`。
+3. Instrumentation 通过 shell permission delegation 访问受限 API，例如 `CarrierConfigManager`、`SubscriptionManager`、`SettingsProvider`、`ITelephony`、`ISub`。
 4. Instrumentation 通过 `IInstrumentationWatcher` 返回 `Bundle` 结果，`ShizukuProvider` 再转换为 ViewModel 需要的数据。
 
 典型数据流：
 
 ```text
 用户操作 -> ViewModel -> ShizukuProvider -> Instrumentation
-                                       -> CarrierConfigManager / Telephony service
+                                       -> CarrierConfigManager / SettingsProvider / Telephony service
                                        -> Bundle 结果 -> ViewModel -> UI
 ```
 
@@ -87,7 +90,8 @@ TensorIMS 是一个面向 Google Pixel Tensor 设备的 Android 应用，用于�
 - `ImsModifier`：写入或重置运营商配置覆盖值。
 - `ImsResetter`：调用 telephony service 重置 IMS。
 - `PersistentVolteModifier`：按单张 SIM 读写持久化 VoLTE，使用 VoIMS opt-in 和用户开关；复用统一权限委托，通过系统管理类反射访问隐藏 API。
-- `BrokerInstrumentation`：在主修改路径权限受限或返回空结果时作为 fallback。
+- `CaptivePortalSettingsModifier`：读取、写入或删除 `captive_portal_http_url` / `captive_portal_https_url` SettingsProvider 值；两个值作为一组更新，失败时尽力恢复原值并以回读结果判定成功。
+- `BrokerInstrumentation`：在主 CarrierConfig 修改路径权限受限或返回空结果时作为 fallback。
 - `ShellPermissionDelegation`：统一处理 shell permission delegation 停止调用的 Android 版本兼容。
 
 ## Android 版本兼容重点
@@ -98,6 +102,7 @@ TensorIMS 是一个面向 Google Pixel Tensor 设备的 Android 应用，用于�
   - 新版：`stopDelegateShellPermissionIdentity(int uid)`
 - 不要在业务类里分散写这类兼容分支；优先集中封装，保持 `SimReader`、`ImsModifier` 等入口只调用统一 helper。
 - 使用 Android 14+ 才稳定存在或行为不同的能力时，需要做版本判断或反射 fallback。
+- Captive Portal 的 SettingsProvider key 在不同 Android/NetworkStack 版本上的优先级可能不同；资源 overlay 可能覆盖 SettingsProvider。只能把“写入并回读一致”描述为系统设置写入成功，不能据此宣称实际 probe URL 已切换。
 
 ## Shizuku 与隐藏 API 约束
 
@@ -115,9 +120,19 @@ TensorIMS 是一个面向 Google Pixel Tensor 设备的 Android 应用，用于�
 - 自动恢复元数据和开关保存在 `auto_restore` SharedPreferences，历史中的 `_restore_revision` / `_restore_reset` 不属于 Feature。以系统开机计数去重，同一次开机已成功恢复的相同配置不重复应用；用户重新启用开关可重新尝试。
 - 界面明确表述为“Shizuku 就绪后自动应用配置”，仅重启设备不会直接应用，必须先启动 Shizuku 并获得授权。自动应用按一轮重试汇总实际写入结果，重复跳过的历史不提示；优先 Toast，5 秒未收到显示回调时尝试通知。通知需要 `POST_NOTIFICATIONS` 授权及结果渠道开启；启用开关时申请通知权限，拒绝通知不阻止自动应用。后台不主动弹通知权限窗口。
 - 持久化 VoLTE 是独立的即时操作，不属于 `Feature` 配置草稿。原始订阅值（含 -1）保存在 `noBackupFilesDir/persistent_volte_<subId>.json`，以 SIM 标识摘要校验；失败回退失败时保留记录供恢复。重置配置先恢复所选活动 SIM 的原始值，再清除 CarrierConfig；未激活 SIM 的备份保留至重新激活后恢复。
+- Captive Portal 属于设备级系统网络设置，不属于 `Feature`，不写入 `sim_config_<subId>`，不参与自动恢复，也不受当前 SIM 选择影响。
+- Captive Portal 首版只管理 `captive_portal_http_url` 和 `captive_portal_https_url`；“系统默认”通过删除这两个 SettingsProvider 覆盖值实现，不硬编码第三方默认地址。
 - `Feature` 和 `FeatureConfigMapper` 是 IMS 功能开关到运营商配置键的主要映射入口。
 - 修改运营商配置时优先走 `ImsModifier`，必要时再由 `ShizukuProvider` 触发 `BrokerInstrumentation` fallback。
 - UI 不直接执行业务写入逻辑，业务动作应放在 ViewModel 或特权入口中。
+
+## UI 信息架构约定
+
+- 首页只承担设备/Shizuku 状态、SIM 选择、功能分类导航和自动恢复开关，不继续堆叠具体功能按钮。
+- IMS 配置页面只管理本次 CarrierConfig 草稿，并按“通话 / 网络 / 显示 / 高级覆盖”分组；应用配置是该页的主操作。
+- 系统网络页面承载与 SIM 无关的设备级网络设置；Captive Portal 是首个入口。
+- 高级工具页面承载 IMS 实时状态、持久化 VoLTE、IMS 重启、运营商配置重置和日志等即时或低频操作。
+- 新增功能前先判断作用域是 SIM CarrierConfig、设备级系统设置还是即时工具，不要因为实现方便就把所有入口堆回首页。
 
 ## 代码风格
 
@@ -133,7 +148,9 @@ TensorIMS 是一个面向 Google Pixel Tensor 设备的 Android 应用，用于�
 常规代码变更：
 
 ```powershell
+.\gradlew.bat :app:testDebugUnitTest --stacktrace --console=plain
 .\gradlew.bat :app:assembleDebug --stacktrace --console=plain
+.\gradlew.bat lint --stacktrace --console=plain
 ```
 
 设备验证示例：
@@ -145,6 +162,13 @@ adb logcat -c
 adb shell am force-stop io.github.vvb2060.ims
 adb shell am start -n io.github.vvb2060.ims/.ui.MainActivity
 adb logcat -d -v time AndroidRuntime:E ShizukuProvider:D SimReader:I ShellPermission:W '*:S'
+```
+
+Captive Portal 设置回读示例：
+
+```powershell
+adb shell settings get global captive_portal_http_url
+adb shell settings get global captive_portal_https_url
 ```
 
 遇到系统版本相关崩溃时，优先抓完整 `AndroidRuntime` 栈，并对照设备 `/system/framework/framework.jar` 或对应 AOSP 接口确认真实签名。
