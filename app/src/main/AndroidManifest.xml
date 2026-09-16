@@ -67,4 +67,8 @@
         android:name=".privileged.PersistentVolteModifier"
         android:label="PersistentVolteModifier"
         android:targetPackage="${applicationId}" />
+    <instrumentation
+        android:name=".privileged.CaptivePortalSettingsModifier"
+        android:label="CaptivePortalSettingsModifier"
+        android:targetPackage="${applicationId}" />
 </manifest>
