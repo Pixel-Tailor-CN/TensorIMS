@@ -3,10 +3,8 @@ package io.github.vvb2060.ims.ui.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
@@ -58,6 +56,7 @@ fun DeviceStatusCard(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = shizukuStatusLabel(shizukuStatus),
+                    modifier = Modifier.weight(1f),
                     style = MaterialTheme.typography.bodyMedium,
                     color = when (shizukuStatus) {
                         ShizukuStatus.NOT_RUNNING, ShizukuStatus.NEED_UPDATE -> MaterialTheme.colorScheme.error
@@ -66,7 +65,6 @@ fun DeviceStatusCard(
                         ShizukuStatus.CHECKING -> MaterialTheme.colorScheme.onSurfaceVariant
                     },
                 )
-                Spacer(modifier = Modifier.weight(1f))
                 TextButton(onClick = { showDetails = true }) {
                     Text(stringResource(R.string.device_details))
                 }
