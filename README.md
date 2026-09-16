@@ -26,8 +26,9 @@
 ## Screenshots
 
 <p align="center">
-  <img src="docs/Screenshot1.png" width="400"/>
-  <img src="docs/Screenshot2.png" width="400"/>
+  <img src="docs/home_en.png" width="260" alt="Home Screen"/>
+  <img src="docs/ims_en.png" width="260" alt="IMS Configuration"/>
+  <img src="docs/advanced_en.png" width="260" alt="Advanced Tools"/>
 </p>
 
 ## About

@@ -26,8 +26,9 @@
 ## 截图
 
 <p align="center">
-  <img src="docs/Screenshot1.png" width="400"/>
-  <img src="docs/Screenshot2.png" width="400"/>
+  <img src="docs/home_zh.png" width="260" alt="首页概览"/>
+  <img src="docs/ims_zh.png" width="260" alt="IMS 配置与预设"/>
+  <img src="docs/advanced_zh.png" width="260" alt="高级工具"/>
 </p>
 
 ## 关于
