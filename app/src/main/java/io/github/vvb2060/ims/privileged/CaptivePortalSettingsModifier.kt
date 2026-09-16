@@ -25,6 +25,10 @@ class CaptivePortalSettingsModifier : Instrumentation() {
         // NetworkStack 会读取这些 SettingsProvider key；使用字符串避免依赖隐藏字段的 SDK 可见性。
         private const val HTTP_KEY = "captive_portal_http_url"
         private const val HTTPS_KEY = "captive_portal_https_url"
+
+        // Settings 的公开 putString(null) 仍走 PUT_global；恢复系统默认需要调用 SettingsProvider 的删除路径。
+        // Android 13+ 的 SettingsProvider 使用这一稳定的 call() 方法名处理 global 表删除。
+        private const val DELETE_GLOBAL_METHOD = "DELETE_global"
     }
 
     override fun onCreate(arguments: Bundle) {
@@ -77,9 +81,9 @@ class CaptivePortalSettingsModifier : Instrumentation() {
             verifyValues(targetHttp, targetHttps)
         } catch (failure: Throwable) {
             try {
-                // 回滚同样以回读为最终判定，不能只相信 putString 的返回值。
-                Settings.Global.putString(resolver, HTTP_KEY, originalHttp)
-                Settings.Global.putString(resolver, HTTPS_KEY, originalHttps)
+                // 回滚同样使用真正的删除路径，并以最终回读为判定，避免原值为 null 时留下空记录。
+                putValue(HTTP_KEY, originalHttp)
+                putValue(HTTPS_KEY, originalHttps)
                 verifyValues(originalHttp, originalHttps)
             } catch (rollbackFailure: Throwable) {
                 failure.addSuppressed(rollbackFailure)
@@ -92,10 +96,14 @@ class CaptivePortalSettingsModifier : Instrumentation() {
     }
 
     private fun putValue(key: String, value: String?) {
-        val accepted = Settings.Global.putString(context.contentResolver, key, value)
-        // 部分 SettingsProvider 实现在删除不存在的 key 时可能返回 false；删除以回读结果为准。
-        if (value != null) {
-            check(accepted) { "Failed to write $key" }
+        val resolver = context.contentResolver
+        if (value == null) {
+            // 不依赖隐藏 Settings 常量，直接使用 AOSP SettingsProvider 的稳定 call 协议。
+            resolver.call(Settings.Global.CONTENT_URI, DELETE_GLOBAL_METHOD, key, null)
+            return
+        }
+        check(Settings.Global.putString(resolver, key, value)) {
+            "Failed to write $key"
         }
     }
 
