@@ -73,6 +73,10 @@
     <string name="_5g_thresholds_desc">将 5G 信号强度阈值调整为与 LTE 阈值相同</string>
     <string name="_5g_plus_icon">5GA/5G+ 图标</string>
     <string name="_5g_plus_icon_desc">网络满足 NR Advanced 条件时显示 5G+ 图标</string>
+    <string name="enhanced_4g_lte">增强型 4G LTE（LTE+）</string>
+    <string name="enhanced_4g_lte_desc">启用系统用于 LTE+/4G+ 的增强型 4G LTE 配置</string>
+    <string name="hide_lte_plus_data_icon">隐藏增强型数据图标</string>
+    <string name="hide_lte_plus_data_icon_desc">即使当前网络支持增强型 LTE，也隐藏 LTE+/4G+ 数据图标</string>
     <string name="show_4g_for_lte">显示 4G 图标</string>
     <string name="show_4g_for_lte_desc">LTE 网络显示为 4G 图标</string>
 
