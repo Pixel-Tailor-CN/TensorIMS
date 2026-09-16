@@ -59,12 +59,13 @@ TensorIMS is a tool that allows you to enable or disable IMS features like Voice
 
 ## Requirements
 
-- **Supported Devices**: Google Pixel devices with Tensor chips (GS101, GS201, Zuma, Zuma Pro).
+- **Supported Devices**: Google Pixel devices with Google Tensor chips.
     - Pixel 6, 6 Pro, 6a
     - Pixel 7, 7 Pro, 7a
     - Pixel 8, 8 Pro, 8a
-    - Pixel 9, 9 Pro, 9 Pro XL, 9 Pro Fold
-    - Pixel 10, 10 Pro, 10 Pro XL
+    - Pixel 9, 9 Pro, 9 Pro XL, 9 Pro Fold, 9a
+    - Pixel 10, 10 Pro, 10 Pro XL, 10 Pro Fold, 10a
+    - Pixel 11, 11 Pro, 11 Pro XL, 11 Pro Fold
     - Pixel Fold, Pixel Tablet
     - **Note:** Devices with Qualcomm Snapdragons (Pixel 5 and older) are NOT supported.
 - Android 13 or higher
