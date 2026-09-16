@@ -62,6 +62,7 @@ class MainActivity : BaseActivity() {
                 launchSingleTop = true
             }
         }
+        val onBack: () -> Unit = { navController.popBackStack() }
 
         NavHost(
             navController = navController,
@@ -97,7 +98,7 @@ class MainActivity : BaseActivity() {
                     loadConfiguration = viewModel::loadConfiguration,
                     loadDefaults = viewModel::loadDefaultPreferences,
                     onApplyConfiguration = viewModel::onApplyConfiguration,
-                    onBack = navController::popBackStack,
+                    onBack = onBack,
                 )
             }
 
@@ -106,7 +107,7 @@ class MainActivity : BaseActivity() {
                     state = systemNetworkState,
                     onRefresh = systemNetworkViewModel::loadCaptivePortal,
                     onOpenCaptivePortal = { navigate(TensorImsRoutes.CAPTIVE_PORTAL) },
-                    onBack = navController::popBackStack,
+                    onBack = onBack,
                 )
             }
 
@@ -119,7 +120,7 @@ class MainActivity : BaseActivity() {
                     onHttpsUrlChange = systemNetworkViewModel::setHttpsUrl,
                     onSave = systemNetworkViewModel::saveCaptivePortal,
                     onNoticeShown = systemNetworkViewModel::clearNotice,
-                    onBack = navController::popBackStack,
+                    onBack = onBack,
                 )
             }
 
@@ -142,7 +143,7 @@ class MainActivity : BaseActivity() {
                     onOpenLogcat = {
                         startActivity(Intent(this@MainActivity, LogcatActivity::class.java))
                     },
-                    onBack = navController::popBackStack,
+                    onBack = onBack,
                 )
             }
         }
