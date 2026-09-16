@@ -13,6 +13,7 @@ shizuku = "13.1.5"
 coreKtx = "1.19.0"
 lifecycleRuntimeKtx = "2.11.0"
 activityCompose = "1.13.0"
+navigation = "2.10.1"
 composeBom = "2026.09.00"
 material3 = "1.5.0-alpha28"
 androidx-splashscreen = "1.2.0"
@@ -28,6 +29,7 @@ hiddenapibypass = { module = "org.lsposed.hiddenapibypass:hiddenapibypass", vers
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigation" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
 androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
 androidx-compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
