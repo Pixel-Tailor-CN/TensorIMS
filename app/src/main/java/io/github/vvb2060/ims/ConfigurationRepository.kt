@@ -131,7 +131,8 @@ class ConfigurationRepository(private val context: Context) {
                 boolean(Feature.VOLTE), boolean(Feature.VOWIFI), boolean(Feature.VOWIFI_ROAMING),
                 boolean(Feature.VT), boolean(Feature.VONR), boolean(Feature.CROSS_SIM),
                 boolean(Feature.UT), boolean(Feature.FIVE_G_NR), boolean(Feature.FIVE_G_THRESHOLDS),
-                boolean(Feature.FIVE_G_PLUS_ICON), boolean(Feature.SHOW_4G_FOR_LTE),
+                boolean(Feature.FIVE_G_PLUS_ICON), boolean(Feature.ENHANCED_4G_LTE),
+                boolean(Feature.HIDE_LTE_PLUS_DATA_ICON), boolean(Feature.SHOW_4G_FOR_LTE),
             ).apply { putInt(ImsModifier.BUNDLE_SELECT_SIM_ID, subId) }
         }
     }
