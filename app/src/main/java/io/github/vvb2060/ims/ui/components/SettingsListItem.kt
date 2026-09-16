@@ -28,22 +28,26 @@ fun SettingsListItem(
             .alpha(if (enabled) 1f else 0.5f)
             .clickable(enabled = enabled, onClick = onClick),
         headlineContent = { Text(title) },
-        supportingContent = summary?.let {
+        supportingContent = if (summary != null) {
             {
                 Text(
-                    text = it,
+                    text = summary,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+        } else {
+            null
         },
-        leadingContent = icon?.let { imageVector ->
+        leadingContent = if (icon != null) {
             {
                 Icon(
-                    imageVector = imageVector,
+                    imageVector = icon,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
                 )
             }
+        } else {
+            null
         },
         trailingContent = if (showChevron) {
             {
