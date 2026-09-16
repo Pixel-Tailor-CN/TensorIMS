@@ -145,7 +145,7 @@ fun AdvancedToolsScreen(
                     showChevron = false,
                     onClick = { loadImsStatus() },
                 )
-                androidx.compose.material3.HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                androidx.compose.material3.HorizontalDivider()
                 SettingsListItem(
                     title = stringResource(R.string.restart_ims),
                     summary = stringResource(R.string.restart_ims_summary),
@@ -153,7 +153,7 @@ fun AdvancedToolsScreen(
                     showChevron = false,
                     onClick = { confirmRestart = true },
                 )
-                androidx.compose.material3.HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                androidx.compose.material3.HorizontalDivider()
                 SettingsListItem(
                     title = stringResource(R.string.application_logs),
                     summary = stringResource(R.string.application_logs_summary),

@@ -100,14 +100,14 @@ fun HomeScreen(
                     enabled = selectedSim != null,
                     onClick = onOpenImsConfig,
                 )
-                androidx.compose.material3.HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                androidx.compose.material3.HorizontalDivider()
                 SettingsListItem(
                     title = stringResource(R.string.system_network),
                     summary = stringResource(R.string.system_network_summary),
                     icon = Icons.Rounded.Public,
                     onClick = onOpenSystemNetwork,
                 )
-                androidx.compose.material3.HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                androidx.compose.material3.HorizontalDivider()
                 SettingsListItem(
                     title = stringResource(R.string.advanced_tools),
                     summary = stringResource(R.string.advanced_tools_summary),
