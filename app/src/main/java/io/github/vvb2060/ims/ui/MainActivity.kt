@@ -14,6 +14,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import io.github.vvb2060.ims.model.ShizukuStatus
 import io.github.vvb2060.ims.ui.navigation.TensorImsRoutes
+import io.github.vvb2060.ims.ui.navigation.activityLikeEnterTransition
+import io.github.vvb2060.ims.ui.navigation.activityLikeExitTransition
+import io.github.vvb2060.ims.ui.navigation.activityLikePopEnterTransition
+import io.github.vvb2060.ims.ui.navigation.activityLikePopExitTransition
 import io.github.vvb2060.ims.ui.screens.AdvancedToolsScreen
 import io.github.vvb2060.ims.ui.screens.CaptivePortalScreen
 import io.github.vvb2060.ims.ui.screens.HomeScreen
@@ -67,6 +71,12 @@ class MainActivity : BaseActivity() {
         NavHost(
             navController = navController,
             startDestination = TensorImsRoutes.HOME,
+            enterTransition = { activityLikeEnterTransition() },
+            exitTransition = { activityLikeExitTransition() },
+            popEnterTransition = { activityLikePopEnterTransition() },
+            popExitTransition = { activityLikePopExitTransition() },
+            predictivePopEnterTransition = { activityLikePopEnterTransition() },
+            predictivePopExitTransition = { activityLikePopExitTransition() },
         ) {
             composable(TensorImsRoutes.HOME) {
                 HomeScreen(
