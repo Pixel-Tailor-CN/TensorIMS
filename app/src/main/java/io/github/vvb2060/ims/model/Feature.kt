@@ -81,6 +81,18 @@ enum class Feature(
         R.string._5g_plus_icon_desc,
         true,
     ),
+    ENHANCED_4G_LTE(
+        FeatureValueType.BOOLEAN,
+        R.string.enhanced_4g_lte,
+        R.string.enhanced_4g_lte_desc,
+        true,
+    ),
+    HIDE_LTE_PLUS_DATA_ICON(
+        FeatureValueType.BOOLEAN,
+        R.string.hide_lte_plus_data_icon,
+        R.string.hide_lte_plus_data_icon_desc,
+        false,
+    ),
     SHOW_4G_FOR_LTE(
         FeatureValueType.BOOLEAN,
         R.string.show_4g_for_lte,
