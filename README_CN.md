@@ -36,30 +36,38 @@ TensorIMS 是一个允许您在 Google Pixel 手机上启用或禁用 VoLTE（�
 
 ## 功能
 
-- **系统信息**: 显示您设备的应用版本、Android 版本和安全补丁版本。
-- **Shizuku 状态**: 显示 Shizuku 的当前状态，并允许刷新权限。
-- **Logcat 查看器**: 查看和导出应用日志以进行调试。
-- **SIM 卡选择**: 将设置应用于特定的 SIM 卡或一次性应用于所有 SIM 卡。
-- **可定制的 IMS 功能**:
-    - **运营商名称**: 覆盖设备上显示的运营商名称。
-  - **IMS User Agent**: 自定义 IMS User Agent 字符串。
-    - **VoLTE (高清语音通话)**: 开启 4G 高清语音通话。
-    - **VoWiFi (Wi-Fi 通话)**: 通过 Wi-Fi 网络拨打电话，并可选择仅 Wi-Fi 模式。
-    - **VT (视频通话)**: 开启基于 IMS 的视频通话。
-    - **VoNR (5G 语音)**: 开启 5G 高清语音通话（需要 Android 14+）。
-    - **Cross-SIM Calling (跨卡通话)**: 开启双卡互连功能。
-    - **UT (补充业务)**: 通过 UT 开启呼叫转移、呼叫等待等补充服务。
-    - **5G NR**: 开启 5G NSA（非独立组网）和 SA（独立组网）网络。
-    - **5G 信号强度阈值**: 可选择是否应用自定义的 5G 信号强度阈值。
-    - **Enhanced 4G LTE（LTE+）**: 开启系统用于 LTE+/4G+ 的增强型 4G LTE 配置。
-    - **隐藏增强型数据图标**: 可选择隐藏 LTE+/4G+ 数据图标；实际 LTE+/4G+ 可用性仍取决于设备、运营商和当前网络。
-- **配置持久化**: 自动保存每张 SIM 卡的配置。
+- **系统信息**：显示设备型号、应用版本、Android 版本和安全补丁版本。
+- **Shizuku 状态**：显示 Shizuku 当前状态，并在需要时提供授权或刷新入口。
+- **Logcat 查看器**：查看和导出应用日志以进行调试。
+- **SIM 卡选择**：将 IMS 设置应用于特定 SIM 卡或一次性应用于所有 SIM 卡。
+- **分层设置中心**：将 IMS 配置、设备级系统网络设置和高级工具拆分为独立页面，避免新功能持续堆叠在同一个长页面上。
+- **可定制的 IMS 功能**：
+    - **运营商名称**：覆盖设备上显示的运营商名称。
+    - **IMS User Agent**：自定义 IMS User Agent 字符串。
+    - **VoLTE（高清语音通话）**：开启 4G 高清语音通话。
+    - **VoWiFi（Wi-Fi 通话）**：通过 Wi-Fi 网络拨打电话。
+    - **漫游 VoWiFi**：可选择漫游时默认启用 VoWiFi。
+    - **VT（视频通话）**：开启基于 IMS 的视频通话。
+    - **VoNR（5G 语音）**：开启 5G 高清语音通话（需要 Android 14+）。
+    - **Cross-SIM Calling（跨卡通话）**：开启双卡互连功能。
+    - **UT（补充业务）**：通过 UT 开启呼叫转移、呼叫等待等补充服务。
+    - **5G NR**：开启 5G NSA（非独立组网）和 SA（独立组网）网络。
+    - **5G 信号强度阈值**：可选择是否应用自定义的 5G 信号强度阈值。
+    - **5G+/5GA 图标**：配置 Android 显示增强 5G 图标时使用的运营商阈值。
+    - **Enhanced 4G LTE（LTE+）**：开启系统用于 LTE+/4G+ 的增强型 4G LTE 配置。
+    - **隐藏增强型数据图标**：可选择隐藏 LTE+/4G+ 数据图标；实际 LTE+/4G+ 可用性仍取决于设备、运营商和当前网络。
+    - **LTE 显示为 4G**：将 LTE 数据网络显示为 4G 图标。
+- **系统网络 / Captive Portal**：读取、覆盖或移除 Android `captive_portal_http_url` 与 `captive_portal_https_url` 的 SettingsProvider 值。
+- **持久化 VoLTE（实验性）**：独立管理 VoLTE opt-in 和用户开关，不与临时 CarrierConfig 草稿混用。
+- **配置持久化**：自动保存每张 SIM 卡的 IMS 配置。
+
+> **Captive Portal 限制：** TensorIMS 可以确认写入 SettingsProvider 的值，但部分 Android/NetworkStack 版本可能优先使用资源 overlay，因此“写入成功”并不等于当前网络探测一定已经改用新地址。修改后请重新连接网络，并在目标设备上验证实际行为。
 
 > **注意：** 运营商国家码自定义功能已从 TensorIMS 中移除。如需使用该功能，请参考 [carrier-ims-for-pixel](https://github.com/ryfineZ/carrier-ims-for-pixel)。
 
 ## 要求
 
-- **支持设备**: 搭载 Google Tensor 芯片的 Pixel 设备。
+- **支持设备**：搭载 Google Tensor 芯片的 Pixel 设备。
     - Pixel 6, 6 Pro, 6a
     - Pixel 7, 7 Pro, 7a
     - Pixel 8, 8 Pro, 8a
@@ -67,7 +75,7 @@ TensorIMS 是一个允许您在 Google Pixel 手机上启用或禁用 VoLTE（�
     - Pixel 10, 10 Pro, 10 Pro XL, 10 Pro Fold, 10a
     - Pixel 11, 11 Pro, 11 Pro XL, 11 Pro Fold
     - Pixel Fold, Pixel Tablet
-    - **注意:** 搭载 Qualcomm Snapdragon 芯片的设备（Pixel 5 及更早机型）**不支持**。
+    - **注意：** 搭载 Qualcomm Snapdragon 芯片的设备（Pixel 5 及更早机型）**不支持**。
 - Android 13 或更高版本
 - 已安装并运行 [Shizuku](https://shizuku.rikka.app/zh-CN/)
 
@@ -75,17 +83,17 @@ TensorIMS 是一个允许您在 Google Pixel 手机上启用或禁用 VoLTE（�
 
 <a href="https://apps.obtainium.imranr.dev/redirect.html?r=obtainium://add/https://github.com/Pixel-Tailor-CN/TensorIMS"><img src="https://raw.githubusercontent.com/ImranR98/Obtainium/refs/heads/main/assets/graphics/badge_obtainium.png" alt="Obtainium" height="96"></a>
 
-1.  从 [Releases](https://github.com/Pixel-Tailor-CN/TensorIMS/releases) 页面下载最新的 APK。
-2.  在您的设备上安装 APK。
-3.  打开应用并授予 Shizuku 权限。
+1. 从 [Releases](https://github.com/Pixel-Tailor-CN/TensorIMS/releases) 页面下载最新 APK。
+2. 在设备上安装 APK。
+3. 打开应用并授予 Shizuku 权限。
 
 ## 使用
 
-1.  **检查状态**: 确保 Shizuku 正在运行且应用已获得权限。
-2.  **选择 SIM 卡**: 选择您要配置的 SIM 卡。
-3.  **切换功能**: 打开或关闭所需的 IMS 功能。
-4.  **应用**: 点击“应用配置”按钮。
-
+1. **检查状态**：确保 Shizuku 正在运行且应用已获得权限。
+2. **选择 SIM 卡**：在首页选择要配置的 SIM。
+3. **IMS 配置**：进入“IMS 配置”，修改本次操作需要的功能草稿，然后点击“应用更改”。
+4. **系统网络**：进入“系统网络”修改 Captive Portal 等设备级设置；这些设置不跟随当前选择的 SIM。
+5. **高级工具**：在高级工具中查看 IMS 状态、管理持久化 VoLTE、重启/重置 IMS 配置或查看日志。
 
 ## 项目说明
 
@@ -98,13 +106,13 @@ TensorIMS 是一个允许您在 Google Pixel 手机上启用或禁用 VoLTE（�
 ## 鸣谢
 
 - **[vvb2060/Ims](https://github.com/vvb2060/Ims)**
-- **[nullbytepl/CarrierVanityName](https://github.com/nullbytepl/CarrierVanityName)**: 运营商名称修改功能的代码参考自此项目。
+- **[nullbytepl/CarrierVanityName](https://github.com/nullbytepl/CarrierVanityName)**：运营商名称修改功能的代码参考自此项目。
 - **[kyujin-cho/pixel-volte-patch](https://github.com/kyujin-cho/pixel-volte-patch)**
 - App 图标源于 [iconfont](https://www.iconfont.cn/collections/detail?cid=28924) 平台的设计，并在此基础上进行了修改以适配本项目。
 
 ## 免责声明
 
-本应用会修改您设备的运营商配置。请自行承担使用风险。开发者对任何功能损坏或损失概不负责。
+本应用会修改设备的运营商配置，并在用户主动操作时修改部分设备级网络设置。请自行承担使用风险。开发者对任何功能损坏或损失概不负责。
 
 ## 许可证
 
