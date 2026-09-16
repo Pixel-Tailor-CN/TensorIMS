@@ -14,6 +14,7 @@
     <string name="shizuku_ready">✅ Ready</string>
     <string name="shizuku_not_running">❌ Not Running</string>
     <string name="shizuku_no_permission">⚠️ No Permission</string>
+    <string name="shizuku_need_update">⚠️ Update Required</string>
     <string name="shizuku_checking">Checking…</string>
     <string name="refresh_permission">Refresh Permission</string>
     <string name="request_permission">Request Permission</string>
@@ -26,7 +27,7 @@
     <string name="auto_restore_notification_channel">Automatic config apply results</string>
     <string name="auto_restore_notification_unavailable">Notifications are off. If the toast cannot be shown, the automatic apply result cannot be delivered as a notification.</string>
     <string name="auto_restore_notification_settings">Enable result notifications</string>
-    <string name="view_system_config">View IMS</string>
+    <string name="view_system_config">View IMS status</string>
     <string name="restart_ims">Restart IMS</string>
     <string name="restart_ims_success">IMS restarted</string>
     <string name="restart_ims_failed">IMS restart failed: %s</string>
@@ -42,6 +43,54 @@
     <string name="ims_reg_tech_unknown">Unknown</string>
     <string name="refresh">Refresh</string>
     <string name="ims_data_snapshot_note">* Real-time snapshot. IMS registration state changes when switching between LTE and 5G.</string>
+
+    <!-- Settings center -->
+    <string name="device_details">Device details</string>
+    <string name="ims_configuration">IMS configuration</string>
+    <string name="ims_configuration_summary">VoLTE, VoWiFi, VoNR, 5G and carrier overrides</string>
+    <string name="system_network">System network</string>
+    <string name="system_network_summary">Device-level network settings such as captive portal detection</string>
+    <string name="advanced_tools">Advanced tools</string>
+    <string name="advanced_tools_summary">IMS status, persistent VoLTE, restart, reset and logs</string>
+    <string name="advanced_tools_single_sim_hint">Select a single SIM on the home screen to use SIM-specific advanced operations.</string>
+    <string name="view_system_config_summary">Read a real-time IMS capability snapshot for the selected SIM.</string>
+    <string name="restart_ims_summary">Restart IMS for the selected SIM. Use this only when registration is stuck.</string>
+    <string name="reset_config_summary">Restore the selected SIM to its carrier defaults and restore the saved persistent VoLTE state.</string>
+    <string name="application_logs">Application logs</string>
+    <string name="application_logs_summary">View and export TensorIMS logs for troubleshooting.</string>
+    <string name="restart_ims_confirm">Restart IMS for %1$s?</string>
+    <string name="reset_config_confirm">Reset carrier configuration for %1$s? This removes TensorIMS CarrierConfig overrides for the selected SIM.</string>
+    <string name="back">Back</string>
+    <string name="loading">Loading…</string>
+    <string name="save">Save</string>
+    <string name="apply_changes">Apply changes</string>
+    <string name="load_saved_configuration">Load saved configuration</string>
+    <string name="restore_default_draft">Restore default draft</string>
+    <string name="select_sim_first">Select a SIM on the home screen before editing IMS configuration.</string>
+    <string name="no_sim_available">No SIM information is available. Start and authorize Shizuku, then refresh.</string>
+    <string name="feature_group_calling">Calling</string>
+    <string name="feature_group_network">Network</string>
+    <string name="feature_group_display">Display</string>
+    <string name="feature_group_advanced_overrides">Advanced overrides</string>
+
+    <!-- Captive Portal -->
+    <string name="captive_portal">Captive Portal</string>
+    <string name="captive_portal_description">Android uses captive portal detection URLs to determine whether the current network has working Internet access.</string>
+    <string name="captive_portal_system_default">System default</string>
+    <string name="captive_portal_system_default_summary">Remove TensorIMS overrides and let the system choose its configured endpoints.</string>
+    <string name="captive_portal_custom">Custom</string>
+    <string name="captive_portal_custom_summary">Store custom HTTP and HTTPS detection URLs in SettingsProvider.</string>
+    <string name="captive_portal_http_url">HTTP URL</string>
+    <string name="captive_portal_https_url">HTTPS URL</string>
+    <string name="captive_portal_error_required">This field is required.</string>
+    <string name="captive_portal_error_invalid_url">Enter a valid absolute URL.</string>
+    <string name="captive_portal_error_wrong_scheme">This field must use the %1$s scheme.</string>
+    <string name="captive_portal_experimental_title">Experimental system setting</string>
+    <string name="captive_portal_experimental_description">TensorIMS can verify the value stored in SettingsProvider, but some Android/NetworkStack builds may prefer a resource overlay over this setting. A successful write does not prove that the active probe URL has changed.</string>
+    <string name="captive_portal_reconnect_note">After changing this setting, reconnect the current network and verify actual behavior on your device.</string>
+    <string name="captive_portal_saved_notice">Written to system settings. Reconnect the network and verify whether the new endpoints are used.</string>
+    <string name="captive_portal_reset_notice">System overrides removed. Reconnect the network and verify the default behavior.</string>
+    <string name="restore_system_default">Restore system default</string>
 
     <!-- SIM Card -->
     <string name="sim_card">SIM Card List</string>
@@ -111,7 +160,8 @@
     <string name="export_logcat">Export logs</string>
     <string name="export_logcat_failed">Could not export logs. Please try again.</string>
     <string name="title_filter_log_level">Select filter log level</string>
-    <!-- 持久化 VoLTE 即时操作 -->
+
+    <!-- Persistent VoLTE -->
     <string name="persistent_volte_title">Persistent VoLTE (Experimental)</string>
     <string name="persistent_volte_description">Takes effect immediately for this SIM. On compatible devices and carriers, VoLTE remains usable after a normal restart without starting Shizuku or opening TensorIMS.</string>
     <string name="persistent_volte_usage">You can still use Apply to enable 5G and other features. There is no need to uncheck VoLTE.</string>

@@ -37,12 +37,13 @@ TensorIMS is a tool that allows you to enable or disable IMS features like Voice
 ## Features
 
 - **System Information**: Displays your device's app version, Android version, and security patch version.
-- **Shizuku Status**: Shows the current status of Shizuku and allows for refreshing permissions.
-- **Logcat Viewer**: View and expert application logs for debugging purposes.
-- **Sim Card Selection**: Apply settings to a specific SIM card or all SIM cards at once.
+- **Shizuku Status**: Shows the current Shizuku status and exposes permission actions when needed.
+- **Logcat Viewer**: View and export application logs for debugging purposes.
+- **SIM Card Selection**: Apply settings to a specific SIM card or all SIM cards at once.
+- **Settings Center**: Separates IMS configuration, device-level system network settings, and advanced tools so new features do not keep expanding one long page.
 - **Customizable IMS Features**:
     - **Carrier Name**: Override the carrier name displayed on your device.
-  - **IMS User Agent**: Override the IMS User Agent string.
+    - **IMS User Agent**: Override the IMS User Agent string.
     - **VoLTE (Voice over LTE)**: Enable high-definition voice calls over 4G.
     - **VoWiFi (Wi-Fi Calling)**: Make calls over Wi-Fi networks, with options for Wi-Fi only mode.
     - **VT (Video Calling)**: Enable IMS-based video calls.
@@ -51,9 +52,15 @@ TensorIMS is a tool that allows you to enable or disable IMS features like Voice
     - **UT (Supplementary Services)**: Enable call forwarding, call waiting, and other supplementary services over UT.
     - **5G NR**: Enable 5G NSA (Non-Standalone) and SA (Standalone) networks.
     - **5G Signal Strength Thresholds**: Option to apply custom 5G signal strength thresholds.
+    - **5G+/5GA Icon**: Configure the carrier thresholds used by Android to expose the enhanced 5G icon.
     - **Enhanced 4G LTE (LTE+)**: Enable the system carrier configuration used for LTE+/4G+ support.
     - **Hide Enhanced Data Icon**: Optionally hide the LTE+/4G+ data icon; actual LTE+/4G+ availability still depends on the device, carrier, and current network.
+    - **Show 4G for LTE**: Display the 4G label for LTE data.
+- **System Network / Captive Portal**: Read, override, or remove the SettingsProvider values for Android's `captive_portal_http_url` and `captive_portal_https_url`.
+- **Persistent VoLTE (Experimental)**: Keep the dedicated VoLTE opt-in/user setting path separate from temporary CarrierConfig drafts.
 - **Configuration Persistence**: Automatically saves configuration per SIM card.
+
+> **Captive Portal limitation:** TensorIMS verifies the values written to SettingsProvider, but some Android/NetworkStack builds may prefer resource overlays over those values. A successful write therefore does **not** prove that the active network probe URL changed. Reconnect the network and verify behavior on the target device.
 
 > **Note:** Country ISO customization has been removed from TensorIMS. If you need this feature, please use [carrier-ims-for-pixel](https://github.com/ryfineZ/carrier-ims-for-pixel).
 
@@ -75,17 +82,17 @@ TensorIMS is a tool that allows you to enable or disable IMS features like Voice
 
 <a href="https://apps.obtainium.imranr.dev/redirect.html?r=obtainium://add/https://github.com/Pixel-Tailor-CN/TensorIMS"><img src="https://raw.githubusercontent.com/ImranR98/Obtainium/refs/heads/main/assets/graphics/badge_obtainium.png" alt="Obtainium" height="96"></a>
 
-1.  Download the latest APK from the [Releases](https://github.com/Pixel-Tailor-CN/TensorIMS/releases) page.
-2.  Install the APK on your device.
-3.  Open the app and grant Shizuku permission.
+1. Download the latest APK from the [Releases](https://github.com/Pixel-Tailor-CN/TensorIMS/releases) page.
+2. Install the APK on your device.
+3. Open the app and grant Shizuku permission.
 
 ## Usage
 
-1.  **Check Status**: Ensure Shizuku is running and the app has permission.
-2.  **Select SIM**: Choose the SIM card you want to configure.
-3.  **Toggle Features**: Turn the desired IMS features on or off.
-4.  **Apply**: Tap the "Apply Configuration" button.
-
+1. **Check Status**: Ensure Shizuku is running and the app has permission.
+2. **Select SIM**: Choose the SIM card you want to configure on the home screen.
+3. **IMS Configuration**: Open **IMS configuration**, edit the desired feature draft, then tap **Apply changes**.
+4. **System Network**: Open **System network** for device-level settings such as Captive Portal. These settings are not tied to the selected SIM.
+5. **Advanced Tools**: Use the advanced page for IMS status, persistent VoLTE, IMS restart/reset, and logs.
 
 ## About this Project
 
@@ -104,7 +111,7 @@ This project originated as a fork of [Turbo1123/TurboIMS](https://github.com/Tur
 
 ## Disclaimer
 
-This application modifies your device's carrier configuration. Use it at your own risk. The developers are not responsible for any damage or loss of functionality.
+This application modifies your device's carrier configuration and, when requested, selected device-level network settings. Use it at your own risk. The developers are not responsible for any damage or loss of functionality.
 
 ## License
 
