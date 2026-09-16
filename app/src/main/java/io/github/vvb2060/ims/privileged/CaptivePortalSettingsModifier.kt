@@ -45,7 +45,6 @@ class CaptivePortalSettingsModifier : Instrumentation() {
     }
 
     private fun read(result: Bundle) {
-        val resolver = context.contentResolver
         putSettingsIntoResult(result)
         result.putBoolean(RESULT_SUCCESS, true)
     }
@@ -53,38 +52,61 @@ class CaptivePortalSettingsModifier : Instrumentation() {
     private fun write(arguments: Bundle, result: Bundle) {
         val httpUrl = requireNotNull(arguments.getString(HTTP_URL))
         val httpsUrl = requireNotNull(arguments.getString(HTTPS_URL))
-        val resolver = context.contentResolver
-
-        check(Settings.Global.putString(resolver, HTTP_KEY, httpUrl)) {
-            "Failed to write captive portal HTTP URL"
-        }
-        check(Settings.Global.putString(resolver, HTTPS_KEY, httpsUrl)) {
-            "Failed to write captive portal HTTPS URL"
-        }
-
-        val storedHttp = Settings.Global.getString(resolver, HTTP_KEY)
-        val storedHttps = Settings.Global.getString(resolver, HTTPS_KEY)
-        check(storedHttp == httpUrl) { "Captive portal HTTP URL readback mismatch" }
-        check(storedHttps == httpsUrl) { "Captive portal HTTPS URL readback mismatch" }
-
-        result.putString(RESULT_HTTP_URL, storedHttp)
-        result.putString(RESULT_HTTPS_URL, storedHttps)
-        result.putBoolean(RESULT_SUCCESS, true)
+        replaceSettings(httpUrl, httpsUrl, result)
     }
 
     private fun reset(result: Bundle) {
+        replaceSettings(null, null, result)
+    }
+
+    /**
+     * 两个地址必须作为一组更新。任一写入或回读失败时尽力恢复原值，避免留下半套配置。
+     */
+    private fun replaceSettings(
+        targetHttp: String?,
+        targetHttps: String?,
+        result: Bundle,
+    ) {
         val resolver = context.contentResolver
+        val originalHttp = Settings.Global.getString(resolver, HTTP_KEY)
+        val originalHttps = Settings.Global.getString(resolver, HTTPS_KEY)
 
-        // SettingsProvider 对 null 的具体返回值在不同系统版本可能有差异，因此最终以回读结果判定。
-        Settings.Global.putString(resolver, HTTP_KEY, null)
-        Settings.Global.putString(resolver, HTTPS_KEY, null)
+        try {
+            putValue(HTTP_KEY, targetHttp)
+            putValue(HTTPS_KEY, targetHttps)
+            verifyValues(targetHttp, targetHttps)
+        } catch (failure: Throwable) {
+            try {
+                // 回滚同样以回读为最终判定，不能只相信 putString 的返回值。
+                Settings.Global.putString(resolver, HTTP_KEY, originalHttp)
+                Settings.Global.putString(resolver, HTTPS_KEY, originalHttps)
+                verifyValues(originalHttp, originalHttps)
+            } catch (rollbackFailure: Throwable) {
+                failure.addSuppressed(rollbackFailure)
+            }
+            throw failure
+        }
 
-        val storedHttp = Settings.Global.getString(resolver, HTTP_KEY)
-        val storedHttps = Settings.Global.getString(resolver, HTTPS_KEY)
-        check(storedHttp == null) { "Captive portal HTTP URL was not cleared" }
-        check(storedHttps == null) { "Captive portal HTTPS URL was not cleared" }
-
+        putSettingsIntoResult(result)
         result.putBoolean(RESULT_SUCCESS, true)
+    }
+
+    private fun putValue(key: String, value: String?) {
+        val accepted = Settings.Global.putString(context.contentResolver, key, value)
+        // 部分 SettingsProvider 实现在删除不存在的 key 时可能返回 false；删除以回读结果为准。
+        if (value != null) {
+            check(accepted) { "Failed to write $key" }
+        }
+    }
+
+    private fun verifyValues(expectedHttp: String?, expectedHttps: String?) {
+        val resolver = context.contentResolver
+        check(Settings.Global.getString(resolver, HTTP_KEY) == expectedHttp) {
+            "Captive portal HTTP URL readback mismatch"
+        }
+        check(Settings.Global.getString(resolver, HTTPS_KEY) == expectedHttps) {
+            "Captive portal HTTPS URL readback mismatch"
+        }
     }
 
     private fun putSettingsIntoResult(result: Bundle) {
