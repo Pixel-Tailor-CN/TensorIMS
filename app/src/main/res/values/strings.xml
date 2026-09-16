@@ -73,6 +73,10 @@
     <string name="_5g_thresholds_desc">Adjust 5G signal strength thresholds to be the same as LTE thresholds</string>
     <string name="_5g_plus_icon">5GA/5G+ Icon</string>
     <string name="_5g_plus_icon_desc">Show 5G+ when the network meets NR Advanced conditions</string>
+    <string name="enhanced_4g_lte">Enhanced 4G LTE (LTE+)</string>
+    <string name="enhanced_4g_lte_desc">Enable the Enhanced 4G LTE configuration used for LTE+/4G+ support</string>
+    <string name="hide_lte_plus_data_icon">Hide Enhanced Data Icon</string>
+    <string name="hide_lte_plus_data_icon_desc">Hide the LTE+/4G+ data icon even when enhanced LTE is available</string>
     <string name="show_4g_for_lte">Show 4G for LTE</string>
     <string name="show_4g_for_lte_desc">Show 4G icon for LTE data</string>
 
