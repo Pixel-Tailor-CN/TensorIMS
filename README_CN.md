@@ -37,11 +37,20 @@ TensorIMS 是一个允许您在 Google Pixel 手机上启用或禁用 VoLTE（�
 
 ## 功能
 
-- **系统信息**：显示设备型号、应用版本、Android 版本和安全补丁版本。
-- **Shizuku 状态**：显示 Shizuku 当前状态，并在需要时提供授权或刷新入口。
-- **Logcat 查看器**：查看和导出应用日志以进行调试。
-- **SIM 卡选择**：将 IMS 设置应用于特定 SIM 卡或一次性应用于所有 SIM 卡。
-- **分层设置中心**：将 IMS 配置、设备级系统网络设置和高级工具拆分为独立页面，避免新功能持续堆叠在同一个长页面上。
+- **清晰的分层信息架构**：
+    - **首页**：集中展示设备与 Shizuku 状态、SIM 卡选择、功能入口导航，以及“Shizuku 就绪后自动应用配置”开关。
+    - **IMS 配置**：采用草稿模式设计，按“通话 / 网络 / 显示 / 高级覆盖”清晰分组管理，支持一键快速预设与按需微调。
+    - **系统网络**：独立管理设备级系统网络设置，提供 Captive Portal 探测地址配置及国内常用预设快捷填入。
+    - **高级工具**：区分“诊断与常规维护”（实时 IMS 状态、重启 IMS、应用日志）与“危险操作”（重置 CarrierConfig 覆盖），并承载持久化 VoLTE 管理。
+- **一键快速配置预设**：
+    - **推荐配置**：开启 4G/5G 核心通话与网络能力（VoLTE、VoNR、5G NR、5G 信号门限对齐、VT），默认关闭国内卡暂不支持的 VoWiFi。
+    - **国内 5G**：一键开启国内三大运营商 5G 完整网络体验，包含 VoNR、5GA/5G+ 图标与 5G 信号门限对齐。
+    - **国内 LTE**：纯净 4G 模式，显式关闭 5G NR 与 VoNR，专注网络稳定、省电抗发热及长续航。
+    - **全部开启**：一键开启全部可用功能开关。
+- **自动化与持久化**：
+    - **Shizuku 就绪后自动应用**：可选择在设备重启且 Shizuku 启动授权后自动恢复上次成功应用的配置，无需每次开机手动操作。
+    - **持久化 VoLTE（实验性）**：使用系统底层 VoIMS opt-in 接口，启用后正常重启设备无需依赖 Shizuku 即可保持 VoLTE 生效。
+    - **配置持久化**：按 SIM 卡（或全部卡）自动保存配置历史。
 - **可定制的 IMS 功能**：
     - **运营商名称**：覆盖设备上显示的运营商名称。
     - **IMS User Agent**：自定义 IMS User Agent 字符串。
@@ -58,13 +67,10 @@ TensorIMS 是一个允许您在 Google Pixel 手机上启用或禁用 VoLTE（�
     - **Enhanced 4G LTE（LTE+）**：开启系统用于 LTE+/4G+ 的增强型 4G LTE 配置。
     - **隐藏增强型数据图标**：可选择隐藏 LTE+/4G+ 数据图标；实际 LTE+/4G+ 可用性仍取决于设备、运营商和当前网络。
     - **LTE 显示为 4G**：将 LTE 数据网络显示为 4G 图标。
-- **系统网络 / Captive Portal**：读取、覆盖或移除 Android `captive_portal_http_url` 与 `captive_portal_https_url` 的 SettingsProvider 值。
-- **持久化 VoLTE（实验性）**：独立管理 VoLTE opt-in 和用户开关，不与临时 CarrierConfig 草稿混用。
-- **配置持久化**：自动保存每张 SIM 卡的 IMS 配置。
+- **系统网络 / Captive Portal**：读取、覆盖或移除 Android `captive_portal_http_url` 与 `captive_portal_https_url` 的 SettingsProvider 值，内置 Google 官方、V2EX、小米、vivo、华为等快捷填入预设。
+- **Logcat 查看器**：实时查看和一键导出应用日志以排查问题。
 
 > **Captive Portal 限制：** TensorIMS 可以确认写入 SettingsProvider 的值，但部分 Android/NetworkStack 版本可能优先使用资源 overlay，因此“写入成功”并不等于当前网络探测一定已经改用新地址。修改后请重新连接网络，并在目标设备上验证实际行为。
-
-> **注意：** 运营商国家码自定义功能已从 TensorIMS 中移除。如需使用该功能，请参考 [carrier-ims-for-pixel](https://github.com/ryfineZ/carrier-ims-for-pixel)。
 
 ## 要求
 
@@ -91,10 +97,11 @@ TensorIMS 是一个允许您在 Google Pixel 手机上启用或禁用 VoLTE（�
 ## 使用
 
 1. **检查状态**：确保 Shizuku 正在运行且应用已获得权限。
-2. **选择 SIM 卡**：在首页选择要配置的 SIM。
-3. **IMS 配置**：进入“IMS 配置”，修改本次操作需要的功能草稿，然后点击“应用更改”。
-4. **系统网络**：进入“系统网络”修改 Captive Portal 等设备级设置；这些设置不跟随当前选择的 SIM。
-5. **高级工具**：在高级工具中查看 IMS 状态、管理持久化 VoLTE、重启/重置 IMS 配置或查看日志。
+2. **选择 SIM 卡**：在首页选择要配置的单张 SIM 卡或“所有 SIM”。
+3. **IMS 配置**：进入“IMS 配置”，可直接使用“推荐配置”、“国内 5G”或“国内 LTE”快捷预设，亦可按分组手动微调开关，点击底部“应用更改”生效。
+4. **自动恢复（可选）**：在首页开启“Shizuku 就绪后自动应用配置”，设备重启且 Shizuku 启动授权后将自动恢复已保存的配置。
+5. **系统网络**：进入“系统网络”管理 Captive Portal 联网探测地址，可一键选择国内节点预设；该设置作用于全局设备，不随 SIM 切换。
+6. **高级工具**：进入“高级工具”可查看当前 SIM 的实时 IMS 能力快照、卡死时重启 IMS，或在“危险操作”区重置配置覆盖。
 
 ## 项目说明
 

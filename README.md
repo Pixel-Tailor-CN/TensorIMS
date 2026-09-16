@@ -37,11 +37,20 @@ TensorIMS is a tool that allows you to enable or disable IMS features like Voice
 
 ## Features
 
-- **System Information**: Displays your device's app version, Android version, and security patch version.
-- **Shizuku Status**: Shows the current Shizuku status and exposes permission actions when needed.
-- **Logcat Viewer**: View and export application logs for debugging purposes.
-- **SIM Card Selection**: Apply settings to a specific SIM card or all SIM cards at once.
-- **Settings Center**: Separates IMS configuration, device-level system network settings, and advanced tools so new features do not keep expanding one long page.
+- **Structured Information Architecture**:
+    - **Home Screen**: Overview of device and Shizuku status, SIM selector, navigation to core modules, and the toggle for "Apply configs when Shizuku is ready".
+    - **IMS Configuration**: Draft mode configuration organized into "Calling", "Network", "Display", and "Advanced Overrides", with one-tap quick presets and manual fine-tuning.
+    - **System Network**: Dedicated device-level system network settings, offering Captive Portal probe endpoint configuration with popular presets.
+    - **Advanced Tools**: Segregated into "Diagnostics & Maintenance" (IMS status snapshot, restart IMS, application logs) and "Danger Zone" (reset CarrierConfig overrides), alongside Persistent VoLTE management.
+- **One-Tap Quick Presets**:
+    - **Recommended**: Enables essential 4G/5G calling and network capabilities (VoLTE, VoNR, 5G NR, 5G signal threshold alignment, VT) while keeping VoWiFi disabled.
+    - **China 5G**: Full 5G experience for Chinese mainland carriers with VoNR, 5GA/5G+ icon, and 5G signal threshold alignment.
+    - **China LTE**: Pure 4G mode with 5G NR & VoNR explicitly disabled for stable cellular connectivity, battery saving, and thermal reduction.
+    - **Enable all**: Enables all available toggleable features at once.
+- **Automation & Persistence**:
+    - **Apply configs when Shizuku is ready**: Automatically restores saved configurations when the device reboots and Shizuku connects with permission granted.
+    - **Persistent VoLTE (Experimental)**: Leverages system-level VoIMS opt-in to keep VoLTE active across device reboots without needing Shizuku on every restart.
+    - **Configuration Persistence**: Automatically saves configuration history per SIM card or for all SIMs.
 - **Customizable IMS Features**:
     - **Carrier Name**: Override the carrier name displayed on your device.
     - **IMS User Agent**: Override the IMS User Agent string.
@@ -57,13 +66,10 @@ TensorIMS is a tool that allows you to enable or disable IMS features like Voice
     - **Enhanced 4G LTE (LTE+)**: Enable the system carrier configuration used for LTE+/4G+ support.
     - **Hide Enhanced Data Icon**: Optionally hide the LTE+/4G+ data icon; actual LTE+/4G+ availability still depends on the device, carrier, and current network.
     - **Show 4G for LTE**: Display the 4G label for LTE data.
-- **System Network / Captive Portal**: Read, override, or remove the SettingsProvider values for Android's `captive_portal_http_url` and `captive_portal_https_url`.
-- **Persistent VoLTE (Experimental)**: Keep the dedicated VoLTE opt-in/user setting path separate from temporary CarrierConfig drafts.
-- **Configuration Persistence**: Automatically saves configuration per SIM card.
+- **System Network / Captive Portal**: Read, override, or remove SettingsProvider values for Android's `captive_portal_http_url` and `captive_portal_https_url`, with built-in presets (Google, V2EX, Xiaomi, vivo, Huawei).
+- **Logcat Viewer**: View and export application logs for troubleshooting.
 
 > **Captive Portal limitation:** TensorIMS verifies the values written to SettingsProvider, but some Android/NetworkStack builds may prefer resource overlays over those values. A successful write therefore does **not** prove that the active network probe URL changed. Reconnect the network and verify behavior on the target device.
-
-> **Note:** Country ISO customization has been removed from TensorIMS. If you need this feature, please use [carrier-ims-for-pixel](https://github.com/ryfineZ/carrier-ims-for-pixel).
 
 ## Requirements
 
@@ -90,10 +96,11 @@ TensorIMS is a tool that allows you to enable or disable IMS features like Voice
 ## Usage
 
 1. **Check Status**: Ensure Shizuku is running and the app has permission.
-2. **Select SIM**: Choose the SIM card you want to configure on the home screen.
-3. **IMS Configuration**: Open **IMS configuration**, edit the desired feature draft, then tap **Apply changes**.
-4. **System Network**: Open **System network** for device-level settings such as Captive Portal. These settings are not tied to the selected SIM.
-5. **Advanced Tools**: Use the advanced page for IMS status, persistent VoLTE, IMS restart/reset, and logs.
+2. **Select SIM**: Choose the single SIM card or "All SIM" to configure on the home screen.
+3. **IMS Configuration**: Open **IMS configuration**, pick a quick preset ("Recommended", "China 5G", or "China LTE") or adjust switches by category, then tap **Apply changes**.
+4. **Auto-Restore (Optional)**: Enable "Apply configs when Shizuku is ready" on the home screen to automatically restore configurations after reboots once Shizuku is active.
+5. **System Network**: Open **System network** to manage Captive Portal detection URLs with one-tap presets; changes apply globally across the device.
+6. **Advanced Tools**: Use the advanced page to inspect real-time IMS capability snapshots, restart IMS if needed, or reset CarrierConfig overrides in the Danger Zone.
 
 ## About this Project
 
