@@ -39,6 +39,8 @@ class ImsModifier : Instrumentation() {
             enable5GNR: Boolean,
             enable5GThreshold: Boolean,
             enable5GPlusIcon: Boolean,
+            enableEnhanced4GLte: Boolean,
+            hideLtePlusDataIcon: Boolean,
             enableShow4GForLTE: Boolean,
         ): Bundle {
             val bundle = Bundle()
@@ -59,9 +61,17 @@ class ImsModifier : Instrumentation() {
             // VoLTE 配置
             if (enableVoLTE) {
                 bundle.putBoolean(CarrierConfigManager.KEY_CARRIER_VOLTE_AVAILABLE_BOOL, true)
+            }
+
+            // Enhanced 4G LTE / LTE+ 配置。与 VoLTE 拆分，避免开启 VoLTE 时隐式修改图标行为。
+            if (enableEnhanced4GLte) {
                 bundle.putBoolean(CarrierConfigManager.KEY_EDITABLE_ENHANCED_4G_LTE_BOOL, true)
+                bundle.putBoolean(CarrierConfigManager.KEY_ENHANCED_4G_LTE_ON_BY_DEFAULT_BOOL, true)
                 bundle.putBoolean(CarrierConfigManager.KEY_HIDE_ENHANCED_4G_LTE_BOOL, false)
                 bundle.putBoolean(CarrierConfigManager.KEY_HIDE_LTE_PLUS_DATA_ICON_BOOL, false)
+            }
+            if (hideLtePlusDataIcon) {
+                bundle.putBoolean(CarrierConfigManager.KEY_HIDE_LTE_PLUS_DATA_ICON_BOOL, true)
             }
 
             // LTE 显示为 4G

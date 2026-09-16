@@ -51,6 +51,8 @@ TensorIMS 是一个允许您在 Google Pixel 手机上启用或禁用 VoLTE（�
     - **UT (补充业务)**: 通过 UT 开启呼叫转移、呼叫等待等补充服务。
     - **5G NR**: 开启 5G NSA（非独立组网）和 SA（独立组网）网络。
     - **5G 信号强度阈值**: 可选择是否应用自定义的 5G 信号强度阈值。
+    - **Enhanced 4G LTE（LTE+）**: 开启系统用于 LTE+/4G+ 的增强型 4G LTE 配置。
+    - **隐藏增强型数据图标**: 可选择隐藏 LTE+/4G+ 数据图标；实际 LTE+/4G+ 可用性仍取决于设备、运营商和当前网络。
 - **配置持久化**: 自动保存每张 SIM 卡的配置。
 
 > **注意：** 运营商国家码自定义功能已从 TensorIMS 中移除。如需使用该功能，请参考 [carrier-ims-for-pixel](https://github.com/ryfineZ/carrier-ims-for-pixel)。

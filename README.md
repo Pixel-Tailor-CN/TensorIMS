@@ -51,6 +51,8 @@ TensorIMS is a tool that allows you to enable or disable IMS features like Voice
     - **UT (Supplementary Services)**: Enable call forwarding, call waiting, and other supplementary services over UT.
     - **5G NR**: Enable 5G NSA (Non-Standalone) and SA (Standalone) networks.
     - **5G Signal Strength Thresholds**: Option to apply custom 5G signal strength thresholds.
+    - **Enhanced 4G LTE (LTE+)**: Enable the system carrier configuration used for LTE+/4G+ support.
+    - **Hide Enhanced Data Icon**: Optionally hide the LTE+/4G+ data icon; actual LTE+/4G+ availability still depends on the device, carrier, and current network.
 - **Configuration Persistence**: Automatically saves configuration per SIM card.
 
 > **Note:** Country ISO customization has been removed from TensorIMS. If you need this feature, please use [carrier-ims-for-pixel](https://github.com/ryfineZ/carrier-ims-for-pixel).

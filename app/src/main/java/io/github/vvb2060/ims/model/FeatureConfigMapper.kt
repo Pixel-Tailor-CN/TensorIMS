@@ -19,6 +19,10 @@ object FeatureConfigMapper {
         CarrierConfigManager.KEY_CARRIER_NR_AVAILABILITIES_INT_ARRAY,
         CarrierConfigManager.KEY_5G_NR_SSRSRP_THRESHOLDS_INT_ARRAY,
         *FiveGPlusConfig.readKeys.toTypedArray(),
+        CarrierConfigManager.KEY_EDITABLE_ENHANCED_4G_LTE_BOOL,
+        CarrierConfigManager.KEY_ENHANCED_4G_LTE_ON_BY_DEFAULT_BOOL,
+        CarrierConfigManager.KEY_HIDE_ENHANCED_4G_LTE_BOOL,
+        CarrierConfigManager.KEY_HIDE_LTE_PLUS_DATA_ICON_BOOL,
         CarrierConfigManager.KEY_SHOW_4G_FOR_LTE_DATA_ICON_BOOL,
         KEY_SHOW_4G_FOR_LTE,
         CarrierConfigManager.KEY_CARRIER_CROSS_SIM_IMS_AVAILABLE_BOOL,
@@ -119,6 +123,29 @@ object FeatureConfigMapper {
 
         map[Feature.FIVE_G_PLUS_ICON] = FeatureValue(
             FiveGPlusConfig.matchesOverrides(bundle),
+            FeatureValueType.BOOLEAN
+        )
+
+        val enhanced4gEnabled = bundle.getBooleanOrDefault(
+            CarrierConfigManager.KEY_EDITABLE_ENHANCED_4G_LTE_BOOL,
+            false
+        ) && bundle.getBooleanOrDefault(
+            CarrierConfigManager.KEY_ENHANCED_4G_LTE_ON_BY_DEFAULT_BOOL,
+            false
+        ) && !bundle.getBooleanOrDefault(
+            CarrierConfigManager.KEY_HIDE_ENHANCED_4G_LTE_BOOL,
+            false
+        )
+        map[Feature.ENHANCED_4G_LTE] = FeatureValue(
+            enhanced4gEnabled,
+            FeatureValueType.BOOLEAN
+        )
+
+        map[Feature.HIDE_LTE_PLUS_DATA_ICON] = FeatureValue(
+            bundle.getBooleanOrDefault(
+                CarrierConfigManager.KEY_HIDE_LTE_PLUS_DATA_ICON_BOOL,
+                Feature.HIDE_LTE_PLUS_DATA_ICON.defaultValue as Boolean
+            ),
             FeatureValueType.BOOLEAN
         )
 
