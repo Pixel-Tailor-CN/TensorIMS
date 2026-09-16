@@ -1,5 +1,12 @@
 package io.github.vvb2060.ims.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,14 +18,18 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Clear
+import androidx.compose.material.icons.rounded.ContentPaste
 import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -27,13 +38,16 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import io.github.vvb2060.ims.R
 import io.github.vvb2060.ims.model.CaptivePortalUrlError
@@ -41,6 +55,40 @@ import io.github.vvb2060.ims.model.ShizukuStatus
 import io.github.vvb2060.ims.viewmodel.CaptivePortalMode
 import io.github.vvb2060.ims.viewmodel.CaptivePortalNotice
 import io.github.vvb2060.ims.viewmodel.CaptivePortalUiState
+
+private data class CaptivePortalPreset(
+    val nameRes: Int,
+    val httpUrl: String,
+    val httpsUrl: String,
+)
+
+private val captivePortalPresets = listOf(
+    CaptivePortalPreset(
+        R.string.preset_google,
+        "http://connectivitycheck.gstatic.com/generate_204",
+        "https://connectivitycheck.gstatic.com/generate_204",
+    ),
+    CaptivePortalPreset(
+        R.string.preset_v2ex,
+        "http://captive.v2ex.co/generate_204",
+        "https://captive.v2ex.co/generate_204",
+    ),
+    CaptivePortalPreset(
+        R.string.preset_miui,
+        "http://connect.rom.miui.com/generate_204",
+        "https://connect.rom.miui.com/generate_204",
+    ),
+    CaptivePortalPreset(
+        R.string.preset_vivo,
+        "http://wifi.vivo.com.cn/generate_204",
+        "https://wifi.vivo.com.cn/generate_204",
+    ),
+    CaptivePortalPreset(
+        R.string.preset_huawei,
+        "http://connectivitycheck.platform.hicloud.com/generate_204",
+        "https://connectivitycheck.platform.hicloud.com/generate_204",
+    ),
+)
 
 @Composable
 fun CaptivePortalScreen(
@@ -126,22 +174,38 @@ fun CaptivePortalScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp),
         ) {
-            Card(
+            // 警示容器
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp),
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = stringResource(R.string.captive_portal_experimental_title),
-                        style = MaterialTheme.typography.titleSmall,
+                Row(
+                    modifier = Modifier.padding(14.dp),
+                    verticalAlignment = Alignment.Top,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.WarningAmber,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.tertiary,
+                        modifier = Modifier.padding(top = 2.dp),
                     )
-                    Text(
-                        text = stringResource(R.string.captive_portal_experimental_description),
-                        modifier = Modifier.padding(top = 4.dp),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                    Column {
+                        Text(
+                            text = stringResource(R.string.captive_portal_experimental_title),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Text(
+                            text = stringResource(R.string.captive_portal_experimental_description),
+                            modifier = Modifier.padding(top = 4.dp),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
             }
 
@@ -165,19 +229,50 @@ fun CaptivePortalScreen(
                 onClick = { onModeChange(CaptivePortalMode.CUSTOM) },
             )
 
-            if (state.mode == CaptivePortalMode.CUSTOM) {
-                CaptivePortalTextField(
-                    label = stringResource(R.string.captive_portal_http_url),
-                    value = state.httpUrl,
-                    onValueChange = onHttpUrlChange,
-                    error = captivePortalErrorText(state.httpError, "http://"),
-                )
-                CaptivePortalTextField(
-                    label = stringResource(R.string.captive_portal_https_url),
-                    value = state.httpsUrl,
-                    onValueChange = onHttpsUrlChange,
-                    error = captivePortalErrorText(state.httpsError, "https://"),
-                )
+            AnimatedVisibility(
+                visible = state.mode == CaptivePortalMode.CUSTOM,
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut(),
+            ) {
+                Column(modifier = Modifier.padding(top = 4.dp)) {
+                    Text(
+                        text = stringResource(R.string.captive_portal_presets),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
+                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        captivePortalPresets.forEach { preset ->
+                            val isSelected = state.httpUrl == preset.httpUrl && state.httpsUrl == preset.httpsUrl
+                            FilterChip(
+                                selected = isSelected,
+                                onClick = {
+                                    onHttpUrlChange(preset.httpUrl)
+                                    onHttpsUrlChange(preset.httpsUrl)
+                                },
+                                label = { Text(stringResource(preset.nameRes)) },
+                            )
+                        }
+                    }
+                    CaptivePortalTextField(
+                        label = stringResource(R.string.captive_portal_http_url),
+                        value = state.httpUrl,
+                        onValueChange = onHttpUrlChange,
+                        error = captivePortalErrorText(state.httpError, "http://"),
+                    )
+                    CaptivePortalTextField(
+                        label = stringResource(R.string.captive_portal_https_url),
+                        value = state.httpsUrl,
+                        onValueChange = onHttpsUrlChange,
+                        error = captivePortalErrorText(state.httpsError, "https://"),
+                    )
+                }
             }
 
             state.operationError?.let { error ->
@@ -245,6 +340,7 @@ private fun CaptivePortalTextField(
     onValueChange: (String) -> Unit,
     error: String?,
 ) {
+    val clipboardManager = LocalClipboardManager.current
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
@@ -258,6 +354,25 @@ private fun CaptivePortalTextField(
             { Text(error) }
         } else {
             null
+        },
+        trailingIcon = {
+            if (value.isNotEmpty()) {
+                IconButton(onClick = { onValueChange("") }) {
+                    Icon(
+                        imageVector = Icons.Rounded.Clear,
+                        contentDescription = stringResource(R.string.clear),
+                    )
+                }
+            } else {
+                IconButton(onClick = {
+                    clipboardManager.getText()?.text?.let { onValueChange(it) }
+                }) {
+                    Icon(
+                        imageVector = Icons.Rounded.ContentPaste,
+                        contentDescription = stringResource(R.string.paste),
+                    )
+                }
+            }
         },
     )
 }

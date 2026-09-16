@@ -1,6 +1,9 @@
 package io.github.vvb2060.ims.ui.screens
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -8,24 +11,34 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.History
+import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.SettingsBackupRestore
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -35,17 +48,11 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.LinkAnnotation
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextLinkStyles
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import io.github.vvb2060.ims.R
 import io.github.vvb2060.ims.model.Feature
@@ -99,12 +106,13 @@ fun ImsConfigScreen(
         }
     }
     var editingFeature by remember { mutableStateOf<Feature?>(null) }
+    var showMenu by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-                    Column {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(stringResource(R.string.ims_configuration))
                         selectedSim?.let {
                             Text(
@@ -121,27 +129,37 @@ fun ImsConfigScreen(
                     }
                 },
                 actions = {
-                    IconButton(
-                        enabled = selectedSim != null,
-                        onClick = {
-                            val sim = selectedSim ?: return@IconButton
-                            featureSwitches.clear()
-                            featureSwitches.putAll(loadConfiguration(sim.subId) ?: loadDefaults())
-                        },
-                    ) {
-                        Icon(Icons.Rounded.History, contentDescription = stringResource(R.string.load_saved_configuration))
-                    }
-                    IconButton(
-                        enabled = selectedSim != null,
-                        onClick = {
-                            featureSwitches.clear()
-                            featureSwitches.putAll(loadDefaults())
-                        },
-                    ) {
-                        Icon(
-                            Icons.Rounded.SettingsBackupRestore,
-                            contentDescription = stringResource(R.string.restore_default_draft),
-                        )
+                    Box {
+                        IconButton(
+                            enabled = selectedSim != null,
+                            onClick = { showMenu = true },
+                        ) {
+                            Icon(Icons.Rounded.MoreVert, contentDescription = stringResource(R.string.more_options))
+                        }
+                        DropdownMenu(
+                            expanded = showMenu,
+                            onDismissRequest = { showMenu = false },
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.load_saved_configuration)) },
+                                leadingIcon = { Icon(Icons.Rounded.History, contentDescription = null) },
+                                onClick = {
+                                    showMenu = false
+                                    val sim = selectedSim ?: return@DropdownMenuItem
+                                    featureSwitches.clear()
+                                    featureSwitches.putAll(loadConfiguration(sim.subId) ?: loadDefaults())
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.restore_default_draft)) },
+                                leadingIcon = { Icon(Icons.Rounded.SettingsBackupRestore, contentDescription = null) },
+                                onClick = {
+                                    showMenu = false
+                                    featureSwitches.clear()
+                                    featureSwitches.putAll(loadDefaults())
+                                },
+                            )
+                        }
                     }
                 },
             )
@@ -177,6 +195,112 @@ fun ImsConfigScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 return@Column
+            }
+
+            // 顶置心智说明横幅
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+            ) {
+                Row(
+                    modifier = Modifier.padding(12.dp),
+                    verticalAlignment = Alignment.Top,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Info,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .size(20.dp)
+                            .padding(top = 2.dp),
+                    )
+                    Column {
+                        Text(
+                            text = stringResource(R.string.ims_draft_banner_title),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Text(
+                            text = stringResource(R.string.ims_draft_banner_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 2.dp),
+                        )
+                    }
+                }
+            }
+
+            // 快速预设 Chips
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                AssistChip(
+                    onClick = {
+                        featureSwitches[Feature.VOLTE] = FeatureValue(true, FeatureValueType.BOOLEAN)
+                        featureSwitches[Feature.VT] = FeatureValue(true, FeatureValueType.BOOLEAN)
+                        featureSwitches[Feature.VOWIFI] = FeatureValue(false, FeatureValueType.BOOLEAN)
+                        featureSwitches[Feature.VOWIFI_ROAMING] = FeatureValue(false, FeatureValueType.BOOLEAN)
+                        featureSwitches[Feature.VONR] = FeatureValue(true, FeatureValueType.BOOLEAN)
+                        featureSwitches[Feature.FIVE_G_NR] = FeatureValue(true, FeatureValueType.BOOLEAN)
+                        featureSwitches[Feature.FIVE_G_THRESHOLDS] = FeatureValue(true, FeatureValueType.BOOLEAN)
+                    },
+                    label = { Text(stringResource(R.string.preset_recommended)) },
+                    leadingIcon = {
+                        Icon(Icons.Rounded.AutoAwesome, contentDescription = null, modifier = Modifier.size(16.dp))
+                    },
+                )
+                AssistChip(
+                    onClick = {
+                        featureSwitches[Feature.VOLTE] = FeatureValue(true, FeatureValueType.BOOLEAN)
+                        featureSwitches[Feature.VOWIFI] = FeatureValue(false, FeatureValueType.BOOLEAN)
+                        featureSwitches[Feature.VOWIFI_ROAMING] = FeatureValue(false, FeatureValueType.BOOLEAN)
+                        featureSwitches[Feature.VONR] = FeatureValue(true, FeatureValueType.BOOLEAN)
+                        featureSwitches[Feature.VT] = FeatureValue(true, FeatureValueType.BOOLEAN)
+                        featureSwitches[Feature.CROSS_SIM] = FeatureValue(true, FeatureValueType.BOOLEAN)
+                        featureSwitches[Feature.UT] = FeatureValue(true, FeatureValueType.BOOLEAN)
+                        featureSwitches[Feature.FIVE_G_NR] = FeatureValue(true, FeatureValueType.BOOLEAN)
+                        featureSwitches[Feature.FIVE_G_THRESHOLDS] = FeatureValue(true, FeatureValueType.BOOLEAN)
+                        featureSwitches[Feature.FIVE_G_PLUS_ICON] = FeatureValue(true, FeatureValueType.BOOLEAN)
+                        featureSwitches[Feature.ENHANCED_4G_LTE] = FeatureValue(true, FeatureValueType.BOOLEAN)
+                        featureSwitches[Feature.HIDE_LTE_PLUS_DATA_ICON] = FeatureValue(false, FeatureValueType.BOOLEAN)
+                        featureSwitches[Feature.SHOW_4G_FOR_LTE] = FeatureValue(true, FeatureValueType.BOOLEAN)
+                    },
+                    label = { Text(stringResource(R.string.preset_china_5g)) },
+                )
+                AssistChip(
+                    onClick = {
+                        featureSwitches[Feature.VOLTE] = FeatureValue(true, FeatureValueType.BOOLEAN)
+                        featureSwitches[Feature.VOWIFI] = FeatureValue(false, FeatureValueType.BOOLEAN)
+                        featureSwitches[Feature.VOWIFI_ROAMING] = FeatureValue(false, FeatureValueType.BOOLEAN)
+                        featureSwitches[Feature.VONR] = FeatureValue(false, FeatureValueType.BOOLEAN)
+                        featureSwitches[Feature.VT] = FeatureValue(true, FeatureValueType.BOOLEAN)
+                        featureSwitches[Feature.CROSS_SIM] = FeatureValue(true, FeatureValueType.BOOLEAN)
+                        featureSwitches[Feature.UT] = FeatureValue(true, FeatureValueType.BOOLEAN)
+                        featureSwitches[Feature.FIVE_G_NR] = FeatureValue(false, FeatureValueType.BOOLEAN)
+                        featureSwitches[Feature.FIVE_G_THRESHOLDS] = FeatureValue(false, FeatureValueType.BOOLEAN)
+                        featureSwitches[Feature.FIVE_G_PLUS_ICON] = FeatureValue(false, FeatureValueType.BOOLEAN)
+                        featureSwitches[Feature.ENHANCED_4G_LTE] = FeatureValue(true, FeatureValueType.BOOLEAN)
+                        featureSwitches[Feature.HIDE_LTE_PLUS_DATA_ICON] = FeatureValue(false, FeatureValueType.BOOLEAN)
+                        featureSwitches[Feature.SHOW_4G_FOR_LTE] = FeatureValue(true, FeatureValueType.BOOLEAN)
+                    },
+                    label = { Text(stringResource(R.string.preset_china_lte)) },
+                )
+                AssistChip(
+                    onClick = {
+                        Feature.entries.filter { it.valueType == FeatureValueType.BOOLEAN }.forEach { feat ->
+                            featureSwitches[feat] = FeatureValue(true, FeatureValueType.BOOLEAN)
+                        }
+                    },
+                    label = { Text(stringResource(R.string.preset_all_enabled)) },
+                )
             }
 
             FeatureSection(
@@ -217,7 +341,7 @@ fun ImsConfigScreen(
                     onStringClick = { editingFeature = it },
                 )
             }
-            ImsTips()
+            Spacer(modifier = Modifier.size(16.dp))
         }
     }
 
@@ -245,53 +369,59 @@ private fun FeatureSection(
 ) {
     Text(
         text = title,
-        modifier = Modifier.padding(start = 24.dp, top = 20.dp, end = 16.dp, bottom = 8.dp),
+        modifier = Modifier.padding(start = 24.dp, top = 16.dp, end = 16.dp, bottom = 6.dp),
         style = MaterialTheme.typography.labelLarge,
         color = MaterialTheme.colorScheme.primary,
         fontWeight = FontWeight.SemiBold,
     )
-    features.forEachIndexed { index, feature ->
-        val titleText = stringResource(feature.showTitleRes)
-        val description = stringResource(feature.showDescriptionRes)
-        when (feature.valueType) {
-            FeatureValueType.BOOLEAN -> {
-                val checked = values[feature]?.data as? Boolean ?: feature.defaultValue as Boolean
-                ListItem(
-                    modifier = Modifier.toggleable(
-                        value = checked,
-                        role = Role.Switch,
-                        onValueChange = { onBooleanChange(feature, it) },
-                    ),
-                    headlineContent = { Text(titleText) },
-                    supportingContent = {
-                        Text(
-                            text = description,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    },
-                    trailingContent = {
-                        Switch(checked = checked, onCheckedChange = null)
-                    },
-                )
-            }
+    OutlinedCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 2.dp),
+    ) {
+        features.forEachIndexed { index, feature ->
+            val titleText = stringResource(feature.showTitleRes)
+            val description = stringResource(feature.showDescriptionRes)
+            when (feature.valueType) {
+                FeatureValueType.BOOLEAN -> {
+                    val checked = values[feature]?.data as? Boolean ?: feature.defaultValue as Boolean
+                    ListItem(
+                        modifier = Modifier.toggleable(
+                            value = checked,
+                            role = Role.Switch,
+                            onValueChange = { onBooleanChange(feature, it) },
+                        ),
+                        headlineContent = { Text(titleText) },
+                        supportingContent = {
+                            Text(
+                                text = description,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        },
+                        trailingContent = {
+                            Switch(checked = checked, onCheckedChange = null)
+                        },
+                    )
+                }
 
-            FeatureValueType.STRING -> {
-                val currentValue = values[feature]?.data as? String ?: ""
-                ListItem(
-                    modifier = Modifier.clickable { onStringClick(feature) },
-                    headlineContent = { Text(titleText) },
-                    supportingContent = {
-                        Text(
-                            text = currentValue.ifBlank { description },
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 2,
-                        )
-                    },
-                )
+                FeatureValueType.STRING -> {
+                    val currentValue = values[feature]?.data as? String ?: ""
+                    ListItem(
+                        modifier = Modifier.clickable { onStringClick(feature) },
+                        headlineContent = { Text(titleText) },
+                        supportingContent = {
+                            Text(
+                                text = currentValue.ifBlank { description },
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 2,
+                            )
+                        },
+                    )
+                }
             }
-        }
-        if (index != features.lastIndex) {
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+            if (index != features.lastIndex) {
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+            }
         }
     }
 }
@@ -328,45 +458,4 @@ private fun StringFeatureDialog(
             }
         },
     )
-}
-
-@Composable
-private fun ImsTips() {
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text(
-            text = stringResource(R.string.tip),
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        val lines = stringArrayResource(R.array.tips)
-        lines.forEach { text ->
-            Text(
-                text = text.removePrefix("!"),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontWeight = if (text.startsWith("!")) FontWeight.Bold else null,
-            )
-        }
-        val linkText = buildAnnotatedString {
-            append(stringResource(R.string.tip_country_iso_prefix))
-            withLink(
-                LinkAnnotation.Url(
-                    url = "https://github.com/ryfineZ/carrier-ims-for-pixel",
-                    styles = TextLinkStyles(
-                        style = SpanStyle(
-                            color = MaterialTheme.colorScheme.primary,
-                            textDecoration = TextDecoration.Underline,
-                        ),
-                    ),
-                ),
-            ) {
-                append(stringResource(R.string.tip_country_iso_app_name))
-            }
-        }
-        Text(
-            text = linkText,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
 }

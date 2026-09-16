@@ -133,16 +133,6 @@
     <string name="apply_config">Apply</string>
     <string name="reset_config">Reset</string>
 
-    <!-- Tips -->
-    <string name="tip_country_iso_prefix">• Country ISO customization has been removed. For this feature, see </string>
-    <string name="tip_country_iso_app_name">carrier-ims-for-pixel</string>
-    <string name="tip">Tips:</string>
-    <string-array name="tips">
-        <item>!• The feature list switch is only used to show the content to be modified in this operation, and does not indicate the current status of related system functions.</item>
-        <item>• Shizuku needs to be started and authorized first.</item>
-        <item>• The configuration takes effect on the selected SIM card.</item>
-        <item>• Resetting the configuration will revert to the initial state, but the feature switches will not change.</item>
-    </string-array>
 
     <!-- Messages -->
     <string name="shizuku_not_running_msg">Shizuku is not running, please start Shizuku first</string>
@@ -182,4 +172,24 @@
     <string name="persistent_volte_unknown">Unknown</string>
     <string name="persistent_volte_applied">Enabled. Restart your phone and verify that VoLTE calls work.</string>
     <string name="persistent_volte_restored">Original VoLTE settings restored.</string>
+
+    <!-- UX Additions -->
+    <string name="ims_draft_banner_title">Draft Configuration</string>
+    <string name="ims_draft_banner_desc">Switches below represent the configuration to be written in this operation, not the current system status. Tap \"Apply changes\" at the bottom to apply.</string>
+    <string name="preset_recommended">Recommended</string>
+    <string name="preset_china_5g">China 5G</string>
+    <string name="preset_china_lte">China LTE</string>
+    <string name="preset_all_enabled">Enable all</string>
+    <string name="more_options">More options</string>
+    <string name="captive_portal_presets">Quick presets</string>
+    <string name="preset_google">Google</string>
+    <string name="preset_v2ex">V2EX</string>
+    <string name="preset_miui">Xiaomi</string>
+    <string name="preset_vivo">vivo</string>
+    <string name="preset_huawei">Huawei</string>
+    <string name="clear">Clear</string>
+    <string name="paste">Paste</string>
+    <string name="danger_zone">Danger Zone</string>
+    <string name="danger_zone_desc">Irreversible operations that remove TensorIMS CarrierConfig overrides</string>
+    <string name="diagnostics_and_maintenance">Diagnostics &amp; Maintenance</string>
 </resources>

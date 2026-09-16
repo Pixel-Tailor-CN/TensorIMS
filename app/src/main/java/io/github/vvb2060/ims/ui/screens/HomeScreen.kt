@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Build
 import androidx.compose.material.icons.rounded.Phone
 import androidx.compose.material.icons.rounded.Public
+import androidx.compose.material.icons.rounded.SimCard
 import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.MaterialTheme
@@ -99,12 +100,14 @@ fun HomeScreen(
                     enabled = selectedSim != null,
                     onClick = onOpenImsConfig,
                 )
+                androidx.compose.material3.HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                 SettingsListItem(
                     title = stringResource(R.string.system_network),
                     summary = stringResource(R.string.system_network_summary),
                     icon = Icons.Rounded.Public,
                     onClick = onOpenSystemNetwork,
                 )
+                androidx.compose.material3.HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                 SettingsListItem(
                     title = stringResource(R.string.advanced_tools),
                     summary = stringResource(R.string.advanced_tools_summary),
@@ -133,13 +136,19 @@ private fun SimSelectionCard(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
     ) {
-        Column(modifier = Modifier.padding(vertical = 8.dp)) {
+        Column(modifier = Modifier.padding(12.dp)) {
             androidx.compose.foundation.layout.Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 16.dp, end = 8.dp),
+                    .padding(start = 4.dp, end = 4.dp, bottom = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                androidx.compose.material3.Icon(
+                    imageVector = androidx.compose.material.icons.Icons.Rounded.SimCard,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(end = 8.dp),
+                )
                 Text(
                     text = stringResource(R.string.sim_card),
                     modifier = Modifier.weight(1f),
@@ -151,30 +160,42 @@ private fun SimSelectionCard(
                 }
             }
             allSimList.forEach { sim ->
-                androidx.compose.foundation.layout.Row(
+                val isSelected = selectedSim?.subId == sim.subId
+                androidx.compose.material3.Surface(
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(10.dp),
+                    color = if (isSelected) MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f) else androidx.compose.ui.graphics.Color.Transparent,
                     modifier = Modifier
                         .fillMaxWidth()
+                        .padding(vertical = 2.dp)
                         .selectable(
-                            selected = selectedSim?.subId == sim.subId,
+                            selected = isSelected,
                             onClick = { onSelectSim(sim) },
-                        )
-                        .padding(horizontal = 8.dp, vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                        ),
                 ) {
-                    RadioButton(
-                        selected = selectedSim?.subId == sim.subId,
-                        onClick = null,
-                    )
-                    Text(
-                        text = sim.showTitle,
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
+                    androidx.compose.foundation.layout.Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        RadioButton(
+                            selected = isSelected,
+                            onClick = null,
+                        )
+                        Text(
+                            text = sim.showTitle,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                            color = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.padding(start = 8.dp),
+                        )
+                    }
                 }
             }
             if (allSimList.isEmpty()) {
                 Text(
                     text = stringResource(R.string.no_sim_available),
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 12.dp),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

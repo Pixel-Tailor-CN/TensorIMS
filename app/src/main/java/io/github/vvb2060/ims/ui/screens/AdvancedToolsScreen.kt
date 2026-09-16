@@ -1,5 +1,6 @@
 package io.github.vvb2060.ims.ui.screens
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -32,7 +33,6 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -125,10 +125,18 @@ fun AdvancedToolsScreen(
                 )
             }
 
+            // 诊断与常规维护卡片
+            Text(
+                text = stringResource(R.string.diagnostics_and_maintenance),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(start = 24.dp, top = 8.dp, end = 16.dp, bottom = 4.dp),
+            )
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
             ) {
                 SettingsListItem(
                     title = stringResource(R.string.view_system_config),
@@ -137,6 +145,7 @@ fun AdvancedToolsScreen(
                     showChevron = false,
                     onClick = { loadImsStatus() },
                 )
+                androidx.compose.material3.HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                 SettingsListItem(
                     title = stringResource(R.string.restart_ims),
                     summary = stringResource(R.string.restart_ims_summary),
@@ -144,13 +153,7 @@ fun AdvancedToolsScreen(
                     showChevron = false,
                     onClick = { confirmRestart = true },
                 )
-                SettingsListItem(
-                    title = stringResource(R.string.reset_config),
-                    summary = stringResource(R.string.reset_config_summary),
-                    enabled = canOperate,
-                    showChevron = false,
-                    onClick = { confirmReset = true },
-                )
+                androidx.compose.material3.HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                 SettingsListItem(
                     title = stringResource(R.string.application_logs),
                     summary = stringResource(R.string.application_logs_summary),
@@ -176,6 +179,7 @@ fun AdvancedToolsScreen(
                 )
             }
 
+            // 持久化 VoLTE 卡片
             PersistentVolteCard(
                 state = persistentVolteState?.takeIf { it.subId == selectedSim?.subId },
                 singleSimSelected = singleSimSelected,
@@ -185,6 +189,33 @@ fun AdvancedToolsScreen(
                 onRestore = { selectedSim?.let { onRestorePersistentVolte(it.subId) } },
                 onRefresh = onRefreshPersistentVolte,
             )
+
+            // 危险操作区域 (Danger Zone)
+            Text(
+                text = stringResource(R.string.danger_zone),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.error,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(start = 24.dp, top = 16.dp, end = 16.dp, bottom = 4.dp),
+            )
+            androidx.compose.material3.OutlinedCard(
+                colors = androidx.compose.material3.CardDefaults.outlinedCardColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.15f),
+                ),
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.4f)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+            ) {
+                SettingsListItem(
+                    title = stringResource(R.string.reset_config),
+                    summary = stringResource(R.string.danger_zone_desc),
+                    enabled = canOperate,
+                    showChevron = false,
+                    onClick = { confirmReset = true },
+                )
+            }
+            Spacer(modifier = Modifier.padding(bottom = 16.dp))
         }
     }
 
@@ -289,7 +320,7 @@ private fun ImsStatusDialog(
             }
         },
         text = {
-            Column {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 ImsStatusRow(
                     label = "IMS",
                     isAvailable = status.isRegistered,
@@ -340,18 +371,26 @@ private fun ImsStatusRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
+            .padding(vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text = "$label: ",
+            text = label,
             modifier = Modifier.weight(1f),
-            fontWeight = FontWeight.SemiBold,
+            fontWeight = FontWeight.Medium,
         )
-        Text(
-            text = if (isAvailable) availableText else unavailableText,
-            color = if (isAvailable) MaterialTheme.colorScheme.primary else Color.Red,
-        )
+        androidx.compose.material3.Surface(
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(6.dp),
+            color = if (isAvailable) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f) else MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f),
+            contentColor = if (isAvailable) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onErrorContainer,
+        ) {
+            Text(
+                text = if (isAvailable) availableText else unavailableText,
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+            )
+        }
     }
 }
 
@@ -360,14 +399,18 @@ private fun ImsTextRow(label: String, value: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
+            .padding(vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text = "$label: ",
+            text = label,
             modifier = Modifier.weight(1f),
-            fontWeight = FontWeight.SemiBold,
+            fontWeight = FontWeight.Medium,
         )
-        Text(value)
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }

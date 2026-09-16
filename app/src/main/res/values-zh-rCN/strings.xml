@@ -133,16 +133,6 @@
     <string name="apply_config">应用配置</string>
     <string name="reset_config">重置配置</string>
 
-    <!-- Tips -->
-    <string name="tip_country_iso_prefix">• 运营商国家码自定义功能已移除，如需使用请参考 </string>
-    <string name="tip_country_iso_app_name">carrier-ims-for-pixel</string>
-    <string name="tip">提示：</string>
-    <string-array name="tips">
-        <item>!• 功能列表开关仅用于展示本次操作需要修改的内容，并不表示当前系统相关功能的开启情况</item>
-        <item>• 需要先启动并授权 Shizuku</item>
-        <item>• 配置生效到选择的 SIM 卡上</item>
-        <item>• 重置配置会回到一开始的状态，但是功能开关不会有变化</item>
-    </string-array>
 
     <!-- Messages -->
     <string name="shizuku_not_running_msg">Shizuku 未运行，请先启动 Shizuku</string>
@@ -182,4 +172,24 @@
     <string name="persistent_volte_unknown">未知</string>
     <string name="persistent_volte_applied">已启用，请在重启后验证 VoLTE 通话是否正常。</string>
     <string name="persistent_volte_restored">已恢复原来的 VoLTE 设置。</string>
+
+    <!-- UX 增强文本 -->
+    <string name="ims_draft_banner_title">配置草稿模式</string>
+    <string name="ims_draft_banner_desc">以下开关仅代表本次操作将写入的配置，并不表示系统当前实际状态。修改后请点击底部“应用配置”生效。</string>
+    <string name="preset_recommended">推荐配置</string>
+    <string name="preset_china_5g">国内 5G</string>
+    <string name="preset_china_lte">国内 LTE</string>
+    <string name="preset_all_enabled">全部开启</string>
+    <string name="more_options">更多选项</string>
+    <string name="captive_portal_presets">常用预设</string>
+    <string name="preset_google">Google 官方</string>
+    <string name="preset_v2ex">V2EX 节点</string>
+    <string name="preset_miui">小米 (MIUI)</string>
+    <string name="preset_vivo">vivo</string>
+    <string name="preset_huawei">华为 (EMUI)</string>
+    <string name="clear">清空</string>
+    <string name="paste">粘贴</string>
+    <string name="danger_zone">危险操作</string>
+    <string name="danger_zone_desc">清除 TensorIMS 对所选 SIM 的 CarrierConfig 覆盖设置</string>
+    <string name="diagnostics_and_maintenance">诊断与常规维护</string>
 </resources>
