@@ -11,22 +11,24 @@ import android.os.Bundle
 import android.os.ServiceManager
 import android.telephony.SubscriptionInfo
 import android.util.Log
+import io.github.vvb2060.ims.model.CaptivePortalSettings
 import io.github.vvb2060.ims.model.ImsCapabilityStatus
 import io.github.vvb2060.ims.model.PersistentVolteState
 import io.github.vvb2060.ims.model.SimSelection
 import io.github.vvb2060.ims.privileged.BrokerInstrumentation
-import io.github.vvb2060.ims.privileged.isCarrierConfigPermissionError
+import io.github.vvb2060.ims.privileged.CaptivePortalSettingsModifier
 import io.github.vvb2060.ims.privileged.ImsCapabilityReader
 import io.github.vvb2060.ims.privileged.ImsModifier
 import io.github.vvb2060.ims.privileged.ImsResetter
-import io.github.vvb2060.ims.privileged.SimReader
 import io.github.vvb2060.ims.privileged.PersistentVolteModifier
+import io.github.vvb2060.ims.privileged.SimReader
+import io.github.vvb2060.ims.privileged.isCarrierConfigPermissionError
 import io.github.vvb2060.ims.privileged.toPrivilegedErrorMessage
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withTimeoutOrNull
 import org.lsposed.hiddenapibypass.LSPass
 import rikka.shizuku.Shizuku
 import rikka.shizuku.ShizukuBinderWrapper
@@ -47,9 +49,9 @@ class ShizukuProvider : ShizukuProvider() {
 
         suspend fun persistentVolte(context: Context, subId: Int, action: String): PersistentVolteState {
             try {
-                check(rikka.shizuku.Shizuku.pingBinder()) { "Shizuku binder is unavailable" }
-                check(!rikka.shizuku.Shizuku.isPreV11()) { "Shizuku update required" }
-                check(rikka.shizuku.Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
+                check(Shizuku.pingBinder()) { "Shizuku binder is unavailable" }
+                check(!Shizuku.isPreV11()) { "Shizuku update required" }
+                check(Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
                     "Shizuku permission is not granted"
                 }
                 val args = Bundle().apply {
@@ -75,6 +77,80 @@ class ShizukuProvider : ShizukuProvider() {
             } catch (t: Throwable) {
                 Log.e(TAG, "Persistent VoLTE request failed", t)
                 return PersistentVolteState(subId, error = t.toPrivilegedErrorMessage())
+            }
+        }
+
+        suspend fun readCaptivePortalSettings(
+            context: Context,
+        ): Pair<CaptivePortalSettings?, String?> {
+            val args = Bundle().apply {
+                putString(
+                    CaptivePortalSettingsModifier.ACTION,
+                    CaptivePortalSettingsModifier.ACTION_READ,
+                )
+            }
+            val result = startInstrumentation(
+                context,
+                CaptivePortalSettingsModifier::class.java,
+                args,
+                true,
+            ) ?: return null to "No instrumentation result"
+            if (!result.getBoolean(CaptivePortalSettingsModifier.RESULT_SUCCESS)) {
+                return null to (result.getString(CaptivePortalSettingsModifier.RESULT_MESSAGE)
+                    ?: "Incomplete captive portal result")
+            }
+            return CaptivePortalSettings(
+                httpUrl = result.getString(CaptivePortalSettingsModifier.RESULT_HTTP_URL),
+                httpsUrl = result.getString(CaptivePortalSettingsModifier.RESULT_HTTPS_URL),
+            ) to null
+        }
+
+        suspend fun writeCaptivePortalSettings(
+            context: Context,
+            settings: CaptivePortalSettings,
+        ): String? {
+            val httpUrl = requireNotNull(settings.httpUrl)
+            val httpsUrl = requireNotNull(settings.httpsUrl)
+            val args = Bundle().apply {
+                putString(
+                    CaptivePortalSettingsModifier.ACTION,
+                    CaptivePortalSettingsModifier.ACTION_WRITE,
+                )
+                putString(CaptivePortalSettingsModifier.HTTP_URL, httpUrl)
+                putString(CaptivePortalSettingsModifier.HTTPS_URL, httpsUrl)
+            }
+            val result = startInstrumentation(
+                context,
+                CaptivePortalSettingsModifier::class.java,
+                args,
+                true,
+            ) ?: return "No instrumentation result"
+            return if (result.getBoolean(CaptivePortalSettingsModifier.RESULT_SUCCESS)) {
+                null
+            } else {
+                result.getString(CaptivePortalSettingsModifier.RESULT_MESSAGE)
+                    ?: "Incomplete captive portal result"
+            }
+        }
+
+        suspend fun resetCaptivePortalSettings(context: Context): String? {
+            val args = Bundle().apply {
+                putString(
+                    CaptivePortalSettingsModifier.ACTION,
+                    CaptivePortalSettingsModifier.ACTION_RESET,
+                )
+            }
+            val result = startInstrumentation(
+                context,
+                CaptivePortalSettingsModifier::class.java,
+                args,
+                true,
+            ) ?: return "No instrumentation result"
+            return if (result.getBoolean(CaptivePortalSettingsModifier.RESULT_SUCCESS)) {
+                null
+            } else {
+                result.getString(CaptivePortalSettingsModifier.RESULT_MESSAGE)
+                    ?: "Incomplete captive portal result"
             }
         }
 
