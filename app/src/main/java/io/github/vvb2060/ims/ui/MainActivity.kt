@@ -114,6 +114,7 @@ class MainActivity : BaseActivity() {
             composable(TensorImsRoutes.CAPTIVE_PORTAL) {
                 CaptivePortalScreen(
                     state = systemNetworkState,
+                    shizukuStatus = shizukuStatus,
                     onRefresh = systemNetworkViewModel::loadCaptivePortal,
                     onModeChange = systemNetworkViewModel::setMode,
                     onHttpUrlChange = systemNetworkViewModel::setHttpUrl,

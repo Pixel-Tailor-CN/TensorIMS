@@ -37,6 +37,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import io.github.vvb2060.ims.R
 import io.github.vvb2060.ims.model.CaptivePortalUrlError
+import io.github.vvb2060.ims.model.ShizukuStatus
 import io.github.vvb2060.ims.viewmodel.CaptivePortalMode
 import io.github.vvb2060.ims.viewmodel.CaptivePortalNotice
 import io.github.vvb2060.ims.viewmodel.CaptivePortalUiState
@@ -44,6 +45,7 @@ import io.github.vvb2060.ims.viewmodel.CaptivePortalUiState
 @Composable
 fun CaptivePortalScreen(
     state: CaptivePortalUiState,
+    shizukuStatus: ShizukuStatus,
     onRefresh: () -> Unit,
     onModeChange: (CaptivePortalMode) -> Unit,
     onHttpUrlChange: (String) -> Unit,
@@ -94,7 +96,7 @@ fun CaptivePortalScreen(
             Column {
                 Button(
                     onClick = onSave,
-                    enabled = !state.loading && !state.saving,
+                    enabled = !state.loading && !state.saving && shizukuStatus == ShizukuStatus.READY,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 12.dp),
