@@ -57,7 +57,6 @@ fun AdvancedToolsScreen(
     onRefreshPersistentVolte: () -> Unit,
     onRestartIms: (SimSelection) -> Unit,
     onResetConfiguration: (SimSelection) -> Unit,
-    onOpenLogcat: () -> Unit,
     onBack: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
@@ -152,12 +151,6 @@ fun AdvancedToolsScreen(
                     enabled = canOperate,
                     showChevron = false,
                     onClick = { confirmRestart = true },
-                )
-                androidx.compose.material3.HorizontalDivider()
-                SettingsListItem(
-                    title = stringResource(R.string.application_logs),
-                    summary = stringResource(R.string.application_logs_summary),
-                    onClick = onOpenLogcat,
                 )
             }
 

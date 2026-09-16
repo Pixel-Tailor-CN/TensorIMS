@@ -12,6 +12,7 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Build
+import androidx.compose.material.icons.rounded.Description
 import androidx.compose.material.icons.rounded.Phone
 import androidx.compose.material.icons.rounded.Public
 import androidx.compose.material.icons.rounded.SimCard
@@ -49,6 +50,7 @@ fun HomeScreen(
     onOpenImsConfig: () -> Unit,
     onOpenSystemNetwork: () -> Unit,
     onOpenAdvancedTools: () -> Unit,
+    onOpenLogcat: () -> Unit,
     onAutoRestoreEnabledChange: (Boolean) -> Unit,
 ) {
     Scaffold(
@@ -113,6 +115,13 @@ fun HomeScreen(
                     summary = stringResource(R.string.advanced_tools_summary),
                     icon = Icons.Rounded.Build,
                     onClick = onOpenAdvancedTools,
+                )
+                androidx.compose.material3.HorizontalDivider()
+                SettingsListItem(
+                    title = stringResource(R.string.application_logs),
+                    summary = stringResource(R.string.application_logs_summary),
+                    icon = Icons.Rounded.Description,
+                    onClick = onOpenLogcat,
                 )
             }
             AutoRestoreCard(

@@ -51,7 +51,7 @@
     <string name="system_network">System network</string>
     <string name="system_network_summary">Device-level network settings such as captive portal detection</string>
     <string name="advanced_tools">Advanced tools</string>
-    <string name="advanced_tools_summary">IMS status, persistent VoLTE, restart, reset and logs</string>
+    <string name="advanced_tools_summary">IMS status, persistent VoLTE, restart and reset</string>
     <string name="advanced_tools_single_sim_hint">Select a single SIM on the home screen to use SIM-specific advanced operations.</string>
     <string name="view_system_config_summary">Read a real-time IMS capability snapshot for the selected SIM.</string>
     <string name="restart_ims_summary">Restart IMS for the selected SIM. Use this only when registration is stuck.</string>

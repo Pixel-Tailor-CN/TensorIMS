@@ -96,6 +96,9 @@ class MainActivity : BaseActivity() {
                     onOpenImsConfig = { navigate(TensorImsRoutes.IMS_CONFIG) },
                     onOpenSystemNetwork = { navigate(TensorImsRoutes.SYSTEM_NETWORK) },
                     onOpenAdvancedTools = { navigate(TensorImsRoutes.ADVANCED_TOOLS) },
+                    onOpenLogcat = {
+                        startActivity(Intent(this@MainActivity, LogcatActivity::class.java))
+                    },
                     onAutoRestoreEnabledChange = viewModel::setAutoRestoreEnabled,
                 )
             }
@@ -151,9 +154,6 @@ class MainActivity : BaseActivity() {
                     onRefreshPersistentVolte = viewModel::refreshPersistentVolte,
                     onRestartIms = viewModel::onResetIms,
                     onResetConfiguration = viewModel::onResetConfiguration,
-                    onOpenLogcat = {
-                        startActivity(Intent(this@MainActivity, LogcatActivity::class.java))
-                    },
                     onBack = onBack,
                 )
             }

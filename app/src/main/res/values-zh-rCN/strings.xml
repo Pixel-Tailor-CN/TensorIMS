@@ -51,7 +51,7 @@
     <string name="system_network">系统网络</string>
     <string name="system_network_summary">Captive Portal 等设备级网络设置</string>
     <string name="advanced_tools">高级工具</string>
-    <string name="advanced_tools_summary">IMS 状态、持久化 VoLTE、重启、重置与日志</string>
+    <string name="advanced_tools_summary">IMS 状态、持久化 VoLTE、重启与重置</string>
     <string name="advanced_tools_single_sim_hint">请先在首页选择单张 SIM，再使用与 SIM 相关的高级操作。</string>
     <string name="view_system_config_summary">读取所选 SIM 当前的 IMS 能力实时快照。</string>
     <string name="restart_ims_summary">重启所选 SIM 的 IMS。仅在注册异常或卡住时使用。</string>
