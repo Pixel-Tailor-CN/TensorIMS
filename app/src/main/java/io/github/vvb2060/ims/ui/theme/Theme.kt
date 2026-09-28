@@ -1,13 +1,16 @@
 package io.github.vvb2060.ims.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 
 private val lightScheme = lightColorScheme(
@@ -117,6 +120,12 @@ fun TensorIMSTheme(
     MaterialExpressiveTheme(
         colorScheme = colorScheme,
         typography = MaterialTheme.typography,
-        content = content
-    )
+    ) {
+        // 背景不参与页面转场，避免页面缩放、位移或淡出时露出窗口的浅色底色。
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background,
+            content = content,
+        )
+    }
 }
