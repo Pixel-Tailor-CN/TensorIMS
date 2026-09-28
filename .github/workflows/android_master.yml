@@ -6,6 +6,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     if: "contains(github.event.head_commit.message, 'ci')"
     steps:
       - uses: actions/checkout@v4
@@ -23,28 +25,41 @@ jobs:
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
-          echo "$KEYSTORE_BASE64" | base64 --decode > /tmp/key.jks
-      - name: Build with Gradle
+          umask 077
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/tensorims-release.jks"
+      - name: Build release APK
         env:
-          SIGN_KEY_STORE_FILE: "/tmp/key.jks"
+          SIGN_KEY_STORE_FILE: ${{ runner.temp }}/tensorims-release.jks
           SIGN_KEY_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           SIGN_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           SIGN_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          ./gradlew assembleDebug
+          ./gradlew --no-daemon :app:assembleRelease
+      - name: Cleanup keystore
+        if: always()
+        run: rm -f "$RUNNER_TEMP/tensorims-release.jks"
       - name: Install jq
         run: sudo apt-get install jq
       - name: Parse build files
         id: apk
         run: |
-          versionName=$(cat "app/build/outputs/apk/debug/output-metadata.json" | jq -r '.elements[0].versionName')
-          mv "app/build/outputs/apk/debug/app-debug.apk" "TensorIMS-debug-$versionName.apk"
-          echo "versionName=$versionName" >> $GITHUB_OUTPUT
+          metadata=app/build/outputs/apk/release/output-metadata.json
+          versionName=$(jq -er '.elements[0].versionName' "$metadata")
+          outputFile=$(jq -er '.elements[0].outputFile' "$metadata")
+          mkdir -p outputs
+          cp "app/build/outputs/apk/release/$outputFile" "outputs/TensorIMS-release-$versionName.apk"
+          cp app/build/outputs/mapping/release/mapping.txt "outputs/TensorIMS-$versionName-mapping.txt"
+          printf 'versionName=%s\n' "$versionName" >> "$GITHUB_OUTPUT"
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: pre-${{ steps.apk.outputs.versionName }}
+          target_commitish: ${{ github.sha }}
           prerelease: true
+          fail_on_unmatched_files: true
           body: |
             注意：该版本为测试版本，可能存在一些问题，不建议日常使用
-          files: TensorIMS-debug-${{ steps.apk.outputs.versionName }}.apk
+            此 APK 使用正式密钥签名，已启用 release 混淆和资源压缩。
+          files: |
+            outputs/TensorIMS-release-${{ steps.apk.outputs.versionName }}.apk
+            outputs/TensorIMS-${{ steps.apk.outputs.versionName }}-mapping.txt
