@@ -104,9 +104,16 @@ class AutoRestoreController(private val context: Context) {
                             val target = repository.restoreTarget(sim.subId) ?: continue
                             if (repository.wasApplied(sim.subId, boot, target)) continue
                             // 全卡历史中的名称字段仍遵循手动全卡应用规则，不得转为单卡名称覆盖。
-                            val bundle = ConfigurationRepository.buildBundle(target.sourceSubId, target.config)
-                                .apply { putInt(ImsModifier.BUNDLE_SELECT_SIM_ID, sim.subId) }
-                            val error = ShizukuProvider.overrideImsConfig(context, bundle) { _enabled.value }
+                            val error = if (target.version >= 2) {
+                                ShizukuProvider.applyTargetConfig(context, sim.subId, target.identity, target.config) {
+                                    _enabled.value
+                                }.error
+                            } else {
+                                // 旧历史保留“false 不下发”的构造方式，升级不能改变原始意图。
+                                val bundle = ConfigurationRepository.buildBundle(target.sourceSubId, target.config)
+                                    .apply { putInt(ImsModifier.BUNDLE_SELECT_SIM_ID, sim.subId) }
+                                ShizukuProvider.overrideImsConfig(context, bundle) { _enabled.value }
+                            }
                             if (error == null) {
                                 results[sim.subId] = true
                                 repository.markApplied(sim.subId, boot, target)

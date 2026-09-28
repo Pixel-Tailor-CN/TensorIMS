@@ -44,6 +44,11 @@
     </application>
 
     <instrumentation
+        android:name=".privileged.ImsConfigurationReader"
+        android:label="ImsConfigurationReader"
+        android:targetPackage="${applicationId}" />
+
+    <instrumentation
         android:name=".privileged.ImsModifier"
         android:label="IMS Configurator"
         android:targetPackage="${applicationId}" />

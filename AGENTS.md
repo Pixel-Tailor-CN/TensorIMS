@@ -55,6 +55,7 @@ TensorIMS 是一个面向 Google Pixel Tensor 设备的 Android 应用，用于�
 
 - `io.github.vvb2060.ims.model`：数据模型和功能映射；`CaptivePortalSettings` 负责设备级联网检测地址的纯数据与校验。
 - `io.github.vvb2060.ims.viewmodel`：界面状态和业务调度；`MainViewModel` 管理 SIM/IMS/Shizuku，`SystemNetworkViewModel` 管理设备级系统网络设置，`LogcatViewModel` 管理日志。
+- `ImsConfigViewModel` 管理 IMS 目标配置的实时快照、待应用修改与逐卡结果；`TargetConfigMapper` 集中定义新协议的显式开关、系统默认参数恢复和仅可重置项目。
 - `io.github.vvb2060.ims.ui`：Activity、Compose UI、组件和主题；`MainActivity` 只承担状态连接与导航承载。
 - `io.github.vvb2060.ims.ui.screens`：首页、IMS 配置、系统网络、Captive Portal 和高级工具页面。
 - `io.github.vvb2060.ims.ui.components`：跨页面复用的 Compose 组件。
@@ -88,6 +89,7 @@ TensorIMS 是一个面向 Google Pixel Tensor 设备的 Android 应用，用于�
 - `SimReader`：读取当前可用 SIM 列表。
 - `ImsCapabilityReader`：读取 IMS 注册状态和 VoLTE/VoWiFi/VoNR/VT/NR 能力状态。
 - `ImsModifier`：写入或重置运营商配置覆盖值。
+- `ImsConfigurationReader`：读取活动 SIM 的当前 CarrierConfig 和可用恢复策略，不用 IMS 能力或历史草稿推断当前开关。新目标写入由 `TargetConfigurationOperation` 统一处理，主 Modifier 和 Broker 共用，有限回读一致后才确认成功。
 - `ImsResetter`：调用 telephony service 重置 IMS。
 - `PersistentVolteModifier`：按单张 SIM 读写持久化 VoLTE，使用 VoIMS opt-in 和用户开关；复用统一权限委托，通过系统管理类反射访问隐藏 API。
 - `CaptivePortalSettingsModifier`：读取、写入或删除 `captive_portal_http_url` / `captive_portal_https_url` SettingsProvider 值；两个值作为一组更新，失败时尽力恢复原值并以回读结果判定成功。
@@ -123,13 +125,16 @@ TensorIMS 是一个面向 Google Pixel Tensor 设备的 Android 应用，用于�
 - Captive Portal 属于设备级系统网络设置，不属于 `Feature`，不写入 `sim_config_<subId>`，不参与自动恢复，也不受当前 SIM 选择影响。
 - Captive Portal 首版只管理 `captive_portal_http_url` 和 `captive_portal_https_url`；“系统默认”通过删除这两个 SettingsProvider 覆盖值实现，不硬编码第三方默认地址。
 - `Feature` 和 `FeatureConfigMapper` 是 IMS 功能开关到运营商配置键的主要映射入口。
+- IMS 配置页从系统实时读取，缺键／权限失败不能补成 Feature 默认值。普通开关关闭显式写入 false（5G NR 写空可用性数组），仅下发用户明确修改或预设指定的项目。所有 SIM 的不同值显示“各卡不同”，不得自动补成关闭。
+- 参数类只有在 `CarrierConfigManager.getDefaultConfig()` 提供完整、类型匹配的默认参数时支持单项恢复；界面必须说明它是系统默认参数、不是运营商默认。字符串和无完整默认参数的覆盖项独立分组，恢复引导至高级工具重置，不能用空字符串或省略键假装恢复；不引入原值备份，不为单项恢复清空全卡覆盖。
+- 新历史以 `_config_version=2` 保存稀疏、明确的目标及 SIM 身份摘要 `_target_identity`，逐卡回读成功才保存；自动恢复新历史同样检查身份并回读。旧历史保留只写开启项的语义，旧 false 不迁移为禁用。批量部分失败保留待应用目标，只保存成功卡历史；持久化 VoLTE 与 Captive Portal 不参与此协议。
 - 修改运营商配置时优先走 `ImsModifier`，必要时再由 `ShizukuProvider` 触发 `BrokerInstrumentation` fallback。
 - UI 不直接执行业务写入逻辑，业务动作应放在 ViewModel 或特权入口中。
 
 ## UI 信息架构约定
 
 - 首页只承担设备/Shizuku 状态、SIM 选择、功能分类导航、应用日志入口和自动恢复开关，不继续堆叠具体功能按钮。
-- IMS 配置页面只管理本次 CarrierConfig 草稿，并按“通话 / 网络 / 显示 / 高级覆盖”分组；应用配置是该页的主操作。
+- IMS 配置页面以实时 CarrierConfig 初始化目标草稿，区分已读取、待应用、应用核对和失败状态；按“通话 / 网络 / 显示 / 自定义覆盖（恢复需重置）”分组，应用配置仍是主操作。预设与历史仅修改草稿，重新读取前确认丢弃未应用修改。
 - 系统网络页面承载与 SIM 无关的设备级网络设置；Captive Portal 是首个入口。
 - 高级工具页面承载 IMS 实时状态、持久化 VoLTE、IMS 重启、运营商配置重置等即时或低频操作。
 - 新增功能前先判断作用域是 SIM CarrierConfig、设备级系统设置还是即时工具，不要因为实现方便就把所有入口堆回首页。

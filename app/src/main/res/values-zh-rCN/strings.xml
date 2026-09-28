@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="ims_restore_system_defaults">恢复系统默认参数</string>
     <string name="app_name">TensorIMS</string>
     <string name="for_pixel">由 Mystery0 维护</string>
 
@@ -99,9 +100,9 @@
     <!-- Features -->
     <string name="features_config">本次应用功能列表</string>
     <string name="carrier_name">运营商名称</string>
-    <string name="carrier_name_desc">自定义锁屏与状态栏显示的运营商名称，留空则不修改</string>
+    <string name="carrier_name_desc">自定义锁屏与状态栏显示的运营商名称；恢复需要重置运营商配置</string>
     <string name="ims_user_agent">IMS User Agent</string>
-    <string name="ims_user_agent_desc">自定义向运营商注册 IMS 时的客户端标识字符串，留空则不修改</string>
+    <string name="ims_user_agent_desc">自定义向运营商注册 IMS 时的客户端标识字符串；恢复需要重置运营商配置</string>
     <string name="volte">VoLTE（4G 高清通话）</string>
     <string name="volte_desc">启用 4G 高清语音通话，边打电话边上网</string>
     <string name="vowifi">VoWiFi（Wi-Fi 通话）</string>
@@ -192,4 +193,33 @@
     <string name="danger_zone">危险操作</string>
     <string name="danger_zone_desc">清除 TensorIMS 对所选 SIM 的 CarrierConfig 覆盖设置</string>
     <string name="diagnostics_and_maintenance">诊断与常规维护</string>
+    <string name="ims_target_title">系统目标配置</string>
+    <string name="ims_target_desc">开关表示系统配置是否允许该功能，实际可用性请查看 IMS 状态。修改后点击“应用配置”。</string>
+    <string name="ims_loaded">已读取系统配置</string>
+    <string name="ims_reading">正在读取系统配置…</string>
+    <string name="ims_read_failed">无法读取配置，请重试</string>
+    <string name="ims_shizuku_required">请先启动 Shizuku 并授予权限，再读取系统配置</string>
+    <string name="ims_no_active_sim">未读取到活动 SIM，请刷新 SIM 列表并检查 Shizuku</string>
+    <string name="ims_sim_list_changed">活动 SIM 列表已变化，请重新读取配置后再应用</string>
+    <string name="ims_pending_changes">有未应用的更改</string>
+    <string name="ims_pending">待应用</string>
+    <string name="ims_applying">正在应用并核对…</string>
+    <string name="ims_verified">已应用并回读确认</string>
+    <string name="ims_reload">重新读取系统配置</string>
+    <string name="ims_discard_draft">重新读取会丢弃本页尚未应用的修改。</string>
+    <string name="ims_apply_incomplete">部分或全部配置未确认成功，已保留待应用修改。成功的 SIM 已保存；可重试或重新读取。</string>
+    <string name="ims_no_history">没有可加载的历史配置</string>
+    <string name="ims_some_targets_skipped">部分项目不支持、无法读取或需要重置才能恢复，已跳过；其余修改尚未应用。</string>
+    <string name="ims_reset_only_group">自定义覆盖（恢复需重置）</string>
+    <string name="ims_reset_required">这些项目没有可直接关闭的开关，或无法读取完整默认参数。修改后如需恢复，请到“高级工具”执行“重置运营商配置”。重置会清除所选 SIM 的全部 CarrierConfig 覆盖，并按既有流程恢复持久化 VoLTE。</string>
+    <string name="ims_open_reset">前往高级工具</string>
+    <string name="ims_string_reset_hint">输入非空自定义值。恢复请使用高级工具中的重置运营商配置；清空文本不会恢复。</string>
+    <string name="ims_system_default_hint">关闭后恢复系统提供的默认参数，不等同于运营商默认配置。</string>
+    <string name="ims_unknown">不支持或无法读取</string>
+    <string name="ims_mixed">各卡不同</string>
+    <string name="ims_enable">启用</string>
+    <string name="ims_disable">关闭</string>
+    <string name="ims_edit">修改</string>
+    <string name="ims_undo">撤销修改</string>
+    <string name="ims_reset_to_restore">恢复需重置</string>
 </resources>

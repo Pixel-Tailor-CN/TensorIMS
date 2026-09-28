@@ -12,9 +12,15 @@ import android.util.Log
 import io.github.vvb2060.ims.LogcatRepository
 import io.github.vvb2060.ims.model.FiveGPlusConfig
 import io.github.vvb2060.ims.model.VoWifiRoamingConfig
+import io.github.vvb2060.ims.model.TargetConfigProtocol
 import rikka.shizuku.Shizuku
 
 class ImsModifier : Instrumentation() {
+    private var targetArguments: Bundle? = null
+
+    override fun onStart() {
+        targetArguments?.let { applyTargetConfiguration(it) }
+    }
     companion object Companion {
         private const val TAG = "ImsModifier"
         const val BUNDLE_SELECT_SIM_ID = "select_sim_id"
@@ -157,6 +163,11 @@ class ImsModifier : Instrumentation() {
     }
 
     override fun onCreate(arguments: Bundle) {
+        if (arguments.containsKey(TargetConfigProtocol.ACTION)) {
+            targetArguments = Bundle(arguments)
+            start()
+            return
+        }
         // 等待 Shizuku binder 准备好
         var index = 0
         val maxRetries = 50 // 最多等待 5 秒

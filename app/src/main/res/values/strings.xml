@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="ims_restore_system_defaults">Restore system defaults</string>
     <string name="app_name">TensorIMS</string>
     <string name="for_pixel">Maintained by Mystery0</string>
 
@@ -99,9 +100,9 @@
     <!-- Features -->
     <string name="features_config">Features for this apply</string>
     <string name="carrier_name">Carrier Name</string>
-    <string name="carrier_name_desc">Customize the carrier name displayed on lock screen and status bar; leave empty to keep default</string>
+    <string name="carrier_name_desc">Customize the carrier name on lock screen and status bar; reset carrier configuration to restore</string>
     <string name="ims_user_agent">IMS User Agent</string>
-    <string name="ims_user_agent_desc">Customize the client User-Agent string sent during IMS registration; leave empty to keep default</string>
+    <string name="ims_user_agent_desc">Customize the client User-Agent used for IMS registration; reset carrier configuration to restore</string>
     <string name="volte">VoLTE (4G HD Calling)</string>
     <string name="volte_desc">Enable 4G HD voice calling while using mobile data</string>
     <string name="vowifi">VoWiFi (Wi-Fi Calling)</string>
@@ -192,4 +193,33 @@
     <string name="danger_zone">Danger Zone</string>
     <string name="danger_zone_desc">Irreversible operations that remove TensorIMS CarrierConfig overrides</string>
     <string name="diagnostics_and_maintenance">Diagnostics &amp; Maintenance</string>
+    <string name="ims_target_title">System configuration targets</string>
+    <string name="ims_target_desc">Switches show whether system configuration allows a feature. See IMS status for actual availability. Tap Apply changes after editing.</string>
+    <string name="ims_loaded">System configuration loaded</string>
+    <string name="ims_reading">Reading system configuration…</string>
+    <string name="ims_read_failed">Could not read configuration. Please retry.</string>
+    <string name="ims_shizuku_required">Start Shizuku and grant permission to read system configuration</string>
+    <string name="ims_no_active_sim">No active SIM could be read. Refresh the SIM list and check Shizuku.</string>
+    <string name="ims_sim_list_changed">The active SIM list changed. Reload configuration before applying.</string>
+    <string name="ims_pending_changes">Unapplied changes</string>
+    <string name="ims_pending">Pending</string>
+    <string name="ims_applying">Applying and verifying…</string>
+    <string name="ims_verified">Applied and verified by reading back</string>
+    <string name="ims_reload">Reload system configuration</string>
+    <string name="ims_discard_draft">Reloading will discard unapplied changes on this page.</string>
+    <string name="ims_apply_incomplete">Some or all changes could not be verified. Pending changes are retained; successful SIMs were saved. Retry or reload.</string>
+    <string name="ims_no_history">No saved configuration to load</string>
+    <string name="ims_some_targets_skipped">Some targets are unsupported, unreadable, or require a reset to restore and were skipped. Other changes are still pending.</string>
+    <string name="ims_reset_only_group">Custom overrides (reset to restore)</string>
+    <string name="ims_reset_required">These settings have no direct off switch, or their complete default parameters cannot be read. To restore them, open Advanced tools and reset carrier configuration. This clears all CarrierConfig overrides for the selected SIMs and restores persistent VoLTE through the existing reset process.</string>
+    <string name="ims_open_reset">Open advanced tools</string>
+    <string name="ims_string_reset_hint">Enter a nonempty custom value. To restore, reset carrier configuration in Advanced tools. Empty text does not restore a value.</string>
+    <string name="ims_system_default_hint">Turning off restores system-provided default parameters, not carrier defaults.</string>
+    <string name="ims_unknown">Unsupported or unreadable</string>
+    <string name="ims_mixed">Varies by SIM</string>
+    <string name="ims_enable">Enable</string>
+    <string name="ims_disable">Disable</string>
+    <string name="ims_edit">Edit</string>
+    <string name="ims_undo">Undo edit</string>
+    <string name="ims_reset_to_restore">Reset to restore</string>
 </resources>

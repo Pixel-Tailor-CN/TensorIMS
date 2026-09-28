@@ -9,13 +9,10 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.vvb2060.ims.BuildConfig
 import io.github.vvb2060.ims.ConfigurationOperations
-import io.github.vvb2060.ims.ConfigurationRepository
 import io.github.vvb2060.ims.R
 import io.github.vvb2060.ims.ShizukuProvider
-import io.github.vvb2060.ims.model.Feature
 import io.github.vvb2060.ims.model.ImsCapabilityStatus
 import io.github.vvb2060.ims.model.PersistentVolteState
-import io.github.vvb2060.ims.model.FeatureValue
 import io.github.vvb2060.ims.model.ShizukuStatus
 import io.github.vvb2060.ims.model.SimSelection
 import io.github.vvb2060.ims.model.SystemInfo
@@ -172,18 +169,6 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
     }
 
     /**
-     * 加载默认的功能配置。
-     * 当没有保存的配置时使用此默认值。
-     */
-    fun loadDefaultPreferences(): Map<Feature, FeatureValue> {
-        val featureSwitches = linkedMapOf<Feature, FeatureValue>()
-        for (feature in Feature.entries) {
-            featureSwitches.put(feature, FeatureValue(feature.defaultValue, feature.valueType))
-        }
-        return featureSwitches
-    }
-
-    /**
      * 通过 Shizuku 读取设备上的 SIM 卡信息。
      * 并在列表头部添加“所有 SIM 卡”选项。
      */
@@ -212,35 +197,6 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
             )
         }
     }
-
-    /**
-     * 应用 IMS 配置到选定的 SIM 卡。
-     * 此操作会调用 ShizukuProvider 进行特权操作，并保存当前配置到本地。
-     */
-    fun onApplyConfiguration(selectedSim: SimSelection, map: Map<Feature, FeatureValue>) {
-        // 排队等待自动恢复前就固定本次应用内容，避免等待期间的 UI 编辑污染成功历史。
-        val appliedConfig = map.toMap()
-        launchExclusiveOperation {
-            val bundle = ConfigurationRepository.buildBundle(selectedSim.subId, appliedConfig)
-
-            // 调用 Shizuku 服务进行实际修改
-            val resultMsg = ShizukuProvider.overrideImsConfig(application, bundle)
-            if (resultMsg == null) {
-                // 仅在系统配置成功后保存历史，避免失败尝试覆盖上次有效配置。
-                configurations.save(selectedSim.subId, appliedConfig)
-                val appliedIds = if (selectedSim.subId == -1) {
-                    ShizukuProvider.readSimInfoList(application).map { it.subId }
-                } else listOf(selectedSim.subId)
-                configurations.markManualApply(appliedIds)
-                toast(application.getString(R.string.config_success_message))
-            } else {
-                toast(application.getString(R.string.config_failed, resultMsg), false)
-            }
-        }
-    }
-
-    /** 加载界面历史；重置只取消自动恢复资格，不删除历史内容。 */
-    fun loadConfiguration(subId: Int): Map<Feature, FeatureValue>? = configurations.load(subId)
 
     /**
      * 通过 Shizuku 读取系统当前实时 IMS 能力状态。

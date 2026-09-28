@@ -24,10 +24,12 @@ import io.github.vvb2060.ims.ui.screens.HomeScreen
 import io.github.vvb2060.ims.ui.screens.ImsConfigScreen
 import io.github.vvb2060.ims.ui.screens.SystemNetworkScreen
 import io.github.vvb2060.ims.viewmodel.MainViewModel
+import io.github.vvb2060.ims.viewmodel.ImsConfigViewModel
 import io.github.vvb2060.ims.viewmodel.SystemNetworkViewModel
 
 class MainActivity : BaseActivity() {
     private val viewModel: MainViewModel by viewModels()
+    private val imsConfigViewModel: ImsConfigViewModel by viewModels()
     private val systemNetworkViewModel: SystemNetworkViewModel by viewModels()
 
     @Composable
@@ -104,13 +106,24 @@ class MainActivity : BaseActivity() {
             }
 
             composable(TensorImsRoutes.IMS_CONFIG) {
+                val editorState by imsConfigViewModel.state.collectAsStateWithLifecycle()
+                LaunchedEffect(selectedSim?.subId, shizukuStatus, allSimList.map { it.subId }) {
+                    imsConfigViewModel.load(selectedSim?.subId, shizukuStatus == ShizukuStatus.READY)
+                }
                 ImsConfigScreen(
                     selectedSim = selectedSim,
                     shizukuStatus = shizukuStatus,
                     isOperationInProgress = isOperationInProgress,
-                    loadConfiguration = viewModel::loadConfiguration,
-                    loadDefaults = viewModel::loadDefaultPreferences,
-                    onApplyConfiguration = viewModel::onApplyConfiguration,
+                    state = editorState,
+                    onEdit = imsConfigViewModel::edit,
+                    onPreset = imsConfigViewModel::editAll,
+                    onLoadHistory = imsConfigViewModel::loadHistory,
+                    onRefresh = { imsConfigViewModel.load(selectedSim?.subId, shizukuStatus == ShizukuStatus.READY, discardEdits = true) },
+                    onApply = imsConfigViewModel::apply,
+                    onOpenReset = {
+                        navController.popBackStack()
+                        navigate(TensorImsRoutes.ADVANCED_TOOLS)
+                    },
                     onBack = onBack,
                 )
             }

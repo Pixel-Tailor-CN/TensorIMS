@@ -15,6 +15,11 @@ import io.github.vvb2060.ims.model.CaptivePortalSettings
 import io.github.vvb2060.ims.model.ImsCapabilityStatus
 import io.github.vvb2060.ims.model.PersistentVolteState
 import io.github.vvb2060.ims.model.SimSelection
+import io.github.vvb2060.ims.model.TargetConfigProtocol
+import io.github.vvb2060.ims.model.TargetConfigSnapshot
+import io.github.vvb2060.ims.model.Feature
+import io.github.vvb2060.ims.model.FeatureValue
+import io.github.vvb2060.ims.privileged.ImsConfigurationReader
 import io.github.vvb2060.ims.privileged.BrokerInstrumentation
 import io.github.vvb2060.ims.privileged.CaptivePortalSettingsModifier
 import io.github.vvb2060.ims.privileged.ImsCapabilityReader
@@ -46,6 +51,34 @@ class ShizukuProvider : ShizukuProvider() {
         private const val INSTRUMENTATION_TIMEOUT_MS = 15_000L
         private val instrumentationMutex = Mutex()
         private var activeInstrumentation: CompletableDeferred<Bundle?>? = null
+
+        suspend fun readTargetConfig(context: Context, subId: Int): TargetConfigSnapshot {
+            val args = Bundle().apply { putInt(TargetConfigProtocol.SUB_ID, subId) }
+            return TargetConfigProtocol.snapshot(subId,
+                startInstrumentation(context, ImsConfigurationReader::class.java, args, true))
+        }
+
+        suspend fun applyTargetConfig(
+            context: Context,
+            subId: Int,
+            identity: String,
+            targets: Map<Feature, FeatureValue>,
+            canStart: () -> Boolean = { true },
+        ): TargetConfigSnapshot {
+            val args = Bundle().apply {
+                putString(TargetConfigProtocol.ACTION, TargetConfigProtocol.APPLY)
+                putInt(TargetConfigProtocol.SUB_ID, subId)
+                putString(TargetConfigProtocol.IDENTITY, identity)
+                putBundle(TargetConfigProtocol.VALUES, TargetConfigProtocol.encode(targets))
+            }
+            val result = startInstrumentation(context, ImsModifier::class.java, Bundle(args), true, canStart)
+            val snapshot = TargetConfigProtocol.snapshot(subId, result)
+            if (snapshot.error == null) return snapshot
+            if (!canStart()) return snapshot
+            if (result != null && !isCarrierConfigPermissionError(snapshot.error)) return snapshot
+            val fallback = startInstrumentation(context, BrokerInstrumentation::class.java, Bundle(args), true, canStart)
+            return TargetConfigProtocol.snapshot(subId, fallback)
+        }
 
         suspend fun persistentVolte(context: Context, subId: Int, action: String): PersistentVolteState {
             try {

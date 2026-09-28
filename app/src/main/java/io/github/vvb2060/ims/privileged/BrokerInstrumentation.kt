@@ -8,8 +8,14 @@ import android.os.PersistableBundle
 import android.telephony.CarrierConfigManager
 import android.telephony.SubscriptionManager
 import android.util.Log
+import io.github.vvb2060.ims.model.TargetConfigProtocol
 
 class BrokerInstrumentation : Instrumentation() {
+    private var targetArguments: Bundle? = null
+
+    override fun onStart() {
+        targetArguments?.let { applyTargetConfiguration(it) }
+    }
     companion object {
         private const val TAG = "BrokerInstrumentation"
     }
@@ -18,6 +24,12 @@ class BrokerInstrumentation : Instrumentation() {
         super.onCreate(arguments)
         if (arguments == null) {
             finish(Activity.RESULT_CANCELED, Bundle())
+            return
+        }
+
+        if (arguments.containsKey(TargetConfigProtocol.ACTION)) {
+            targetArguments = Bundle(arguments)
+            start()
             return
         }
 
