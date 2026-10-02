@@ -20,3 +20,10 @@
 
 ## 验证边界
 真实 Pixel、无线 ADB 配对、root、两服务共存、IMS/运营商通信与 Android 版本兼容尚未验证。离线测试不得替代这些验收。
+- release 签名保护已离线验证：:app:preReleaseBuild 在缺少完整配置时明确失败（退出码 1），不会生成未签名正式包；日志 tensorims-dual-release-guard.log。
+- APK 校验脚本已对旧基线确认失败：旧 applicationId 被拒绝；新 APK 完成后须再跑 GREEN。
+- 独立界面审查发现两处原有读取失败/重进页面导致草稿丢失的集成缺陷，已修复并以隔离旧行为 RED（24 项中 7 失败）与新行为 GREEN（24/24）验证；限域复审闭环。
+- 独立特权审查要求将业务预检与严格出站身份验证分离，并补齐 legacy/目标写入的阶段追踪和最后回读结果。这些不是通过编译即可替代的检查。
+- 首次整包 JVM 构建在共享内存压力下报 daemon unexpectedly disappeared；Kotlin 主源码编译经过，但未形成最终测试/APK/lint通过结论。后续统一使用单 worker、禁并行、1536 MiB Gradle 堆、进程内 Kotlin 和1024 MiB lint 堆。
+- 受控整合测试+debug 构建成功：135/135、17类；Debug 签名/16KB ZIP 对齐/入口与许可扫描通过。限定安全复审关闭所有重要源码问题，CarrierConfig 重置仍明确未确认。
+- Debug lint 最终通过（app 0 errors / 67 warnings），非隐藏其已说明的平台警告；最终本地提交后还要重建交付 APK。

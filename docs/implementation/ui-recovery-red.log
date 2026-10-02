@@ -1,0 +1,15 @@
+app/src/test/java/app/mystery0/ims/tensor/ui/BackendUiLogicTest.kt:74:20: error: unresolved reference 'canConfirmPersistentRecovery'.
+        assertTrue(canConfirmPersistentRecovery(recovery, true))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/ui/BackendUiLogicTest.kt:75:21: error: unresolved reference 'canConfirmPersistentRecovery'.
+        assertFalse(canConfirmPersistentRecovery(recovery, false))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/ui/BackendUiLogicTest.kt:76:21: error: unresolved reference 'canConfirmPersistentRecovery'.
+        assertFalse(canConfirmPersistentRecovery(recovery, true, actionInProgress = true))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/ui/BackendUiLogicTest.kt:77:21: error: unresolved reference 'canConfirmPersistentRecovery'.
+        assertFalse(canConfirmPersistentRecovery(recovery, true, businessBusy = true))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/ui/BackendUiLogicTest.kt:78:21: error: unresolved reference 'canConfirmPersistentRecovery'.
+        assertFalse(canConfirmPersistentRecovery(status(BackendMode.EMBEDDED, ConnectionState.READY), true))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^

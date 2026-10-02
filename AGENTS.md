@@ -11,18 +11,18 @@
 
 ## 项目概览
 
-TensorIMS 是一个面向 Google Pixel Tensor 设备的 Android 应用，用于读取和修改 IMS/运营商相关配置，开启或关闭 VoLTE、VoWiFi、VT、VoNR、Cross-SIM Calling、UT、5G NR 等功能，并提供少量与 Pixel 网络使用相关的设备级系统设置。项目依赖 Shizuku 执行特权操作，不要求 root。
+TensorIMS 是一个面向 Google Pixel Tensor 设备的 Android 应用，用于读取和修改 IMS/运营商相关配置，开启或关闭 VoLTE、VoWiFi、VT、VoNR、Cross-SIM Calling、UT、5G NR 等功能，并提供少量与 Pixel 网络使用相关的设备级系统设置。项目通过显式选择的官方 Shizuku 或内置私有后端执行特权操作；无线 ADB 路径不要求 root。
 
 主要适配和维护范围为中国大陆的中国移动、中国联通、中国电信网络下的 Pixel Tensor 设备。其他运营商因缺少相应测试条件，不作为主要适配和维护对象。此约定限定维护范围，不代表需要在代码中按地区或运营商限制使用，也不保证所有机型、系统版本和网络功能均可用。
 
-项目原名为 Mystery00/TurboIMS，现由 Mystery00 以 TensorIMS 名称独立维护，仓库归属 Pixel-Tailor-CN 组织。仓库地址为 `https://github.com/Pixel-Tailor-CN/TensorIMS`，项目主页为 `https://pixel.mystery0.app`。为兼容已有用户覆盖升级，保留应用包名 `io.github.vvb2060.ims` 与现有签名配置；历史文档及上游仓库名称不随更名改写。
+项目原名为 Mystery00/TurboIMS，现由 Mystery00 以 TensorIMS 名称独立维护，仓库归属 Pixel-Tailor-CN 组织。仓库地址为 `https://github.com/Pixel-Tailor-CN/TensorIMS`，项目主页为 `https://pixel.mystery0.app`。本双模式分支采用全新应用身份 `app.mystery0.ims.tensor`，与旧版独立安装，不承诺旧包覆盖升级或私有数据自动迁移；历史文档和上游仓库名称保留来源。
 
 应用主要面向 Android 13 及以上系统，当前构建目标为 Android SDK 37。设备侧功能验证应优先在已安装并运行 Shizuku 的真实 Pixel 设备上完成。
 
 ## 构建环境
 
 - Gradle wrapper：`9.7.1`
-- Android Gradle Plugin：`9.4.0`
+- Android Gradle Plugin：`9.4.1`
 - Kotlin：`2.4.20`
 - `compileSdk`：`37`
 - `targetSdk`：`37`
@@ -55,35 +55,37 @@ TensorIMS 是一个面向 Google Pixel Tensor 设备的 Android 应用，用于�
 
 ## 核心包结构
 
-- `io.github.vvb2060.ims.model`：数据模型和功能映射；`CaptivePortalSettings` 负责设备级联网检测地址的纯数据与校验。
-- `io.github.vvb2060.ims.viewmodel`：界面状态和业务调度；`MainViewModel` 管理 SIM/IMS/Shizuku，`SystemNetworkViewModel` 管理设备级系统网络设置，`LogcatViewModel` 管理日志。
+- `app.mystery0.ims.tensor.model`：数据模型和功能映射；`CaptivePortalSettings` 负责设备级联网检测地址的纯数据与校验。
+- `app.mystery0.ims.tensor.viewmodel`：界面状态和业务调度；`MainViewModel` 管理 SIM/IMS/Shizuku，`SystemNetworkViewModel` 管理设备级系统网络设置，`LogcatViewModel` 管理日志。
 - `ImsConfigViewModel` 管理 IMS 目标配置的实时快照、待应用修改与逐卡结果；`TargetConfigMapper` 集中定义新协议的显式开关、系统默认参数恢复和仅可重置项目。
-- `io.github.vvb2060.ims.ui`：Activity、Compose UI、组件和主题；`MainActivity` 只承担状态连接与导航承载。
-- `io.github.vvb2060.ims.ui.screens`：首页、IMS 配置、系统网络、Captive Portal 和高级工具页面。
-- `io.github.vvb2060.ims.ui.components`：跨页面复用的 Compose 组件。
-- `io.github.vvb2060.ims.privileged`：通过 Instrumentation 执行的特权逻辑。
-- `ShizukuProvider.kt`：主进程到特权 Instrumentation 的桥接层，同时对所有 Instrumentation 调用做串行互斥。
+- `app.mystery0.ims.tensor.ui`：Activity、Compose UI、组件和主题；`MainActivity` 只承担状态连接与导航承载。
+- `app.mystery0.ims.tensor.ui.screens`：首页、IMS 配置、系统网络、Captive Portal 和高级工具页面。
+- `app.mystery0.ims.tensor.ui.components`：跨页面复用的 Compose 组件。
+- `app.mystery0.ims.tensor.privileged`：通过 Instrumentation 执行的特权逻辑。
+- `ShizukuProvider.kt`：保留官方客户端 Provider 与业务 facade，固定操作交由 `PrivilegeRuntime` 路由。
 - `LogcatRepository.kt`：应用日志采集和导出相关逻辑。
 - `ConfigurationRepository.kt`：共用配置历史、应用参数构造、自动恢复操作顺序和开机进度。
 - `AutoRestoreController.kt`：按用户开关监听 Shizuku 连接与授权结果，执行有限重试的自动恢复。
 - `AutoRestoreNotifier.kt`：自动应用一轮结束后汇总结果，先显示文本 Toast，未确认显示时使用通知兜底。
-- `ConfigurationOperations.kt`：串行协调手动与自动业务操作，保证系统写入与本地历史记录顺序一致。
+- `ConfigurationOperations.kt`：复用 `OperationCoordinator` 串行协调手动/自动业务与历史提交，和模式切换共享安全边界。
 
 ## 运行架构
 
-项目采用主应用进程 + 特权 Instrumentation 的双路径模型：
+项目采用主应用进程、可选的私有 shell/root 服务进程与受控 Instrumentation：
 
-1. 主应用进程负责 Compose UI、ViewModel 状态管理、Shizuku 状态检查和用户交互。
-2. `ShizukuProvider` 使用 Shizuku 包装后的 `IActivityManager.startInstrumentation()` 启动特权 Instrumentation。
-3. Instrumentation 通过 shell permission delegation 访问受限 API，例如 `CarrierConfigManager`、`SubscriptionManager`、`SettingsProvider`、`ITelephony`、`ISub`。
-4. Instrumentation 通过 `IInstrumentationWatcher` 返回 `Bundle` 结果，`ShizukuProvider` 再转换为 ViewModel 需要的数据。
+1. 主进程首次保持 UNSET，用户明确选择 OFFICIAL 或 EMBEDDED 后才连接选定后端。
+2. `PrivilegeRuntime` 管理选定模式、epoch、未完成操作日志与恢复门禁；`OperationCoordinator` 统一串行业务/历史/fallback/切换/关闭。
+3. `OfficialBackend` 封装官方 API 与 `ShizukuBinderWrapper`。断开仅释放客户端引用，不能停止官方服务。
+4. `EmbeddedServerMain` 从当前安装 APK 启动；`EmbeddedBridgeProvider` 检查真实 shell/root UID 与一次性挑战；`EmbeddedServer` 只映射固定 AIDL 操作。
+5. 两后端都把 `IPrivilegeSession` 和操作 ID 显式传入 `SessionInstrumentation`。业务入口不读取全局 Shizuku Binder。
+6. Instrumentation 执行受限 API、回读与权限清理后通过 watcher 返回结果。客户端超时不取消设备端写入，未知结果保持恢复态。
 
 典型数据流：
 
 ```text
-用户操作 -> ViewModel -> ShizukuProvider -> Instrumentation
-                                       -> CarrierConfigManager / SettingsProvider / Telephony service
-                                       -> Bundle 结果 -> ViewModel -> UI
+UI / ViewModel -> ConfigurationOperations -> PrivilegeRuntime
+  -> OfficialBackend 或 EmbeddedBackend -> 固定 Instrumentation + 显式会话
+  -> CarrierConfig / SettingsProvider / Telephony -> 回读 / 清理 -> 结果 / 历史
 ```
 
 ## 特权入口
@@ -119,10 +121,10 @@ TensorIMS 是一个面向 Google Pixel Tensor 设备的 Android 应用，用于�
 
 - SIM 配置按 `subId` 持久化到 `SharedPreferences`，名称形如 `sim_config_<subId>`。
 - `subId = -1` 表示应用到所有 SIM。
-- 自动恢复默认关闭，包括旧版本升级；由用户在主界面主动启用。启用后在 Shizuku 就绪时恢复历史，缺少权限时每次开机最多自动请求一次，用户拒绝后不循环弹窗。应用不负责启动 Shizuku。
+- 自动恢复默认关闭；由用户在主界面主动启用。仅当前选定后端 READY 时恢复历史，官方模式缺少权限时每次开机最多自动请求一次，用户拒绝后不循环弹窗。自动恢复不会配对、提权或启动任何服务。
 - 自动恢复仅作用于当前活动 SIM；按最后成功操作的序号选择全卡或单卡配置。旧历史无序号时单卡优先。重置成功保留界面历史并写入恢复阻止标记，避免重启后撤销重置。持久化 VoLTE 不参与自动恢复。
 - 自动恢复元数据和开关保存在 `auto_restore` SharedPreferences，历史中的 `_restore_revision` / `_restore_reset` 不属于 Feature。以系统开机计数去重，同一次开机已成功恢复的相同配置不重复应用；用户重新启用开关可重新尝试。
-- 界面明确表述为“Shizuku 就绪后自动应用配置”，仅重启设备不会直接应用，必须先启动 Shizuku 并获得授权。自动应用按一轮重试汇总实际写入结果，重复跳过的历史不提示；优先 Toast，5 秒未收到显示回调时尝试通知。通知需要 `POST_NOTIFICATIONS` 授权及结果渠道开启；启用开关时申请通知权限，拒绝通知不阻止自动应用。后台不主动弹通知权限窗口。
+- 界面明确表述为“后端就绪后自动应用配置”，仅重启设备不会直接应用，必须先启动当前选定后端并获得授权。自动应用按一轮重试汇总实际写入结果，重复跳过的历史不提示；优先 Toast，5 秒未收到显示回调时尝试通知。通知需要 `POST_NOTIFICATIONS` 授权及结果渠道开启；启用开关时申请通知权限，拒绝通知不阻止自动应用。后台不主动弹通知权限窗口。
 - 持久化 VoLTE 是独立的即时操作，不属于 `Feature` 配置草稿。原始订阅值（含 -1）保存在 `noBackupFilesDir/persistent_volte_<subId>.json`，以 SIM 标识摘要校验；失败回退失败时保留记录供恢复。重置配置先恢复所选活动 SIM 的原始值，再清除 CarrierConfig；未激活 SIM 的备份保留至重新激活后恢复。
 - Captive Portal 属于设备级系统网络设置，不属于 `Feature`，不写入 `sim_config_<subId>`，不参与自动恢复，也不受当前 SIM 选择影响。
 - Captive Portal 首版只管理 `captive_portal_http_url` 和 `captive_portal_https_url`；“系统默认”通过删除这两个 SettingsProvider 覆盖值实现，不硬编码第三方默认地址。
@@ -130,7 +132,7 @@ TensorIMS 是一个面向 Google Pixel Tensor 设备的 Android 应用，用于�
 - IMS 配置页从系统实时读取，缺键／权限失败不能补成 Feature 默认值。普通开关关闭显式写入 false（5G NR 写空可用性数组），仅下发用户明确修改或预设指定的项目。所有 SIM 的不同值显示“各卡不同”，不得自动补成关闭。
 - 参数类只有在 `CarrierConfigManager.getDefaultConfig()` 提供完整、类型匹配的默认参数时支持单项恢复；界面必须说明它是系统默认参数、不是运营商默认。字符串和无完整默认参数的覆盖项独立分组，恢复引导至高级工具重置，不能用空字符串或省略键假装恢复；不引入原值备份，不为单项恢复清空全卡覆盖。
 - 新历史以 `_config_version=2` 保存稀疏、明确的目标及 SIM 身份摘要 `_target_identity`，逐卡回读成功才保存；自动恢复新历史同样检查身份并回读。旧历史保留只写开启项的语义，旧 false 不迁移为禁用。批量部分失败保留待应用目标，只保存成功卡历史；持久化 VoLTE 与 Captive Portal 不参与此协议。
-- 修改运营商配置时优先走 `ImsModifier`，必要时再由 `ShizukuProvider` 触发 `BrokerInstrumentation` fallback。
+- 修改运营商配置时优先走 `ImsModifier`，必要时由当前后端在同一操作事务内触发 `BrokerInstrumentation` fallback，不能跨模式。
 - UI 不直接执行业务写入逻辑，业务动作应放在 ViewModel 或特权入口中。
 
 ## UI 信息架构约定
@@ -166,8 +168,8 @@ TensorIMS 是一个面向 Google Pixel Tensor 设备的 Android 应用，用于�
 adb devices -l
 adb install -r app\build\outputs\apk\debug\app-debug.apk
 adb logcat -c
-adb shell am force-stop io.github.vvb2060.ims
-adb shell am start -n io.github.vvb2060.ims/.ui.MainActivity
+adb shell am force-stop app.mystery0.ims.tensor
+adb shell am start -n app.mystery0.ims.tensor/.ui.MainActivity
 adb logcat -d -v time AndroidRuntime:E ShizukuProvider:D SimReader:I ShellPermission:W '*:S'
 ```
 
@@ -187,3 +189,15 @@ adb shell settings get global captive_portal_https_url
 - 设计文档和实施计划文件名使用 `YYYY-MM-DD-<主题>-design.md` 与 `YYYY-MM-DD-<主题>-plan.md` 格式。
 - 若项目结构、构建版本、兼容策略或开发约定发生变化，应更新本文件。
 - `CLAUDE.md` 仅作为 Claude Code 的兼容入口，不维护重复的项目说明。
+
+## 单 APK 双模式分支补充
+
+- 本分支统一新包名 app.mystery0.ims.tensor，不构建旧包、不增加 flavor；旧包只出现在历史设计和迁移说明。
+- `privilege/` 管理选定后端、官方适配、串行调度及未确认操作日志；`bridge/` 定义固定 AIDL/认证/会话；`embedded/` 承载仅供本应用的私有进程和显式启动器。
+- 业务层不可直接读取官方 Shizuku 单例。Instrumentation 必须接收本次操作的会话 Binder；内置 Binder 不交给官方 API 静态入口。
+- `UNSET` 不执行特权操作；官方拒绝授权不切内置；所有后台自动恢复仅在已选后端 READY 时触发，绝不代替用户启动 root/ADB。
+- 结果未知或清理失败保持恢复态；客户端超时不意味着设备端停止。持久化原值备份不是缓存，禁止在切换、禁用或升级时清理。
+- Android 全局 shell 委托冲突应报告 DELEGATION_BUSY，不清理其他客户端权限，不按进程名停止 Shizuku。
+- 配对库的 `moe.shizuku.manager.adb.PairingContext` 是上游二进制 JNI ABI，保留第三方包名及许可。它不是官方管理器的授权/配置入口。
+- debug 使用 Android 标准开发签名；release 要求显式完整签名配置。禁止把调试证书用于正式发布。
+- 本地纯逻辑、构建和静态测试不替代真实设备验收，记录详见 `docs/implementation/DEVICE_ACCEPTANCE.md`。

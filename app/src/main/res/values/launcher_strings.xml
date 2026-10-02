@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="launcher_pair_port">Pairing port must be between 1 and 65535</string>
+    <string name="launcher_pair_code">Enter the six-digit pairing code</string>
+    <string name="launcher_connect_port">Connection port must be between 1 and 65535</string>
+    <string name="launcher_connected">The embedded service is already connected</string>
+    <string name="launcher_busy">A pairing or start operation is already running</string>
+    <string name="launcher_timeout">The operation timed out. Check wireless debugging or root access; the embedded service connection was not confirmed</string>
+    <string name="launcher_identity">Pairing is missing or its credentials are unavailable. Pair again</string>
+    <string name="launcher_pair_failed">Pairing failed. Check that the pairing code is correct and still valid</string>
+    <string name="launcher_root_failed">Root access was denied or the start command failed</string>
+    <string name="launcher_protocol">Wireless debugging protocol mismatch. Check the pairing and connection ports</string>
+    <string name="launcher_socket_timeout">Wireless debugging connection timed out. Check the port and try again</string>
+    <string name="launcher_connect_failed">Cannot connect to wireless debugging on this device. Check the system setting and port</string>
+    <string name="launcher_failed">Embedded service operation failed (%1$s). Check pairing, root access and the current installation</string>
+    <string name="launcher_native">Cannot load the pairing component. Check that this is the arm64 build</string>
+    <string name="launcher_handshake">The start command was submitted, but no authenticated embedded service connection was received. Check the installation and system compatibility</string>
+</resources>

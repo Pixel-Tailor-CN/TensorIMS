@@ -1,0 +1,75 @@
+{
+  "说明": "仅记录本次新增启动组件及相关现有 API；不是整个 APK 的完整依赖 SBOM。第三方预编译库未在本地重新构建。",
+  "shizuku_review_commit": "b844bc491f1790c72328e1a8e5b2349f8978f0ea",
+  "shizuku_release_commit": "2650830c5b099ae0dd34fedf614d4f592ca05d65",
+  "apk_source": "https://github.com/RikkaApps/Shizuku/releases/download/v13.6.0/shizuku-v13.6.0.r1086.2650830c-release.apk",
+  "apk_sha256": "6e273ab0e991c4e79bc8b1bbb9b9dd739ccac1a8712a541a214078886b7b790f",
+  "verification": "2026-10-01 重新读取官方 release URL，全 APK SHA-256 与提供的原始 APK 相同；只提取 lib/arm64-v8a/libadb.so。",
+  "native": {
+    "apk_entry": "lib/arm64-v8a/libadb.so",
+    "project_file": "app/src/main/jniLibs/arm64-v8a/libadb.so",
+    "sha256": "a4257bc05ace812afa60a81e656724a07691edd08868dc90caab3bc6d0a49207",
+    "size": 90792,
+    "elf_load_alignment": "0x4000",
+    "needed": [
+      "liblog.so",
+      "libm.so",
+      "libdl.so",
+      "libc.so"
+    ],
+    "jni_class": "moe.shizuku.manager.adb.PairingContext",
+    "jni_reason": "当前 SDK 无已安装 NDK；保留官方二进制硬编码 RegisterNatives 的第三方类名。所有第一方逻辑位于 app.mystery0.ims.tensor。"
+  },
+  "components": [
+    {
+      "name": "Shizuku ADB native",
+      "license": "Apache-2.0",
+      "source": "https://github.com/RikkaApps/Shizuku/blob/2650830c5b099ae0dd34fedf614d4f592ca05d65/manager/src/main/jni/adb_pairing.cpp",
+      "source_sha256": "699139fb2f8aff139e877520f2e199fe4432ece0bf7fb3656ce0084484615baf",
+      "note": "此文件与已审阅 b844bc49 完全一致。"
+    },
+    {
+      "name": "Shizuku API",
+      "version": "13.1.5",
+      "license": "MIT",
+      "review_commit": "a27f6e4151ba7b39965ca47edb2bf0aeed7102e5"
+    },
+    {
+      "name": "BoringSSL Android prefab",
+      "version": "20250114",
+      "wrapper_commit": "20b87e2e25a793531c9cd651c629c62976b42e2b",
+      "source_commit": "571a7432a19592c620fa316abde47770dad4f82b",
+      "license": "OpenSSL / SSLeay / ISC / MIT（见完整许可）",
+      "license_source": "https://raw.githubusercontent.com/google/boringssl/571a7432a19592c620fa316abde47770dad4f82b/LICENSE"
+    },
+    {
+      "name": "org.lsposed.libcxx:libcxx",
+      "version": "27.0.12077973",
+      "license": "Apache-2.0 WITH LLVM-exception",
+      "license_source": "https://raw.githubusercontent.com/llvm/llvm-project/llvmorg-18.1.8/libcxx/LICENSE.TXT",
+      "note": "上游原生链接声明；未添加 libc++_shared.so。"
+    },
+    {
+      "name": "org.bouncycastle:bcpkix-jdk18on / bcprov-jdk18on / bcutil-jdk18on",
+      "version": "1.80.2",
+      "license": "MIT",
+      "license_source": "https://raw.githubusercontent.com/bcgit/bc-java/r1rv80/LICENSE.html"
+    }
+  ],
+  "retained_source": {
+    "third_party/shizuku-adb/adb_pairing.h": "04cae0e840147377de8b50fb26a8a6f50a69e769c695f7869aa2e51978ed0ae1",
+    "third_party/shizuku-adb/CMakeLists.txt": "f0542eb03d42ee3c6086c40e39830956e7ef6113df116a8c55d515e2c2eb741d",
+    "third_party/shizuku-adb/misc.cpp": "69548ab774f74e5bb26709a925be14f33f34ac3e192e49c44a0a7775146091ed",
+    "third_party/shizuku-adb/adb_pairing.cpp": "699139fb2f8aff139e877520f2e199fe4432ece0bf7fb3656ce0084484615baf",
+    "third_party/shizuku-adb/logging.h": "599e95771052d808b5efb203cb3e169e706f7e4d6eeb687401505d42d6a4b9bd",
+    "third_party/shizuku-adb/misc.h": "f674f7fc194a6e54f1c19ab38638c98e24722b40e96373e7b0aa9e4e6b8c6839"
+  },
+  "license_files": {
+    "BouncyCastle-LICENSE.html": "edbbb10380b1271998b867a2e36b1cbee226e03d438726e1a91f80c5dde11849",
+    "Shizuku-Apache-2.0.txt": "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd",
+    "BoringSSL-LICENSE.txt": "756a61a8300d105ae68e7f2993e27d41a765c946f3400422e2403b01e7ded527",
+    "Shizuku-API-MIT.txt": "64870037f294b6f2b75c8ebe77cc0702acb3b64f86b4b0e58bf8558525303686",
+    "NOTICE.txt": "763c785adc1b2e2804942a1ebeffdcb1557a13e19a9aa5359ff90769e1e908f9",
+    "LLVM-libcxx-LICENSE.txt": "539dd7aed86e8a4f12cbdd0e6c50c189c7d74847e4fecc64ce2c6ee3a01da38b"
+  }
+}

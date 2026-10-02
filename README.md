@@ -1,7 +1,18 @@
 # TensorIMS
 
+## 双模式开发分支说明
+
+已知能力边界：当前接口不能独立证明 CarrierConfig 覆盖删除完成。重置会实际请求并回读，但显示「已请求、尚未确认」，保留恢复保护和自动恢复暂停；全卡重置可能在首卡未确认后停止。它不能被当作已完整成功的重置功能。
+
+本分支采用新应用身份 `app.mystery0.ims.tensor`，一个 APK 内首次显式选择官方 Shizuku 或内置私有桥接。内置通过本应用独立无线 ADB 配对或用户批准的已有 root 启动，不管理其他 Shizuku 客户端。模式可在设置页切换；写入或恢复未结束时禁止切换。
+
+这是本地开发验收代码，尚未通过真实 Pixel 的私有桥接、双服务共存或 IMS 通信验收；下方历史截图及上游 Release 下载不代表本分支产物。设备支持清单沿用上游范围，不等于本次已验证。请先阅读 [真机验收与迁移](docs/implementation/DEVICE_ACCEPTANCE.md)。新包不继承旧版私有数据；不要先卸载旧版，先恢复旧版持久化 VoLTE 原值并关闭其自动恢复。
+
+本地构建：JDK 21、SDK 37，执行 `./gradlew :app:testDebugUnitTest :app:assembleDebug :app:lintDebug`。debug 自动使用标准开发签名；release 必须完整提供现有四项 `SIGN_KEY_*` 配置，否则明确失败。长期正式签名与发布均不在本次本地实现内。
+
+
 > **聚焦中国大陆运营商网络下的 Google Pixel IMS 配置，由 Mystery00 独立维护。**
-> 原 **Mystery00/TurboIMS**，现更名为 **TensorIMS**。仅支持搭载 Google Tensor 芯片的 Pixel 设备，需 Android 13+ 和 Shizuku。
+> 原 **Mystery00/TurboIMS**，现更名为 **TensorIMS**。仅支持搭载 Google Tensor 芯片的 Pixel 设备，需 Android 13+，并通过明确选择的后端取得特权。
 >
 > 主要适配和维护范围为中国移动、中国联通、中国电信网络下的使用场景。其他运营商因缺少相应设备、SIM 卡及网络测试条件，不作为主要适配和维护对象；这不表示其他网络一定无法使用，实际兼容性需自行验证。
 
@@ -33,12 +44,12 @@
 
 ## About
 
-TensorIMS is a tool that allows you to enable or disable IMS features like Voice over LTE (VoLTE), Wi-Fi Calling (VoWiFi), Video Calling (VT), and 5G Voice (VoNR) on Google Pixel phones. It requires [Shizuku](https://shizuku.rikka.app/) to work.
+TensorIMS is a tool that allows you to enable or disable IMS features like Voice over LTE (VoLTE), Wi-Fi Calling (VoWiFi), Video Calling (VT), and 5G Voice (VoNR) on Google Pixel phones. Official mode uses [Shizuku](https://shizuku.rikka.app/); embedded mode requires independent wireless ADB pairing or existing root approval.
 
 ## Features
 
 - **Structured Information Architecture**:
-    - **Home Screen**: Overview of device and Shizuku status, SIM selector, navigation to core modules, and the toggle for "Apply configs when Shizuku is ready".
+    - **Home Screen**: Overview of device and selected backend status, SIM selector, navigation to core modules, and the toggle for "Apply configs when the backend is ready".
     - **IMS Configuration**: Draft mode configuration organized into "Calling", "Network", "Display", and "Advanced Overrides", with one-tap quick presets and manual fine-tuning.
     - **System Network**: Dedicated device-level system network settings, offering Captive Portal probe endpoint configuration with popular presets.
     - **Advanced Tools**: Segregated into "Diagnostics & Maintenance" (IMS status snapshot, restart IMS, application logs) and "Danger Zone" (reset CarrierConfig overrides), alongside Persistent VoLTE management.
@@ -48,7 +59,7 @@ TensorIMS is a tool that allows you to enable or disable IMS features like Voice
     - **China LTE**: Pure 4G mode with 5G NR & VoNR explicitly disabled for stable cellular connectivity, battery saving, and thermal reduction.
     - **Enable all**: Enables all available toggleable features at once.
 - **Automation & Persistence**:
-    - **Apply configs when Shizuku is ready**: Automatically restores saved configurations when the device reboots and Shizuku connects with permission granted.
+    - **Apply configs when the backend is ready**: Automatically restores saved configurations when the device reboots and the selected backend is ready and authorized.
     - **Persistent VoLTE (Experimental)**: Leverages system-level VoIMS opt-in to keep VoLTE active across device reboots without needing Shizuku on every restart.
     - **Configuration Persistence**: Automatically saves configuration history per SIM card or for all SIMs.
 - **Customizable IMS Features**:
@@ -83,7 +94,7 @@ TensorIMS is a tool that allows you to enable or disable IMS features like Voice
     - Pixel Fold, Pixel Tablet
     - **Note:** Devices with Qualcomm Snapdragons (Pixel 5 and older) are NOT supported.
 - Android 13 or higher
-- [Shizuku](https://shizuku.rikka.app/) installed and running
+- Official mode: [Shizuku](https://shizuku.rikka.app/) installed, running and authorized; embedded mode: explicit wireless ADB pairing or existing root approval
 
 ## Installation
 
@@ -91,14 +102,14 @@ TensorIMS is a tool that allows you to enable or disable IMS features like Voice
 
 1. Download the latest APK from the [Releases](https://github.com/Pixel-Tailor-CN/TensorIMS/releases) page.
 2. Install the APK on your device.
-3. Open the app and grant Shizuku permission.
+3. Open the app, explicitly choose a mode and authorize/start that backend; complete read-only device acceptance first.
 
 ## Usage
 
-1. **Check Status**: Ensure Shizuku is running and the app has permission.
+1. **Check Status**: Ensure the selected backend is running and authorized.
 2. **Select SIM**: Choose the single SIM card or "All SIM" to configure on the home screen.
 3. **IMS Configuration**: Open **IMS configuration**, pick a quick preset ("Recommended", "China 5G", or "China LTE") or adjust switches by category, then tap **Apply changes**.
-4. **Auto-Restore (Optional)**: Enable "Apply configs when Shizuku is ready" on the home screen to automatically restore configurations after reboots once Shizuku is active.
+4. **Auto-Restore (Optional)**: Enable "Apply configs when the backend is ready" on the home screen to automatically restore configurations after reboots once the selected backend is ready.
 5. **System Network**: Open **System network** to manage Captive Portal detection URLs with one-tap presets; changes apply globally across the device.
 6. **Advanced Tools**: Use the advanced page to inspect real-time IMS capability snapshots, restart IMS if needed, or reset CarrierConfig overrides in the Danger Zone.
 
@@ -108,7 +119,7 @@ This project originated as a fork of [Turbo1123/TurboIMS](https://github.com/Tur
 
 本项目此前以 **Mystery00/TurboIMS** 的名称发布，现以 **TensorIMS** 继续独立维护，后续不计划合并上游代码。更名仅针对本维护版本；GitHub 上保留原有 fork 关系及来源说明。
 
-应用包名与签名配置保持不变，已安装本维护版本的用户可通过相同签名的新版本覆盖升级。使用 Obtainium 的用户可将来源更新为本仓库；如设置了 APK 文件名过滤条件，请同步调整为 TensorIMS。
+本双模式分支使用新的应用身份 `app.mystery0.ims.tensor`，不能覆盖升级 `io.github.vvb2060.ims`，也不会自动迁移它的私有数据。请先完成本文的旧版恢复与迁移步骤；上游 Releases/Obtainium 来源在正式发布本分支前仍可能提供旧包，请核对实际 applicationId。
 
 ## Credits
 

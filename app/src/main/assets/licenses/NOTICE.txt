@@ -1,0 +1,28 @@
+TensorIMS 内置启动组件第三方声明
+
+Shizuku ADB 客户端、配对 JNI 与改编包装器
+来源：https://github.com/RikkaApps/Shizuku
+Copyright Shizuku contributors
+Apache License 2.0，完整文本见 Shizuku-Apache-2.0.txt。
+本项目改写了 Kotlin 传输、输入检查、密钥存储与日志处理；PairingContext 改为最小 Java 包装器。
+唯一保留 moe.shizuku.manager.adb 的类是预编译第三方 JNI 契约 PairingContext。
+不包含官方管理端、官方授权数据库、官方服务启动器、rish 或官方密钥。
+
+Shizuku API
+Copyright (c) 2021 RikkaW
+MIT，完整文本见 Shizuku-API-MIT.txt。
+
+BoringSSL（随 libadb.so 静态链接）
+Google、OpenSSL Project、Eric Young、fiat-crypto 等权利人的声明与 OpenSSL、SSLeay、ISC、MIT 等许可，见 BoringSSL-LICENSE.txt。
+This product includes software developed by the OpenSSL Project for use in the OpenSSL Toolkit (https://www.openssl.org/).
+This product includes cryptographic software written by Eric Young (eay@cryptsoft.com).
+This product includes software written by Tim Hudson (tjh@cryptsoft.com).
+
+LLVM libc++（上游 libadb.so 原生链接配置所用组件）
+Apache-2.0 WITH LLVM-exception，及其适用原始许可，见 LLVM-libcxx-LICENSE.txt。
+
+Bouncy Castle
+Copyright (c) 2000-2023 The Legion of the Bouncy Castle Inc.
+MIT，完整原始许可见 BouncyCastle-LICENSE.html。
+
+准确版本、不可变来源与 SHA-256 见 source-manifest.json。

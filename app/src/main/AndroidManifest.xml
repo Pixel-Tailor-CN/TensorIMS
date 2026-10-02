@@ -2,9 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:name=".Application"
+        android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:localeConfig="@xml/locales_config"
@@ -23,7 +25,7 @@
         </activity>
         <activity
             android:name=".ui.LogcatActivity"
-            android:exported="true"
+            android:exported="false"
             android:theme="@style/Theme.TensorIMS" />
 
         <provider
@@ -32,6 +34,12 @@
             android:exported="true"
             android:multiprocess="false"
             android:permission="android.permission.NETWORK_SETTINGS" />
+        <!-- shell/root bootstrap 不持有自定义 signature 权限；Provider 内逐次认证 UID 与挑战。 -->
+        <provider
+            android:name=".embedded.EmbeddedBridgeProvider"
+            android:authorities="app.mystery0.ims.tensor.embedded.bridge"
+            android:exported="true"
+            android:multiprocess="false" />
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.logcat_fileprovider"

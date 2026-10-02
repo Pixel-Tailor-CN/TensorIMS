@@ -1,17 +1,28 @@
-def kFile = rootProject.file('local.properties')
-def props = new Properties()
-if (kFile.canRead()) {
-    props.load(new FileInputStream(kFile))
-
-    if (props != null) {
-        android.signingConfigs.sign.storeFile file(props['SIGN_KEY_STORE_FILE'])
-        android.signingConfigs.sign.storePassword props['SIGN_KEY_STORE_PASSWORD']
-        android.signingConfigs.sign.keyAlias props['SIGN_KEY_ALIAS']
-        android.signingConfigs.sign.keyPassword props['SIGN_KEY_PASSWORD']
+// 本地调试只使用 Android 标准调试证书；发布签名必须明确且完整配置。
+// 不把发布密码写入日志，也不在缺少配置时输出一个意外的未签名 release。
+def signingProperties = new Properties()
+def localFile = rootProject.file('local.properties')
+if (localFile.canRead()) {
+    localFile.withInputStream { signingProperties.load(it) }
+}
+def requiredKeys = ['SIGN_KEY_STORE_FILE', 'SIGN_KEY_STORE_PASSWORD', 'SIGN_KEY_ALIAS', 'SIGN_KEY_PASSWORD']
+def configured = requiredKeys.collectEntries { key ->
+    [(key): signingProperties.getProperty(key) ?: System.getenv(key)]
+}
+def missingKeys = requiredKeys.findAll { !configured[it] }
+if (missingKeys.isEmpty()) {
+    android.signingConfigs.sign.storeFile = file(configured['SIGN_KEY_STORE_FILE'])
+    android.signingConfigs.sign.storePassword = configured['SIGN_KEY_STORE_PASSWORD']
+    android.signingConfigs.sign.keyAlias = configured['SIGN_KEY_ALIAS']
+    android.signingConfigs.sign.keyPassword = configured['SIGN_KEY_PASSWORD']
+}
+tasks.configureEach { task ->
+    // 只阻止发布打包/签名；纯编译、单元测试和 lint 不应要求生产凭据。
+    if (task.name in ['validateSigningRelease', 'packageRelease', 'packageReleaseBundle', 'signReleaseBundle']) {
+        task.doFirst {
+            if (!missingKeys.isEmpty()) {
+                throw new GradleException('Release signing is not configured. Supply all SIGN_KEY_STORE_FILE, SIGN_KEY_STORE_PASSWORD, SIGN_KEY_ALIAS and SIGN_KEY_PASSWORD values. Debug builds use a development-only certificate.')
+            }
+        }
     }
-} else {
-    android.signingConfigs.sign.storeFile file(System.getenv('SIGN_KEY_STORE_FILE'))
-    android.signingConfigs.sign.storePassword System.getenv('SIGN_KEY_STORE_PASSWORD')
-    android.signingConfigs.sign.keyAlias System.getenv('SIGN_KEY_ALIAS')
-    android.signingConfigs.sign.keyPassword System.getenv('SIGN_KEY_PASSWORD')
 }

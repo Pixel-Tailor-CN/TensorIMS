@@ -1,0 +1,72 @@
+app/src/test/java/app/mystery0/ims/tensor/bridge/BridgePolicyTest.kt:29:20: error: argument type mismatch: actual type is 'String', but 'Boolean' was expected.
+        p.complete("one", 1, true)
+                   ^^^^^
+app/src/test/java/app/mystery0/ims/tensor/bridge/BridgePolicyTest.kt:29:27: error: too many arguments for 'fun complete(cleanupConfirmed: Boolean): Unit'.
+        p.complete("one", 1, true)
+                          ^
+app/src/test/java/app/mystery0/ims/tensor/bridge/BridgePolicyTest.kt:29:30: error: too many arguments for 'fun complete(cleanupConfirmed: Boolean): Unit'.
+        p.complete("one", 1, true)
+                             ^^^^
+app/src/test/java/app/mystery0/ims/tensor/bridge/BridgePolicyTest.kt:38:20: error: argument type mismatch: actual type is 'String', but 'Boolean' was expected.
+        p.complete("one", 1, true)
+                   ^^^^^
+app/src/test/java/app/mystery0/ims/tensor/bridge/BridgePolicyTest.kt:38:27: error: too many arguments for 'fun complete(cleanupConfirmed: Boolean): Unit'.
+        p.complete("one", 1, true)
+                          ^
+app/src/test/java/app/mystery0/ims/tensor/bridge/BridgePolicyTest.kt:38:30: error: too many arguments for 'fun complete(cleanupConfirmed: Boolean): Unit'.
+        p.complete("one", 1, true)
+                             ^^^^
+app/src/test/java/app/mystery0/ims/tensor/bridge/BridgePolicyTest.kt:44:20: error: argument type mismatch: actual type is 'String', but 'Boolean' was expected.
+        p.complete("one", 1, false)
+                   ^^^^^
+app/src/test/java/app/mystery0/ims/tensor/bridge/BridgePolicyTest.kt:44:27: error: too many arguments for 'fun complete(cleanupConfirmed: Boolean): Unit'.
+        p.complete("one", 1, false)
+                          ^
+app/src/test/java/app/mystery0/ims/tensor/bridge/BridgePolicyTest.kt:44:30: error: too many arguments for 'fun complete(cleanupConfirmed: Boolean): Unit'.
+        p.complete("one", 1, false)
+                             ^^^^^
+app/src/test/java/app/mystery0/ims/tensor/bridge/BridgePolicyTest.kt:65:24: error: unresolved reference 'SessionLifetime'.
+        val lifetime = SessionLifetime("one", 200)
+                       ^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/bridge/BridgePolicyTest.kt:73:21: error: unresolved reference 'OperationActionPolicy'.
+        assertFalse(OperationActionPolicy.valid("READ_PERSISTENT_VOLTE", "enable"))
+                    ^^^^^^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/bridge/BridgePolicyTest.kt:74:21: error: unresolved reference 'OperationActionPolicy'.
+        assertFalse(OperationActionPolicy.valid("READ_CAPTIVE_PORTAL", "write"))
+                    ^^^^^^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/bridge/BridgePolicyTest.kt:75:21: error: unresolved reference 'OperationActionPolicy'.
+        assertFalse(OperationActionPolicy.valid("SET_PERSISTENT_VOLTE", "restore"))
+                    ^^^^^^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/bridge/BridgePolicyTest.kt:76:20: error: unresolved reference 'OperationActionPolicy'.
+        assertTrue(OperationActionPolicy.valid("READ_PERSISTENT_VOLTE", "query"))
+                   ^^^^^^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/bridge/BridgePolicyTest.kt:77:20: error: unresolved reference 'OperationActionPolicy'.
+        assertTrue(OperationActionPolicy.valid("RESTORE_PERSISTENT_VOLTE", "restore_for_reset"))
+                   ^^^^^^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/bridge/BridgePolicyTest.kt:84:60: error: unresolved reference 'confirmClient' on receiver of type 'BridgePolicy'.
+        val p = policy(); p.handshake("challenge", 120); p.confirmClient()
+                                                           ^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/bridge/BridgePolicyTest.kt:91:20: error: argument type mismatch: actual type is 'Unit', but 'Boolean' was expected.
+        assertTrue(p.complete("one", 1, true))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/bridge/BridgePolicyTest.kt:91:31: error: argument type mismatch: actual type is 'String', but 'Boolean' was expected.
+        assertTrue(p.complete("one", 1, true))
+                              ^^^^^
+app/src/test/java/app/mystery0/ims/tensor/bridge/BridgePolicyTest.kt:91:38: error: too many arguments for 'fun complete(cleanupConfirmed: Boolean): Unit'.
+        assertTrue(p.complete("one", 1, true))
+                                     ^
+app/src/test/java/app/mystery0/ims/tensor/bridge/BridgePolicyTest.kt:91:41: error: too many arguments for 'fun complete(cleanupConfirmed: Boolean): Unit'.
+        assertTrue(p.complete("one", 1, true))
+                                        ^^^^
+app/src/test/java/app/mystery0/ims/tensor/bridge/BridgePolicyTest.kt:93:21: error: argument type mismatch: actual type is 'Unit', but 'Boolean' was expected.
+        assertFalse(p.complete("one", 1, true))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/bridge/BridgePolicyTest.kt:93:32: error: argument type mismatch: actual type is 'String', but 'Boolean' was expected.
+        assertFalse(p.complete("one", 1, true))
+                               ^^^^^
+app/src/test/java/app/mystery0/ims/tensor/bridge/BridgePolicyTest.kt:93:39: error: too many arguments for 'fun complete(cleanupConfirmed: Boolean): Unit'.
+        assertFalse(p.complete("one", 1, true))
+                                      ^
+app/src/test/java/app/mystery0/ims/tensor/bridge/BridgePolicyTest.kt:93:42: error: too many arguments for 'fun complete(cleanupConfirmed: Boolean): Unit'.
+        assertFalse(p.complete("one", 1, true))
+                                         ^^^^

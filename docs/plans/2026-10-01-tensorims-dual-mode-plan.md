@@ -44,47 +44,47 @@
 ### Task 1: 新身份与可复现本地构建
 **Files:** app/build.gradle.kts、signing.gradle、全部第一方源码/测试目录、AGENTS.md、README*.md、CI 示例
 **Produces:** 新包名工作树；标准 debug 签名路径；release 缺失配置明确失败。
-- [ ] 添加静态身份检查，先在旧包运行并确认失败
-- [ ] 机械迁移第一方命名，不替换第三方契约；迁移文档明确两个应用身份不共享数据
-- [ ] 修改签名：debug 默认 Android debug keystore；只有完整显式发布配置才签 release；不得读取生产秘密
-- [ ] 跑原有测试与 debug 编译，检查 Manifest 与旧包残留；记录日志
-- [ ] 中文提交
+- [x] 添加静态身份检查，先在旧包运行并确认失败
+- [x] 机械迁移第一方命名，不替换第三方契约；迁移文档明确两个应用身份不共享数据
+- [x] 修改签名：debug 默认 Android debug keystore；只有完整显式发布配置才签 release；不得读取生产秘密
+- [x] 跑原有测试与 debug 编译，检查 Manifest 与旧包残留；记录日志
+- [x] 中文提交
 
 ### Task 2: 后端状态机、官方适配与恢复日志
 **Files:** privilege/*、ShizukuProvider.kt、AutoRestoreController.kt、ConfigurationOperations.kt、Application.kt；测试 privilege/*Test.kt
 **Consumes/Produces:** 公共接口中的 BackendModels、OperationType、PrivilegeBackend、PrivilegeRuntime；消费 EmbeddedBackend。
-- [ ] 先写状态测试：UNSET 不执行；拒绝不切模式；BUSY/RECOVERY_REQUIRED 拒绝切换；epoch 丢弃迟到回调；进程重建未完成日志阻止写入；测试先红
-- [ ] 实现独立纯逻辑状态机，操作日志先可靠落盘，只有终态与清理确认后完成
-- [ ] 封装官方 API/权限/版本/Watcher；所有 facade 调用转固定 OperationType，fallback 不跨模式
-- [ ] 自动恢复只听当前后端 READY 与 epoch，不触发 root/ADB/配对；保持原有开机/revision/SIM 去重
-- [ ] 测试绿；与原有业务测试联合验证；中文提交由整合者统一执行
+- [x] 先写状态测试：UNSET 不执行；拒绝不切模式；BUSY/RECOVERY_REQUIRED 拒绝切换；epoch 丢弃迟到回调；进程重建未完成日志阻止写入；测试先红
+- [x] 实现独立纯逻辑状态机，操作日志先可靠落盘，只有终态与清理确认后完成
+- [x] 封装官方 API/权限/版本/Watcher；所有 facade 调用转固定 OperationType，fallback 不跨模式
+- [x] 自动恢复只听当前后端 READY 与 epoch，不触发 root/ADB/配对；保持原有开机/revision/SIM 去重
+- [x] 测试绿；与原有业务测试联合验证；中文提交由整合者统一执行
 
 ### Task 3: 私有服务、窄 AIDL 与显式会话
 **Files:** bridge/*、embedded/EmbeddedServer.kt、EmbeddedServerMain.kt、EmbeddedConnection.kt、EmbeddedBridgeProvider.kt、privilege/EmbeddedBackend.kt、privileged/*（会话改造）；AIDL；必要 stub
 **Consumes/Produces:** 公共接口全部私有桥接类型；消费 OperationType、PrivilegeBackend。
-- [ ] 先写认证策略/请求白名单/租约/会话有效期测试：重放、不同 UID、未知操作、版本不匹配、过期请求应拒绝
-- [ ] 实现私有 app_process 服务，从可信安装 APK 与 PackageManager 派生 UID/签名；定向握手；认证每次业务请求
-- [ ] 固定映射 Instrumentation 并传会话 Binder；改造所有特权入口，不从静态默认后端取 Binder；有限权限集合与明确 DELEGATION_BUSY
-- [ ] 仅已成功建立的委托允许清理；清理失败状态传回；Binder 死亡/租约等待操作清理，不按进程名 kill
-- [ ] 实现空闲 owned-server shutdown 和客户端 EmbeddedBackend；测试绿、静态查通用 Binder/命令面
+- [x] 先写认证策略/请求白名单/租约/会话有效期测试：重放、不同 UID、未知操作、版本不匹配、过期请求应拒绝
+- [x] 实现私有 app_process 服务，从可信安装 APK 与 PackageManager 派生 UID/签名；定向握手；认证每次业务请求
+- [x] 固定映射 Instrumentation 并传会话 Binder；改造所有特权入口，不从静态默认后端取 Binder；有限权限集合与明确 DELEGATION_BUSY
+- [x] 仅已成功建立的委托允许清理；清理失败状态传回；Binder 死亡/租约等待操作清理，不按进程名 kill
+- [x] 实现空闲 owned-server shutdown 和客户端 EmbeddedBackend；测试绿、静态查通用 Binder/命令面
 
 ### Task 4: 独立无线 ADB 与 root 启动
 **Files:** embedded/EmbeddedLauncher.kt、embedded/adb/*、适用 JNI/原生资源、assets/licenses/*、来源清单
 **Consumes/Produces:** 公共 EmbeddedLauncher；消费 EmbeddedConnection 与 BridgeProtocol。
-- [ ] 先写本机端口/配对码/启动命令转义/ADB 帧校验测试，确认错误输入拒绝
-- [ ] 审阅固定官方 Shizuku ADB 客户端与配对代码，移植必要代码；私有密钥以 Android Keystore AES 加密存储于 noBackup；配对码只驻内存
-- [ ] JNI 包名若可重编则改为新包；官方预编译 JNI 必须有来源和可验证哈希，说明第三方包身份保留原因
-- [ ] 启动每次解析当前 APK、校验版本/路径，固定 app_process 入口；root 仅显式 su，ADB 只本机 TLS 连接；挑战与握手核对
-- [ ] 许可保留 Apache 2.0/MIT/所需第三方 NOTICE；测试绿；无真实设备配对或提权
+- [x] 先写本机端口/配对码/启动命令转义/ADB 帧校验测试，确认错误输入拒绝
+- [x] 审阅固定官方 Shizuku ADB 客户端与配对代码，移植必要代码；私有密钥以 Android Keystore AES 加密存储于 noBackup；配对码只驻内存
+- [x] JNI 包名若可重编则改为新包；官方预编译 JNI 必须有来源和可验证哈希，说明第三方包身份保留原因
+- [x] 启动每次解析当前 APK、校验版本/路径，固定 app_process 入口；root 仅显式 su，ADB 只本机 TLS 连接；挑战与握手核对
+- [x] 许可保留 Apache 2.0/MIT/所需第三方 NOTICE；测试绿；无真实设备配对或提权
 
 ### Task 5: 首次选择、设置切换与状态 UI
 **Files:** ui/、viewmodel/MainViewModel.kt、model/Shizuku.kt、res/values*/strings.xml（新增独立 backend_strings.xml 避免冲突）
 **Consumes:** PrivilegeRuntime.status/chooseMode/refresh/requestOfficialPermission；EmbeddedLauncher。
-- [ ] 先写纯 UI 决策测试：未选择、重复点击、BUSY、RECOVERY_REQUIRED 与拒绝授权显示准确动作
-- [ ] 首次进入显示两个同等选项，可取消；设置固定入口显示模式/身份/连接/授权/版本
-- [ ] 切换确认说明配置保留和内置停止；写入中不排队切换；失败保留选中模式
-- [ ] 内置显示无线调试系统入口、独立配对端口/六位码、连接端口与 root 手动启动；不得宣称选择即授权
-- [ ] 首页和自动恢复文案后端中立；迁移提示保护旧版备份；测试绿、Compose 编译通过
+- [x] 先写纯 UI 决策测试：未选择、重复点击、BUSY、RECOVERY_REQUIRED 与拒绝授权显示准确动作
+- [x] 首次进入显示两个同等选项，可取消；设置固定入口显示模式/身份/连接/授权/版本
+- [x] 切换确认说明配置保留和内置停止；写入中不排队切换；失败保留选中模式
+- [x] 内置显示无线调试系统入口、独立配对端口/六位码、连接端口与 root 手动启动；不得宣称选择即授权
+- [x] 首页和自动恢复文案后端中立；迁移提示保护旧版备份；测试绿、Compose 编译通过
 
 ### Task 6: 整合、验收与交付
 **Files:** app/src/main/AndroidManifest.xml、app/proguard-rules.pro、docs/implementation/*、测试、交付产物
@@ -93,3 +93,7 @@
 - [ ] 独立全分支安全/设计审查：身份、IPC、超时、备份、自动恢复、JNI、许可证与失败恢复；必要修复后重跑
 - [ ] 保存提交、差异包、APK、校验和与验证报告；标明真机未验证及发布前验收清单
 - [ ] 仅本地提交；不推送/发布；debug 测试签名不作为长期正式证书
+
+## 实施后的验收说明
+
+任务 1–5 已完成代码与各自测试；CarrierConfig 重置的独立成功判定仍受系统接口可观察性限制，明确返回未确认并保留恢复门。静态源码审查对该项为有条件通过，不视为完整重置成功能力。最终整合与真实设备验证见 docs/implementation/VALIDATION.md 及交付验证清单。

@@ -3,7 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
-val packageName = "io.github.vvb2060.ims"
+val packageName = "app.mystery0.ims.tensor"
 val gitVersionCode: Int = providers.exec {
     commandLine(
         "git",
@@ -61,7 +61,7 @@ android {
             @Suppress("UnstableApiUsage")
             vcsInfo.include = false
             versionNameSuffix = ".d$gitVersionCode.$gitVersionName"
-            signingConfig = signingConfigs.getByName("sign")
+            signingConfig = signingConfigs.getByName("debug")
         }
         release {
             isMinifyEnabled = true
@@ -78,6 +78,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_21
     }
     buildFeatures {
+        aidl = true
         buildConfig = true
         compose = true
     }
@@ -100,6 +101,7 @@ dependencies {
     implementation(libs.shizuku.provider)
     implementation(libs.shizuku.api)
     implementation(libs.hiddenapibypass)
+    implementation(libs.bcpkix)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

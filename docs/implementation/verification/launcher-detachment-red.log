@@ -1,0 +1,14 @@
+JUnit version 4.13.2
+.........E..
+Time: 0.172
+There was 1 failure:
+1) detachesServerBeforeAdbShellCloses(app.mystery0.ims.tensor.embedded.adb.BootstrapCommandTest)
+java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertTrue(Assert.java:53)
+	at app.mystery0.ims.tensor.embedded.adb.BootstrapCommandTest.detachesServerBeforeAdbShellCloses(BootstrapCommandTest.kt:9)
+
+FAILURES!!!
+Tests run: 11,  Failures: 1
+

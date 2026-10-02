@@ -39,3 +39,10 @@
 
 -dontwarn androidx.window.extensions.**
 -dontwarn androidx.window.sidecar.**
+
+# 由固定 app_process 类名启动；私有 Binder 会话与 JNI 入口必须保留。
+-keep class app.mystery0.ims.tensor.embedded.EmbeddedServerMain { public static void main(java.lang.String[]); }
+-keep class app.mystery0.ims.tensor.bridge.** { *; }
+-keep class app.mystery0.ims.tensor.privileged.** extends android.app.Instrumentation { *; }
+# 官方配对二进制的 JNI 注册路径属于第三方 ABI，不能跟随第一方包名迁移。
+-keep class moe.shizuku.manager.adb.PairingContext { *; }

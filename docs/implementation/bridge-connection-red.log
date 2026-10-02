@@ -1,0 +1,12 @@
+app/src/test/java/app/mystery0/ims/tensor/bridge/BridgePolicyTest.kt:123:21: error: unresolved reference 'BootstrapLifecycle'.
+        val state = BootstrapLifecycle()
+                    ^^^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/bridge/BridgePolicyTest.kt:128:21: error: argument type mismatch: actual type is 'StringBuilder', but 'Boolean' was expected.
+        assertFalse(state.clear(old))
+                    ^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/bridge/BridgePolicyTest.kt:134:21: error: unresolved reference 'BootstrapLifecycle'.
+        val state = BootstrapLifecycle()
+                    ^^^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/bridge/BridgePolicyTest.kt:136:20: error: cannot infer type for type parameter 'R'. Specify it explicitly.
+        assertTrue(runCatching { state.expect("new", connectionAlive = true) }.isFailure)
+                   ^^^^^^^^^^^

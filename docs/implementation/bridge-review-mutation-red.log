@@ -1,0 +1,52 @@
+JUnit version 4.13.2
+.....E.............E.....E.E..E..E.E..
+Time: 0.064
+There were 7 failures:
+1) readPermissionFailureAfterAcceptedWriteCannotFallback(app.mystery0.ims.tensor.bridge.BridgePolicyTest)
+java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertTrue(Assert.java:53)
+	at app.mystery0.ims.tensor.bridge.BridgePolicyTest.readPermissionFailureAfterAcceptedWriteCannotFallback(BridgePolicyTest.kt:154)
+2) mergedResetSnapshotCannotProveOverrideRemoval(app.mystery0.ims.tensor.bridge.BridgePolicyTest)
+java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertNotNull(Assert.java:713)
+	at org.junit.Assert.assertNotNull(Assert.java:723)
+	at app.mystery0.ims.tensor.bridge.BridgePolicyTest.mergedResetSnapshotCannotProveOverrideRemoval(BridgePolicyTest.kt:202)
+3) silentLegacyWriteWithoutReadbackIsUnknown(app.mystery0.ims.tensor.bridge.BridgePolicyTest)
+java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertNotNull(Assert.java:713)
+	at org.junit.Assert.assertNotNull(Assert.java:723)
+	at app.mystery0.ims.tensor.bridge.BridgePolicyTest.silentLegacyWriteWithoutReadbackIsUnknown(BridgePolicyTest.kt:190)
+4) businessPreflightDoesNotRequireIdentityButOutgoingRequestDoes(app.mystery0.ims.tensor.bridge.BridgePolicyTest)
+java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertTrue(Assert.java:53)
+	at app.mystery0.ims.tensor.bridge.BridgePolicyTest.businessPreflightDoesNotRequireIdentityButOutgoingRequestDoes(BridgePolicyTest.kt:143)
+5) legacyBatchPartialFailureKeepsFirstCardAndBlocksReplay(app.mystery0.ims.tensor.bridge.BridgePolicyTest)
+java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertTrue(Assert.java:53)
+	at app.mystery0.ims.tensor.bridge.BridgePolicyTest.legacyBatchPartialFailureKeepsFirstCardAndBlocksReplay(BridgePolicyTest.kt:178)
+6) secondCardPermissionFailureCannotReplayFirstCard(app.mystery0.ims.tensor.bridge.BridgePolicyTest)
+java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertTrue(Assert.java:53)
+	at app.mystery0.ims.tensor.bridge.BridgePolicyTest.secondCardPermissionFailureCannotReplayFirstCard(BridgePolicyTest.kt:159)
+7) finalPersistentReadbackFailureKeepsRecovery(app.mystery0.ims.tensor.bridge.BridgePolicyTest)
+java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertTrue(Assert.java:53)
+	at app.mystery0.ims.tensor.bridge.BridgePolicyTest.finalPersistentReadbackFailureKeepsRecovery(BridgePolicyTest.kt:206)
+
+FAILURES!!!
+Tests run: 31,  Failures: 7
+

@@ -1,0 +1,102 @@
+JUnit version 4.13.2
+.E.E.E.E.E.E.E.E.E.E
+Time: 0.055
+There were 10 failures:
+1) rejectsLengthBeforeReadingPayloadAndBadMagic(app.mystery0.ims.tensor.embedded.adb.AdbWireTest)
+java.lang.AssertionError: unexpected exception type thrown; expected:<app.mystery0.ims.tensor.embedded.adb.AdbProtocolException> but was:<java.lang.IllegalStateException>
+	at org.junit.Assert.assertThrows(Assert.java:1020)
+	at org.junit.Assert.assertThrows(Assert.java:981)
+	at app.mystery0.ims.tensor.embedded.adb.AdbWireTest.rejectsLengthBeforeReadingPayloadAndBadMagic(AdbWireTest.kt:37)
+	... 30 trimmed
+Caused by: java.lang.IllegalStateException: ADB framing missing
+	at app.mystery0.ims.tensor.embedded.adb.AdbFrame$Companion.read(AdbWire.kt:8)
+	at app.mystery0.ims.tensor.embedded.adb.AdbWireTest.rejectsLengthBeforeReadingPayloadAndBadMagic$lambda$0(AdbWireTest.kt:37)
+	at org.junit.Assert.assertThrows(Assert.java:1001)
+	... 33 more
+2) pairingHeaderIsBigEndianAndBounded(app.mystery0.ims.tensor.embedded.adb.AdbWireTest)
+array lengths differed, expected.length=6 actual.length=0; arrays first differed at element [0]; expected:<1> but was:<end of array>
+	at org.junit.internal.ComparisonCriteria.arrayEquals(ComparisonCriteria.java:89)
+	at org.junit.internal.ComparisonCriteria.arrayEquals(ComparisonCriteria.java:28)
+	at org.junit.Assert.internalArrayEquals(Assert.java:534)
+	at org.junit.Assert.assertArrayEquals(Assert.java:343)
+	at org.junit.Assert.assertArrayEquals(Assert.java:354)
+	at app.mystery0.ims.tensor.embedded.adb.AdbWireTest.pairingHeaderIsBigEndianAndBounded(AdbWireTest.kt:52)
+	... 30 trimmed
+Caused by: java.lang.AssertionError: expected:<1> but was:<end of array>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:120)
+	at org.junit.Assert.assertEquals(Assert.java:146)
+	at org.junit.internal.ComparisonCriteria.arrayEquals(ComparisonCriteria.java:87)
+	... 36 more
+3) pairingRequiresExactlySixAsciiDigits(app.mystery0.ims.tensor.embedded.adb.AdbWireTest)
+java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertFalse(Assert.java:65)
+	at org.junit.Assert.assertFalse(Assert.java:75)
+	at app.mystery0.ims.tensor.embedded.adb.AdbWireTest.pairingRequiresExactlySixAsciiDigits(AdbWireTest.kt:18)
+4) adbReadsPartialStreamsAndChecksPayloadChecksum(app.mystery0.ims.tensor.embedded.adb.AdbWireTest)
+java.lang.IllegalStateException: ADB framing missing
+	at app.mystery0.ims.tensor.embedded.adb.AdbFrame$Companion.read(AdbWire.kt:8)
+	at app.mystery0.ims.tensor.embedded.adb.AdbWireTest.adbReadsPartialStreamsAndChecksPayloadChecksum(AdbWireTest.kt:27)
+5) rejectsWrongPairingPhase(app.mystery0.ims.tensor.embedded.adb.AdbWireTest)
+java.lang.AssertionError: unexpected exception type thrown; expected:<app.mystery0.ims.tensor.embedded.adb.AdbProtocolException> but was:<java.lang.IllegalStateException>
+	at org.junit.Assert.assertThrows(Assert.java:1020)
+	at org.junit.Assert.assertThrows(Assert.java:981)
+	at app.mystery0.ims.tensor.embedded.adb.AdbWireTest.rejectsWrongPairingPhase(AdbWireTest.kt:58)
+	... 30 trimmed
+Caused by: java.lang.IllegalStateException: Pairing framing missing
+	at app.mystery0.ims.tensor.embedded.adb.PairingFrame$Companion.read(AdbWire.kt:12)
+	at app.mystery0.ims.tensor.embedded.adb.AdbWireTest.rejectsWrongPairingPhase$lambda$0(AdbWireTest.kt:59)
+	at org.junit.Assert.assertThrows(Assert.java:1001)
+	... 33 more
+6) outgoingFrameHasCorrectWireHeader(app.mystery0.ims.tensor.embedded.adb.AdbWireTest)
+array lengths differed, expected.length=31 actual.length=0; arrays first differed at element [0]; expected:<67> but was:<end of array>
+	at org.junit.internal.ComparisonCriteria.arrayEquals(ComparisonCriteria.java:89)
+	at org.junit.internal.ComparisonCriteria.arrayEquals(ComparisonCriteria.java:28)
+	at org.junit.Assert.internalArrayEquals(Assert.java:534)
+	at org.junit.Assert.assertArrayEquals(Assert.java:343)
+	at org.junit.Assert.assertArrayEquals(Assert.java:354)
+	at app.mystery0.ims.tensor.embedded.adb.AdbWireTest.outgoingFrameHasCorrectWireHeader(AdbWireTest.kt:48)
+	... 30 trimmed
+Caused by: java.lang.AssertionError: expected:<67> but was:<end of array>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:120)
+	at org.junit.Assert.assertEquals(Assert.java:146)
+	at org.junit.internal.ComparisonCriteria.arrayEquals(ComparisonCriteria.java:87)
+	... 36 more
+7) rejectsPortsOutsideLoopbackServiceRange(app.mystery0.ims.tensor.embedded.adb.AdbWireTest)
+java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertFalse(Assert.java:65)
+	at org.junit.Assert.assertFalse(Assert.java:75)
+	at app.mystery0.ims.tensor.embedded.adb.AdbWireTest.rejectsPortsOutsideLoopbackServiceRange(AdbWireTest.kt:12)
+8) truncatedPayloadNeverReportsSuccess(app.mystery0.ims.tensor.embedded.adb.AdbWireTest)
+java.lang.AssertionError: unexpected exception type thrown; expected:<java.io.EOFException> but was:<java.lang.IllegalStateException>
+	at org.junit.Assert.assertThrows(Assert.java:1020)
+	at org.junit.Assert.assertThrows(Assert.java:981)
+	at app.mystery0.ims.tensor.embedded.adb.AdbWireTest.truncatedPayloadNeverReportsSuccess(AdbWireTest.kt:43)
+	... 30 trimmed
+Caused by: java.lang.IllegalStateException: ADB framing missing
+	at app.mystery0.ims.tensor.embedded.adb.AdbFrame$Companion.read(AdbWire.kt:8)
+	at app.mystery0.ims.tensor.embedded.adb.AdbWireTest.truncatedPayloadNeverReportsSuccess$lambda$0(AdbWireTest.kt:44)
+	at org.junit.Assert.assertThrows(Assert.java:1001)
+	... 33 more
+9) commandQuotesEveryArgumentAndOnlyUsesFixedEntryPoint(app.mystery0.ims.tensor.embedded.adb.BootstrapCommandTest)
+java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertTrue(Assert.java:53)
+	at app.mystery0.ims.tensor.embedded.adb.BootstrapCommandTest.commandQuotesEveryArgumentAndOnlyUsesFixedEntryPoint(BootstrapCommandTest.kt:9)
+10) invalidIdentityNeverCreatesCommand(app.mystery0.ims.tensor.embedded.adb.BootstrapCommandTest)
+java.lang.AssertionError: expected java.lang.IllegalArgumentException to be thrown, but nothing was thrown
+	at org.junit.Assert.assertThrows(Assert.java:1028)
+	at org.junit.Assert.assertThrows(Assert.java:981)
+	at app.mystery0.ims.tensor.embedded.adb.BootstrapCommandTest.invalidIdentityNeverCreatesCommand(BootstrapCommandTest.kt:15)
+
+FAILURES!!!
+Tests run: 10,  Failures: 10
+

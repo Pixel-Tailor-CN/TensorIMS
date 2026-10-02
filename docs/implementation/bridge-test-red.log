@@ -1,0 +1,12 @@
+app/src/test/java/app/mystery0/ims/tensor/bridge/BridgePolicyTest.kt:7:28: error: unresolved reference 'BridgePolicy'.
+    private fun policy() = BridgePolicy(1012345, 10, "installed", "challenge", 100L, 1000L)
+                           ^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/bridge/BridgePolicyTest.kt:49:21: error: unresolved reference 'DelegationLease'.
+        val lease = DelegationLease()
+                    ^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/bridge/BridgePolicyTest.kt:51:9: error: cannot infer type for type parameter 'R'. Specify it explicitly.
+        runCatching { lease.begin { error("DELEGATION_BUSY") } }
+        ^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/bridge/BridgePolicyTest.kt:60:21: error: unresolved reference 'DelegationLease'.
+        val lease = DelegationLease(); lease.begin { }
+                    ^^^^^^^^^^^^^^^

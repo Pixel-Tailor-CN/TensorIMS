@@ -1,7 +1,18 @@
 # TensorIMS
 
+## 双模式开发分支说明
+
+已知能力边界：当前接口不能独立证明 CarrierConfig 覆盖删除完成。重置会实际请求并回读，但显示「已请求、尚未确认」，保留恢复保护和自动恢复暂停；全卡重置可能在首卡未确认后停止。它不能被当作已完整成功的重置功能。
+
+本分支采用新应用身份 `app.mystery0.ims.tensor`，一个 APK 内首次显式选择官方 Shizuku 或内置私有桥接。内置通过本应用独立无线 ADB 配对或用户批准的已有 root 启动，不管理其他 Shizuku 客户端。模式可在设置页切换；写入或恢复未结束时禁止切换。
+
+这是本地开发验收代码，尚未通过真实 Pixel 的私有桥接、双服务共存或 IMS 通信验收；下方历史截图及上游 Release 下载不代表本分支产物。设备支持清单沿用上游范围，不等于本次已验证。请先阅读 [真机验收与迁移](docs/implementation/DEVICE_ACCEPTANCE.md)。新包不继承旧版私有数据；不要先卸载旧版，先恢复旧版持久化 VoLTE 原值并关闭其自动恢复。
+
+本地构建：JDK 21、SDK 37，执行 `./gradlew :app:testDebugUnitTest :app:assembleDebug :app:lintDebug`。debug 自动使用标准开发签名；release 必须完整提供现有四项 `SIGN_KEY_*` 配置，否则明确失败。长期正式签名与发布均不在本次本地实现内。
+
+
 > **聚焦中国大陆运营商网络下的 Google Pixel IMS 配置，由 Mystery00 独立维护。**
-> 原 **Mystery00/TurboIMS**，现更名为 **TensorIMS**。仅支持搭载 Google Tensor 芯片的 Pixel 设备，需 Android 13+ 和 Shizuku。
+> 原 **Mystery00/TurboIMS**，现更名为 **TensorIMS**。仅支持搭载 Google Tensor 芯片的 Pixel 设备，需 Android 13+，并通过明确选择的后端取得特权。
 >
 > 主要适配和维护范围为中国移动、中国联通、中国电信网络下的使用场景。其他运营商因缺少相应设备、SIM 卡及网络测试条件，不作为主要适配和维护对象；这不表示其他网络一定无法使用，实际兼容性需自行验证。
 
@@ -33,12 +44,12 @@
 
 ## 关于
 
-TensorIMS 是一个允许您在 Google Pixel 手机上启用或禁用 VoLTE（高清语音通话）、VoWiFi（Wi-Fi 通话）、VT（视频通话）和 VoNR（5G 语音）等 IMS 功能的工具。它需要 [Shizuku](https://shizuku.rikka.app/zh-CN/) 才能工作。
+TensorIMS 是一个允许您在 Google Pixel 手机上启用或禁用 VoLTE（高清语音通话）、VoWiFi（Wi-Fi 通话）、VT（视频通话）和 VoNR（5G 语音）等 IMS 功能的工具。官方模式需要 [Shizuku](https://shizuku.rikka.app/zh-CN/)；内置模式需要独立无线 ADB 配对或已有 root。选择模式本身不代表已经获得权限。
 
 ## 功能
 
 - **清晰的分层信息架构**：
-    - **首页**：集中展示设备与 Shizuku 状态、SIM 卡选择、功能入口导航，以及“Shizuku 就绪后自动应用配置”开关。
+    - **首页**：集中展示设备与 Shizuku 状态、SIM 卡选择、功能入口导航，以及“后端就绪后自动应用配置”开关。
     - **IMS 配置**：采用草稿模式设计，按“通话 / 网络 / 显示 / 高级覆盖”清晰分组管理，支持一键快速预设与按需微调。
     - **系统网络**：独立管理设备级系统网络设置，提供 Captive Portal 探测地址配置及国内常用预设快捷填入。
     - **高级工具**：区分“诊断与常规维护”（实时 IMS 状态、重启 IMS、应用日志）与“危险操作”（重置 CarrierConfig 覆盖），并承载持久化 VoLTE 管理。
@@ -48,7 +59,7 @@ TensorIMS 是一个允许您在 Google Pixel 手机上启用或禁用 VoLTE（�
     - **国内 LTE**：纯净 4G 模式，显式关闭 5G NR 与 VoNR，专注网络稳定、省电抗发热及长续航。
     - **全部开启**：一键开启全部可用功能开关。
 - **自动化与持久化**：
-    - **Shizuku 就绪后自动应用**：可选择在设备重启且 Shizuku 启动授权后自动恢复上次成功应用的配置，无需每次开机手动操作。
+    - **Shizuku 就绪后自动应用**：可选择在设备重启且当前选定后端启动授权后自动恢复上次成功应用的配置，无需每次开机手动操作。
     - **持久化 VoLTE（实验性）**：使用系统底层 VoIMS opt-in 接口，启用后正常重启设备无需依赖 Shizuku 即可保持 VoLTE 生效。
     - **配置持久化**：按 SIM 卡（或全部卡）自动保存配置历史。
 - **可定制的 IMS 功能**：
@@ -84,7 +95,7 @@ TensorIMS 是一个允许您在 Google Pixel 手机上启用或禁用 VoLTE（�
     - Pixel Fold, Pixel Tablet
     - **注意：** 搭载 Qualcomm Snapdragon 芯片的设备（Pixel 5 及更早机型）**不支持**。
 - Android 13 或更高版本
-- 已安装并运行 [Shizuku](https://shizuku.rikka.app/zh-CN/)
+- 官方模式：已安装并运行 [Shizuku](https://shizuku.rikka.app/zh-CN/) 并授权；内置模式：由用户手动开启无线调试并独立配对，或批准已有 root
 
 ## 安装
 
@@ -92,14 +103,14 @@ TensorIMS 是一个允许您在 Google Pixel 手机上启用或禁用 VoLTE（�
 
 1. 从 [Releases](https://github.com/Pixel-Tailor-CN/TensorIMS/releases) 页面下载最新 APK。
 2. 在设备上安装 APK。
-3. 打开应用并授予 Shizuku 权限。
+3. 打开应用，明确选择模式并完成该模式的授权/手动启动；先执行只读验收。
 
 ## 使用
 
-1. **检查状态**：确保 Shizuku 正在运行且应用已获得权限。
+1. **检查状态**：确保当前选定后端显示就绪且应用已获得权限。
 2. **选择 SIM 卡**：在首页选择要配置的单张 SIM 卡或“所有 SIM”。
 3. **IMS 配置**：进入“IMS 配置”，可直接使用“推荐配置”、“国内 5G”或“国内 LTE”快捷预设，亦可按分组手动微调开关，点击底部“应用更改”生效。
-4. **自动恢复（可选）**：在首页开启“Shizuku 就绪后自动应用配置”，设备重启且 Shizuku 启动授权后将自动恢复已保存的配置。
+4. **自动恢复（可选）**：在首页开启“后端就绪后自动应用配置”，设备重启且当前选定后端启动授权后将自动恢复已保存的配置。
 5. **系统网络**：进入“系统网络”管理 Captive Portal 联网探测地址，可一键选择国内节点预设；该设置作用于全局设备，不随 SIM 切换。
 6. **高级工具**：进入“高级工具”可查看当前 SIM 的实时 IMS 能力快照、卡死时重启 IMS，或在“危险操作”区重置配置覆盖。
 
@@ -109,7 +120,7 @@ TensorIMS 是一个允许您在 Google Pixel 手机上启用或禁用 VoLTE（�
 
 本项目此前以 **Mystery00/TurboIMS** 的名称发布，现以 **TensorIMS** 继续独立维护，后续不计划合并上游代码。更名仅针对本维护版本；GitHub 上保留原有 fork 关系及来源说明。
 
-应用包名与签名配置保持不变，已安装本维护版本的用户可通过相同签名的新版本覆盖升级。使用 Obtainium 的用户可将来源更新为本仓库；如设置了 APK 文件名过滤条件，请同步调整为 TensorIMS。
+本双模式分支使用新的应用身份 `app.mystery0.ims.tensor`，不能覆盖升级 `io.github.vvb2060.ims`，也不会自动迁移它的私有数据。请先完成本文的旧版恢复与迁移步骤；上游 Releases/Obtainium 来源在正式发布本分支前仍可能提供旧包，请核对实际 applicationId。
 
 ## 鸣谢
 

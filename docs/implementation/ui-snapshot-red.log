@@ -1,0 +1,12 @@
+app/src/test/java/app/mystery0/ims/tensor/ui/BackendUiLogicTest.kt:4:38: error: unresolved reference 'asLegacyUiStatus'.
+import app.mystery0.ims.tensor.model.asLegacyUiStatus
+                                     ^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/ui/BackendUiLogicTest.kt:85:72: error: unresolved reference 'asLegacyUiStatus' on receiver of type 'BackendStatus'.
+        assertEquals(ShizukuStatus.READY, busy.copy(runtimeUid = 2000).asLegacyUiStatus())
+                                                                       ^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/ui/BackendUiLogicTest.kt:86:54: error: unresolved reference 'asLegacyUiStatus' on receiver of type 'BackendStatus'.
+        assertEquals(ShizukuStatus.NOT_RUNNING, busy.asLegacyUiStatus())
+                                                     ^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/ui/BackendUiLogicTest.kt:87:107: error: unresolved reference 'asLegacyUiStatus' on receiver of type 'BackendStatus'.
+        assertEquals(ShizukuStatus.NOT_RUNNING, busy.copy(connection = ConnectionState.RECOVERY_REQUIRED).asLegacyUiStatus())
+                                                                                                          ^^^^^^^^^^^^^^^^
