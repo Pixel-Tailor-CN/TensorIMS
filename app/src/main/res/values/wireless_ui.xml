@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wireless_ui_instructions">1. Tap “Pair through notification” and allow notifications. On Android 17 or later, also allow nearby-device access for local discovery.\n2. In Developer options, open Wireless debugging, enable it, then choose “Pair device with pairing code”.\n3. Keep that pairing-code dialog open. Pull down the notification shade, enter its six-digit code in the TensorIMS notification, and send it. Do not return to this app to enter the code.\nThe app discovers the ports automatically, then connects and verifies the private service after pairing.</string>
+    <string name="wireless_ui_privacy">Pairing applies only to this app on this device. The pairing code is not saved or logged. Wireless debugging is enabled only by you in Android Settings.</string>
+    <string name="wireless_ui_pair_and_open_settings">Pair through notification</string>
+    <string name="wireless_ui_reconnect_help">Already paired? Enable Wireless debugging and use the button below to discover its current connection port and restart the private service. If Android has forgotten this app, pair again.</string>
+    <string name="wireless_ui_reconnect">Reconnect paired device</string>
+    <string name="wireless_ui_preparing">Preparing the pairing notification…</string>
+    <string name="wireless_ui_searching_pairing">Waiting for you to open “Pair device with pairing code” in Wireless debugging…</string>
+    <string name="wireless_ui_waiting_code">Pairing port found. Keep the Android pairing dialog open and enter the code in the notification.</string>
+    <string name="wireless_ui_pairing">Pairing this app… Keep the Android pairing dialog open.</string>
+    <string name="wireless_ui_searching_connect">Discovering the wireless debugging connection port…</string>
+    <string name="wireless_ui_starting">Starting and verifying the private service…</string>
+    <string name="wireless_ui_success">Private service startup verified.</string>
+    <string name="wireless_ui_failed">Wireless debugging setup did not complete. Review the details below, then retry.</string>
+    <string name="wireless_ui_background_help">This action continues while Android Settings is open. Mode changes and other startup actions are blocked until it finishes or is canceled.</string>
+    <string name="wireless_ui_cancel">Cancel wireless setup</string>
+    <string name="wireless_ui_notifications_title">Notifications are required</string>
+    <string name="wireless_ui_notifications_required">The pairing code must be sent from a notification while the Android pairing dialog stays open. Enable app notifications and the wireless debugging notification channel in Settings, then return and tap the pairing or reconnect button again.</string>
+    <string name="wireless_ui_network_title">Local discovery permission is required</string>
+    <string name="wireless_ui_network_required">On Android 17 or later, automatic wireless debugging discovery needs the nearby-devices local network permission. Allow it in this app’s Permissions settings, then return and tap the pairing or reconnect button again.</string>
+    <string name="wireless_ui_open_permission_settings">Open permission settings</string>
+    <string name="wireless_ui_settings_unavailable">Could not open Android Settings. Open the appropriate settings page manually.</string>
+</resources>

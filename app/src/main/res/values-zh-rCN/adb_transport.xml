@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="adb_pair_diagnostic">配对诊断：%1$s / %2$s。反馈失败时请提供这一行，不要提供配对码</string>
+    <string name="adb_service_rejected">无线调试已连接，但系统拒绝了内置服务启动请求，请检查应用安装和系统限制</string>
+</resources>

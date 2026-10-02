@@ -43,6 +43,7 @@ class MainActivity : BaseActivity() {
         val canRecoverPersistentVolte by viewModel.canRecoverPersistentVolte.collectAsStateWithLifecycle()
         val backendStatus by viewModel.backendStatus.collectAsStateWithLifecycle()
         val backendAction by viewModel.backendAction.collectAsStateWithLifecycle()
+        val wirelessAdbState by viewModel.wirelessAdbState.collectAsStateWithLifecycle()
         val showMigrationNotice by viewModel.migrationNotice.collectAsStateWithLifecycle()
         var firstChoiceDismissed by rememberSaveable { mutableStateOf(false) }
         val shizukuStatus by viewModel.shizukuStatus.collectAsStateWithLifecycle()
@@ -120,6 +121,7 @@ class MainActivity : BaseActivity() {
                 BackendSettingsScreen(
                     status = backendStatus,
                     action = backendAction,
+                    wirelessState = wirelessAdbState,
                     busy = isOperationInProgress,
                     showMigrationNotice = showMigrationNotice,
                     canRecoverPersistentVolte = canRecoverPersistentVolte,
@@ -129,8 +131,9 @@ class MainActivity : BaseActivity() {
                     onChooseMode = viewModel::chooseBackend,
                     onRequestPermission = viewModel::requestOfficialPermission,
                     onRefresh = viewModel::refreshBackendStatus,
-                    onPair = viewModel::pairEmbedded,
+                    onPair = viewModel::startEmbeddedPairing,
                     onStartWireless = viewModel::startEmbeddedWireless,
+                    onCancelWireless = viewModel::cancelEmbeddedWireless,
                     onStartRoot = viewModel::startEmbeddedRoot,
                     onAcknowledgeMigration = viewModel::acknowledgeMigrationNotice,
                     onBack = onBack,

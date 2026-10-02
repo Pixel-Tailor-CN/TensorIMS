@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wireless_ui_instructions">1. 点击「通过通知配对」并允许通知。Android 17 及以上还需允许用于本地发现的附近设备权限。\n2. 在开发者选项中进入「无线调试」，开启后选择「使用配对码配对设备」。\n3. 保持系统配对码弹窗打开，下拉通知栏，在 TensorIMS 通知中输入六位配对码并发送。不要返回本应用输入配对码。\n应用会自动发现端口，配对后自动连接并验证私有服务，无需手填端口。</string>
+    <string name="wireless_ui_privacy">仅配对本机的当前应用，不保存或记录配对码。无线调试开关由你在 Android 设置中手动开启。</string>
+    <string name="wireless_ui_pair_and_open_settings">通过通知配对</string>
+    <string name="wireless_ui_reconnect_help">已经配对过？开启无线调试后，点击下方按钮自动发现当前连接端口并重新启动私有服务。如果系统已忘记本应用，请重新配对。</string>
+    <string name="wireless_ui_reconnect">已配对，重新连接</string>
+    <string name="wireless_ui_preparing">正在准备配对通知…</string>
+    <string name="wireless_ui_searching_pairing">等待你在无线调试中打开「使用配对码配对设备」…</string>
+    <string name="wireless_ui_waiting_code">已发现配对端口。请保持系统配对码弹窗打开，在通知中输入配对码。</string>
+    <string name="wireless_ui_pairing">正在配对本应用…请保持系统配对码弹窗打开。</string>
+    <string name="wireless_ui_searching_connect">正在自动发现无线调试连接端口…</string>
+    <string name="wireless_ui_starting">正在启动并验证私有服务…</string>
+    <string name="wireless_ui_success">私有服务已启动并通过验证。</string>
+    <string name="wireless_ui_failed">无线调试设置未完成，请查看下方详情后重试。</string>
+    <string name="wireless_ui_background_help">切到 Android 设置后任务会继续执行。完成或取消前，不能切换模式或发起其他启动操作。</string>
+    <string name="wireless_ui_cancel">取消无线设置</string>
+    <string name="wireless_ui_notifications_title">需要开启通知</string>
+    <string name="wireless_ui_notifications_required">必须保持系统配对码弹窗打开，并通过通知发送配对码。请在设置中开启本应用通知与无线调试通知渠道，再返回点击配对或重新连接按钮。</string>
+    <string name="wireless_ui_network_title">需要本地发现权限</string>
+    <string name="wireless_ui_network_required">Android 17 及以上的自动无线调试发现需要附近设备中的本地网络权限。请在本应用的权限设置中允许，再返回点击配对或重新连接按钮。</string>
+    <string name="wireless_ui_open_permission_settings">打开权限设置</string>
+    <string name="wireless_ui_settings_unavailable">无法打开 Android 设置，请手动进入对应设置页面。</string>
+</resources>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wireless_service_title">TensorIMS 无线调试</string>
+    <string name="wireless_service_permissions">请先允许通知和本地网络发现权限；尚未启动无线调试流程。</string>
+    <string name="wireless_service_unavailable">无法启动配对通知。请保持 TensorIMS 在前台，检查通知权限后重试。</string>
+    <string name="wireless_service_timeout">无线调试操作超时，请返回 TensorIMS 重新开始；配对码未保存。</string>
+    <string name="wireless_service_discovery_failed">未能发现本机无线调试服务（%1$s）。请检查 Wi-Fi、无线调试和本地网络权限后重试。</string>
+    <string name="wireless_service_code_invalid">请输入系统配对对话框当前显示的 6 位数字。</string>
+    <string name="wireless_service_retry">未能接收本次输入，请重新输入当前配对码。</string>
+    <string name="wireless_service_interrupted">无线调试操作已中断，请从 TensorIMS 重新开始。</string>
+    <string name="wireless_service_searching_pairing">在开发者选项中开启「无线调试」，点击「使用配对码配对设备」并保持对话框打开。正在自动查找本机服务…</string>
+    <string name="wireless_service_enter_code">保持系统配对对话框打开，展开本通知并在下方输入其 6 位配对码。</string>
+    <string name="wireless_service_pairing">正在与本机安全配对，请保持系统配对对话框打开…</string>
+    <string name="wireless_service_searching_connect">正在自动查找本机无线调试连接端口…</string>
+    <string name="wireless_service_starting">正在启动 TensorIMS 私有服务…</string>
+    <string name="wireless_service_success">TensorIMS 私有服务已连接，可以返回应用。</string>
+    <string name="wireless_service_code_label">6 位配对码</string>
+    <string name="wireless_service_code_action">输入配对码</string>
+    <string name="wireless_service_paired_connect_failed">配对已成功，但连接尚未完成：%1$s。可返回 TensorIMS 点击重新连接，无需再次配对。</string>
+    <string name="wireless_service_ambiguous">发现多个本机无线调试服务。请关闭其他配对或二维码窗口，只保留「使用配对码配对设备」窗口后重试。</string>
+</resources>
