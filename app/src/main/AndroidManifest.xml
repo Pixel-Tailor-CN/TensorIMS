@@ -3,6 +3,9 @@
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
 
     <application
         android:name=".Application"
@@ -27,6 +30,11 @@
             android:name=".ui.LogcatActivity"
             android:exported="false"
             android:theme="@style/Theme.TensorIMS" />
+
+        <service
+            android:name=".embedded.WirelessAdbService"
+            android:exported="false"
+            android:foregroundServiceType="shortService" />
 
         <provider
             android:name=".ShizukuProvider"

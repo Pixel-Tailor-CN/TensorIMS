@@ -33,7 +33,8 @@ internal class LoopbackConnection(private val port: Int) : Closeable {
     }
     override fun close() {
         closed = true
-        runCatching { tls?.close() }
+        // Conscrypt.close 会尝试发送 close_notify；先中断原始 TCP，避免取消卡在 TLS 写锁或网络写入。
         runCatching { raw.close() }
+        runCatching { tls?.close() }
     }
 }

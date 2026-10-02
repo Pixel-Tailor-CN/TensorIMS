@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wireless_service_title">TensorIMS wireless debugging</string>
+    <string name="wireless_service_permissions">Allow notifications and local network discovery before starting. The wireless debugging session was not started.</string>
+    <string name="wireless_service_unavailable">Could not start the pairing notification. Keep TensorIMS visible, check notification access, and try again.</string>
+    <string name="wireless_service_timeout">Wireless setup timed out. Return to TensorIMS and start again; no pairing code was saved.</string>
+    <string name="wireless_service_discovery_failed">Could not discover this device’s wireless debugging service (%1$s). Check Wi-Fi, wireless debugging and local network permission, then retry.</string>
+    <string name="wireless_service_code_invalid">Enter the six digits currently shown in the system pairing dialog.</string>
+    <string name="wireless_service_retry">This reply was not accepted. Enter the current pairing code again.</string>
+    <string name="wireless_service_interrupted">Wireless setup was interrupted. Start again from TensorIMS.</string>
+    <string name="wireless_service_searching_pairing">Enable Wireless debugging in Developer options, then tap Pair device with pairing code. Keep that dialog open. Searching for this device automatically…</string>
+    <string name="wireless_service_enter_code">Keep the system pairing dialog open. Expand this notification and enter its six-digit code below.</string>
+    <string name="wireless_service_pairing">Pairing securely with this device… Keep the system pairing dialog open.</string>
+    <string name="wireless_service_searching_connect">Discovering this device’s wireless debugging connection port…</string>
+    <string name="wireless_service_starting">Starting the private TensorIMS service…</string>
+    <string name="wireless_service_success">The private TensorIMS service is connected. You can return to TensorIMS.</string>
+    <string name="wireless_service_code_label">Six-digit pairing code</string>
+    <string name="wireless_service_code_action">Enter pairing code</string>
+    <string name="wireless_service_paired_connect_failed">Pairing succeeded, but connection did not finish: %1$s. Use Connect again in TensorIMS without pairing again.</string>
+    <string name="wireless_service_ambiguous">More than one local wireless debugging service was found. Close other pairing or QR-code windows, keep only the pairing-code dialog open, then retry.</string>
+</resources>

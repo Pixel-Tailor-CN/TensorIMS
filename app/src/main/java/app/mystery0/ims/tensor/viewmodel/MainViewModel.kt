@@ -13,6 +13,7 @@ import app.mystery0.ims.tensor.ShizukuProvider
 import app.mystery0.ims.tensor.model.ImsCapabilityStatus
 import app.mystery0.ims.tensor.model.PersistentVolteState
 import app.mystery0.ims.tensor.embedded.EmbeddedLauncher
+import app.mystery0.ims.tensor.embedded.WirelessAdbService
 import app.mystery0.ims.tensor.privilege.BackendMode
 import app.mystery0.ims.tensor.privilege.ConnectionState
 import app.mystery0.ims.tensor.privilege.PrivilegeRuntime
@@ -24,8 +25,6 @@ import app.mystery0.ims.tensor.ui.BackendActionState
 import app.mystery0.ims.tensor.ui.backendUiActions
 import app.mystery0.ims.tensor.ui.canConfirmPersistentRecovery
 import app.mystery0.ims.tensor.ui.canConfirmModeChoice
-import app.mystery0.ims.tensor.ui.parseAdbPort
-import app.mystery0.ims.tensor.ui.validPairingCode
 import app.mystery0.ims.tensor.model.asLegacyUiStatus
 import app.mystery0.ims.tensor.model.ShizukuStatus
 import app.mystery0.ims.tensor.model.SimSelection
@@ -53,6 +52,7 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
     private val configurations = autoRestore.repository
     val autoRestoreEnabled = autoRestore.enabled
     val backendStatus = PrivilegeRuntime.status
+    val wirelessAdbState = WirelessAdbService.state
     val canRecoverPersistentVolte = PrivilegeRuntime.canRecoverPersistentVolte
     val canStartEmbeddedForRecovery = PrivilegeRuntime.canStartEmbeddedForRecovery
     val canRequestOfficialPermissionForRecovery = PrivilegeRuntime.canRequestOfficialPermissionForRecovery
@@ -62,8 +62,8 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
     private val uiPreferences = application.getSharedPreferences("backend_ui", Application.MODE_PRIVATE)
     private val _migrationNotice = MutableStateFlow(!uiPreferences.getBoolean("migration_notice_seen", false))
     val migrationNotice = _migrationNotice.asStateFlow()
-    val isOperationInProgress = combine(ConfigurationOperations.busy, backendStatus, backendAction) { busy, status, action ->
-        busy || status.connection in setOf(ConnectionState.BUSY, ConnectionState.SWITCHING, ConnectionState.CONNECTING) || action.inProgress
+    val isOperationInProgress = combine(ConfigurationOperations.busy, backendStatus, backendAction, wirelessAdbState) { busy, status, action, wireless ->
+        busy || status.connection in setOf(ConnectionState.BUSY, ConnectionState.SWITCHING, ConnectionState.CONNECTING) || action.inProgress || wireless.active
     }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     fun acknowledgeMigrationNotice() {
@@ -72,7 +72,7 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
     }
 
     fun chooseBackend(mode: BackendMode) {
-        if (!canConfirmModeChoice(backendStatus.value, mode, _backendAction.value.inProgress, ConfigurationOperations.busy.value)) {
+        if (!canConfirmModeChoice(backendStatus.value, mode, _backendAction.value.inProgress, backendActionBusy())) {
             toast(application.getString(R.string.backend_switch_busy), false)
             return
         }
@@ -81,32 +81,36 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
 
     fun recoverPersistentVolte() {
         if (!canConfirmPersistentRecovery(backendStatus.value, canRecoverPersistentVolte.value,
-                _backendAction.value.inProgress, ConfigurationOperations.busy.value)) return
+                _backendAction.value.inProgress, backendActionBusy())) return
         runBackendAction(BackendAction.RECOVER) { PrivilegeRuntime.recoverPersistentVolte() }
     }
 
     fun startEmbeddedRoot() = startEmbeddedAction(BackendAction.ROOT) { launcher.startRoot() }
 
-    fun pairEmbedded(port: String, code: String) {
-        val parsedPort = parseAdbPort(port) ?: return
-        if (!validPairingCode(code)) return
-        startEmbeddedAction(BackendAction.PAIR) { launcher.pair(parsedPort, code) }
-    }
+    fun startEmbeddedPairing(): Boolean = startWirelessAction(pairing = true)
 
-    fun startEmbeddedWireless(port: String) {
-        val parsedPort = parseAdbPort(port) ?: return
-        startEmbeddedAction(BackendAction.WIRELESS) { launcher.startWireless(parsedPort) }
+    fun startEmbeddedWireless(): Boolean = startWirelessAction(pairing = false)
+
+    fun cancelEmbeddedWireless() = WirelessAdbService.cancel(application)
+
+    private fun startWirelessAction(pairing: Boolean): Boolean {
+        if (!backendUiActions(backendStatus.value, _backendAction.value.inProgress, backendActionBusy(),
+                recoveryStartAllowed = canStartEmbeddedForRecovery.value).canStartEmbedded) return false
+        _backendAction.value = BackendActionState()
+        // 服务同步占用无线动作状态，再由前台服务持有配对流程；旋转或离开页面不会重复启动。
+        if (pairing) WirelessAdbService.startPairing(application) else WirelessAdbService.startConnect(application)
+        return wirelessAdbState.value.active
     }
 
     private fun startEmbeddedAction(action: BackendAction, block: suspend () -> String?) {
-        if (!backendUiActions(backendStatus.value, _backendAction.value.inProgress, ConfigurationOperations.busy.value,
+        if (!backendUiActions(backendStatus.value, _backendAction.value.inProgress, backendActionBusy(),
                 recoveryStartAllowed = canStartEmbeddedForRecovery.value).canStartEmbedded) return
         // 配对与两种启动都由运行时的同一门禁保护，避免与切换或恢复发生竞态。
         runBackendAction(action) { PrivilegeRuntime.startEmbedded(block) }
     }
 
     private fun runBackendAction(action: BackendAction, block: suspend () -> String?) {
-        if (_backendAction.value.inProgress) return
+        if (_backendAction.value.inProgress || wirelessAdbState.value.active) return
         _backendAction.value = BackendActionState(action = action)
         viewModelScope.launch {
             try {
@@ -114,7 +118,7 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
                 _backendAction.value = BackendActionState(
                     notice = if (error == null) when (action) {
                         BackendAction.RECOVER -> R.string.backend_recovery_success
-                        BackendAction.PAIR -> R.string.backend_pair_success
+                        BackendAction.PAIR -> null
                         BackendAction.ROOT, BackendAction.WIRELESS -> R.string.backend_start_success
                         BackendAction.CHOOSE_MODE -> null
                     } else null,
@@ -206,6 +210,11 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
             }
         }
         viewModelScope.launch {
+            wirelessAdbState.collect { wireless ->
+                if (!wireless.active) drainPendingPersistentRefresh()
+            }
+        }
+        viewModelScope.launch {
             backendStatus.collect { status ->
                 // BUSY 仍保留已认证的页面快照，避免每次读取都丢失草稿；动作另受忙碌门禁保护。
                 _shizukuStatus.value = status.asLegacyUiStatus()
@@ -222,12 +231,13 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
 
     /** 刷新只检查当前所选后端，不请求授权或启动服务。 */
     fun refreshBackendStatus() {
+        if (wirelessAdbState.value.active) return
         PrivilegeRuntime.refresh()
         loadSimList()
     }
 
     fun requestOfficialPermission() {
-        if (backendUiActions(backendStatus.value, _backendAction.value.inProgress, ConfigurationOperations.busy.value,
+        if (backendUiActions(backendStatus.value, _backendAction.value.inProgress, backendActionBusy(),
                 recoveryPermissionAllowed = canRequestOfficialPermissionForRecovery.value).canRequestOfficialPermission) PrivilegeRuntime.requestOfficialPermission()
     }
 
@@ -342,7 +352,9 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
         }
     }
 
-    private fun backendOperationBusy(): Boolean = ConfigurationOperations.busy.value ||
+    private fun backendActionBusy(): Boolean = ConfigurationOperations.busy.value || wirelessAdbState.value.active
+
+    private fun backendOperationBusy(): Boolean = backendActionBusy() ||
         !backendStatus.value.isReady || _backendAction.value.inProgress
 
     private fun drainPendingPersistentRefresh() {

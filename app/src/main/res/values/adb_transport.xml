@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="adb_pair_diagnostic">Pairing diagnostic: %1$s / %2$s. Include this line when reporting the failure; do not share your pairing code</string>
+    <string name="adb_service_rejected">Wireless debugging connected, but Android rejected the embedded service start request. Check the app installation and system restrictions</string>
+</resources>

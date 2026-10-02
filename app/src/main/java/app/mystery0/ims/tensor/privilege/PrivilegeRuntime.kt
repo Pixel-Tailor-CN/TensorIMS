@@ -19,6 +19,8 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -174,8 +176,15 @@ object PrivilegeRuntime {
             }
             if (!recovering && !machine.beginConnection()) return@tryExclusive "当前操作尚未完成，请稍后再启动"
             publish()
-            val error = try { action() } catch (failure: Exception) {
-                Log.e(TAG, "Embedded start failed", failure)
+            val error = try {
+                action()
+            } catch (cancelled: CancellationException) {
+                // 用户停止通知配对或超时后必须取消传输；不能吞掉取消并继续启动。
+                // 清理完成后刷新连接，避免状态永久停在 CONNECTING；恢复记录保持原样。
+                withContext(NonCancellable) { if (!recovering) connectLocked() }
+                throw cancelled
+            } catch (failure: Exception) {
+                Log.w(TAG, "Embedded start failed (${failure.javaClass.simpleName})")
                 "内置服务启动失败，请检查启动方式"
             }
             if (recovering) reconcileLocked() else connectLocked()

@@ -12,15 +12,15 @@ import app.mystery0.ims.tensor.embedded.adb.AdbIdentityUnavailableException
 import app.mystery0.ims.tensor.embedded.adb.AdbPairingClient
 import app.mystery0.ims.tensor.embedded.adb.AdbProtocolException
 import app.mystery0.ims.tensor.embedded.adb.AdbTlsClient
+import app.mystery0.ims.tensor.embedded.adb.AdbServiceRejectedException
 import app.mystery0.ims.tensor.embedded.adb.BootstrapCommand
 import app.mystery0.ims.tensor.embedded.adb.InvalidPairingCodeException
 import app.mystery0.ims.tensor.embedded.adb.LaunchInput
 import app.mystery0.ims.tensor.embedded.adb.LoopbackConnection
+import app.mystery0.ims.tensor.embedded.adb.PairingStage
+import app.mystery0.ims.tensor.embedded.adb.withAdbNetworkResource
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.sync.Mutex
@@ -30,6 +30,7 @@ import kotlinx.coroutines.TimeoutCancellationException
 import java.io.File
 import java.security.MessageDigest
 import java.security.SecureRandom
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.coroutineContext
 
 /** 仅由用户明确选择的内置模式动作调用；调用方须持有 PrivilegeRuntime 的启动/切换安全门。 */
@@ -39,10 +40,11 @@ class EmbeddedLauncher(context: Context) {
     suspend fun pair(port: Int, code: String): String? {
         if (!LaunchInput.validPort(port)) return context.getString(R.string.launcher_pair_port)
         if (!LaunchInput.validPairCode(code)) return context.getString(R.string.launcher_pair_code)
-        return exclusive("pairing") {
+        val pairingStage = AtomicReference(PairingStage.IDENTITY)
+        return exclusive("pairing", { pairingStage.get().diagnosticName }) {
             network(port) { connection ->
                 val identity = AdbIdentity.load(context, pairing = true)
-                AdbPairingClient(connection, identity).pair(code)
+                AdbPairingClient(connection, identity).pair(code) { pairingStage.set(it) }
             }
             null
         }
@@ -130,43 +132,42 @@ class EmbeddedLauncher(context: Context) {
         return BootstrapCommand.create(app.uid / 100000, app.uid, installed.longVersionCode, signer, challenge, app.sourceDir)
     }
 
-    private suspend fun <T> network(port: Int, block: (LoopbackConnection) -> T): T = coroutineScope {
+    private suspend fun <T> network(port: Int, block: (LoopbackConnection) -> T): T {
         val connection = LoopbackConnection(port)
-        val work = async(Dispatchers.IO) { block(connection) }
-        try {
-            withTimeout(30000) { work.await() }
-        } finally {
-            // 关闭 Socket 解除阻塞读取；等待 worker 退出与 native 上下文清理后才释放启动互斥锁。
-            connection.close()
-            withContext(NonCancellable) { work.join() }
-        }
+        return withAdbNetworkResource(connection) { block(connection) }
     }
 
-    private suspend fun exclusive(stage: String, action: suspend () -> String?): String? {
+    private suspend fun exclusive(stage: String, diagnostic: () -> String? = { null }, action: suspend () -> String?): String? {
         if (!launchMutex.tryLock()) return context.getString(R.string.launcher_busy)
+        fun detail(message: String, failure: Throwable): String {
+            val position = diagnostic() ?: return message
+            return message + "\n" + context.getString(R.string.adb_pair_diagnostic, position, failure.javaClass.simpleName)
+        }
         try {
             return action()
         } catch (failure: TimeoutCancellationException) {
             coroutineContext.ensureActive()
-            Log.w(TAG, "Embedded launch timed out: $stage")
-            return context.getString(R.string.launcher_timeout)
+            Log.w(TAG, "Embedded launch timed out: $stage/${diagnostic().orEmpty()}")
+            return detail(context.getString(R.string.launcher_timeout), failure)
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (failure: Exception) {
             // 异常内容可能包含路径/密钥材料，日志仅记录阶段与类型；不输出完整堆栈。
-            Log.w(TAG, "Embedded launch failed: $stage (${failure.javaClass.simpleName})")
-            return when (failure) {
+            Log.w(TAG, "Embedded launch failed: $stage/${diagnostic().orEmpty()} (${failure.javaClass.simpleName})")
+            val message = when (failure) {
                 is AdbIdentityUnavailableException -> context.getString(R.string.launcher_identity)
                 is InvalidPairingCodeException -> context.getString(R.string.launcher_pair_failed)
                 is RootRejectedException -> context.getString(R.string.launcher_root_failed)
+                is AdbServiceRejectedException -> context.getString(R.string.adb_service_rejected)
                 is AdbProtocolException -> context.getString(R.string.launcher_protocol)
                 is java.net.SocketTimeoutException -> context.getString(R.string.launcher_socket_timeout)
                 is java.net.ConnectException -> context.getString(R.string.launcher_connect_failed)
                 else -> context.getString(R.string.launcher_failed, stage)
             }
+            return detail(message, failure)
         } catch (failure: LinkageError) {
-            Log.w(TAG, "Native pairing unavailable")
-            return context.getString(R.string.launcher_native)
+            Log.w(TAG, "Native pairing unavailable: ${diagnostic().orEmpty()}")
+            return detail(context.getString(R.string.launcher_native), failure)
         } finally {
             launchMutex.unlock()
         }

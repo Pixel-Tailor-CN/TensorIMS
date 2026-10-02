@@ -206,6 +206,9 @@ adb shell settings get global captive_portal_https_url
 - `UNSET` 不执行特权操作；官方拒绝授权不切内置；所有后台自动恢复仅在已选后端 READY 时触发，绝不代替用户启动 root/ADB。
 - 结果未知或清理失败保持恢复态；客户端超时不意味着设备端停止。持久化原值备份不是缓存，禁止在切换、禁用或升级时清理。
 - Android 全局 shell 委托冲突应报告 DELEGATION_BUSY，不清理其他客户端权限，不按进程名停止 Shizuku。
+- 内置无线调试使用用户显式启动的短时前台通知，用户保留系统配对对话框并通过 RemoteInput 输入验证码；不要求手填端口，不申请悬浮窗权限。分别发现 `_adb-tls-pairing._tcp` 和 `_adb-tls-connect._tcp`，只接受本机地址且 Socket 保持回环限定。
+- Android 17（target 37）自动 NSD 发现先请求 `ACCESS_LOCAL_NETWORK`，Android 13+ 先确认通知权限与渠道可用；权限拒绝不得在后台反复请求。通知会话、发现、取消及迟到回调按独立 token 隔离，配对码绝不进入持久状态或日志。
+- 无线流程、协议/证书测试与设备验收边界详见 `docs/implementation/WIRELESS_ADB_VALIDATION.md`；云端 JVM TLS 与双包构建不能代替 Android 实际配对/JNI/通知/私有服务握手验收。
 - 配对库的 `moe.shizuku.manager.adb.PairingContext` 是上游二进制 JNI ABI，保留第三方包名及许可。它不是官方管理器的授权/配置入口。
 - debug 使用 Android 标准开发签名；release 要求显式完整签名配置。禁止把调试证书用于正式发布。
 - 本地纯逻辑、构建和静态测试不替代真实设备验收，记录详见 `docs/implementation/DEVICE_ACCEPTANCE.md`。
