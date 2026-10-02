@@ -20,8 +20,10 @@ androidx-splashscreen = "1.2.0"
 lifecycle = "2.11.0"
 material-icons = "1.7.8"
 junit = "4.13.2"
+bcpkix = "1.80.2"
 
 [libraries]
+bcpkix = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bcpkix" }
 shizuku-api = { module = "dev.rikka.shizuku:api", version.ref = "shizuku" }
 shizuku-provider = { module = "dev.rikka.shizuku:provider", version.ref = "shizuku" }
 hiddenapibypass = { module = "org.lsposed.hiddenapibypass:hiddenapibypass", version.ref = "hiddenapibypass" }

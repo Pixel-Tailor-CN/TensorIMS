@@ -1,0 +1,15 @@
+app/src/test/java/app/mystery0/ims/tensor/bridge/BridgePolicyTest.kt:109:20: error: unresolved reference 'OperationRecoveryPolicy'.
+        assertTrue(OperationRecoveryPolicy.required(rollbackFailed = true))
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/bridge/BridgePolicyTest.kt:112:20: error: unresolved reference 'OperationRecoveryPolicy'.
+        assertTrue(OperationRecoveryPolicy.required(restorationStarted = true))
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/bridge/BridgePolicyTest.kt:115:20: error: unresolved reference 'OperationRecoveryPolicy'.
+        assertTrue(OperationRecoveryPolicy.required(carrierWriteAttempted = true))
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/bridge/BridgePolicyTest.kt:118:21: error: unresolved reference 'OperationRecoveryPolicy'.
+        assertFalse(OperationRecoveryPolicy.required(carrierWriteAttempted = true, confirmedPermissionDenial = true))
+                    ^^^^^^^^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/bridge/BridgePolicyTest.kt:119:21: error: unresolved reference 'OperationRecoveryPolicy'.
+        assertFalse(OperationRecoveryPolicy.required())
+                    ^^^^^^^^^^^^^^^^^^^^^^^

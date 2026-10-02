@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="launcher_pair_port">配对端口必须为 1–65535</string>
+    <string name="launcher_pair_code">请输入六位数字配对码</string>
+    <string name="launcher_connect_port">连接端口必须为 1–65535</string>
+    <string name="launcher_connected">内置服务已经连接</string>
+    <string name="launcher_busy">已有配对或启动操作正在进行</string>
+    <string name="launcher_timeout">操作超时，请检查无线调试或 root 授权状态；未确认内置服务连接</string>
+    <string name="launcher_identity">尚未配对或配对凭据已失效，请重新配对</string>
+    <string name="launcher_pair_failed">配对失败，请检查配对码是否正确且未过期</string>
+    <string name="launcher_root_failed">root 授权被拒绝或启动命令失败</string>
+    <string name="launcher_protocol">无线调试协议不匹配，请核对配对端口与连接端口</string>
+    <string name="launcher_socket_timeout">无线调试连接超时，请检查端口并重试</string>
+    <string name="launcher_connect_failed">无法连接本机无线调试，请检查系统开关与端口</string>
+    <string name="launcher_failed">内置服务操作失败（%1$s）；请检查配对、root 授权和当前安装状态</string>
+    <string name="launcher_native">本设备无法加载配对组件，请检查 arm64 安装包</string>
+    <string name="launcher_handshake">启动命令已提交，但未收到已认证的内置服务连接；请检查安装状态与系统兼容性</string>
+</resources>

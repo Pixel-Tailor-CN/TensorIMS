@@ -1,0 +1,50 @@
+JUnit version 4.13.2
+..............E.E..E...E.E.E.E.
+Time: 0.102
+There were 7 failures:
+1) 自动读取开始后输入的草稿不会被迟到结果覆盖(app.mystery0.ims.tensor.ui.DraftRetentionTest)
+org.junit.ComparisonFailure: expected:<http://[later].example/check> but was:<http://[new].example/check>
+	at org.junit.Assert.assertEquals(Assert.java:117)
+	at org.junit.Assert.assertEquals(Assert.java:146)
+	at app.mystery0.ims.tensor.ui.DraftRetentionTest.自动读取开始后输入的草稿不会被迟到结果覆盖(DraftRetentionTest.kt:51)
+2) 确认丢弃后新输入仍由版本保护不被迟到结果覆盖(app.mystery0.ims.tensor.ui.DraftRetentionTest)
+org.junit.ComparisonFailure: expected:<http://[later].example/check> but was:<http://[new].example/check>
+	at org.junit.Assert.assertEquals(Assert.java:117)
+	at org.junit.Assert.assertEquals(Assert.java:146)
+	at app.mystery0.ims.tensor.ui.DraftRetentionTest.确认丢弃后新输入仍由版本保护不被迟到结果覆盖(DraftRetentionTest.kt:60)
+3) 读卡失败但后端READY时仍保留卡片和选择来源(app.mystery0.ims.tensor.ui.DraftRetentionTest)
+java.lang.AssertionError: expected same:<[-1, 11, 22]> was not:<[-1]>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotSame(Assert.java:829)
+	at org.junit.Assert.assertSame(Assert.java:772)
+	at org.junit.Assert.assertSame(Assert.java:783)
+	at app.mystery0.ims.tensor.ui.DraftRetentionTest.读卡失败但后端READY时仍保留卡片和选择来源(DraftRetentionTest.kt:91)
+4) 切换后的旧代际回包不替换草稿也不替换系统快照(app.mystery0.ims.tensor.ui.DraftRetentionTest)
+java.lang.AssertionError: expected:<CaptivePortalUiState(loading=false, saving=false, mode=CUSTOM, httpUrl=http://draft.example/check, httpsUrl=https://draft.example/check, storedSettings=CaptivePortalSettings(httpUrl=http://old.example/check, httpsUrl=https://old.example/check), httpError=null, httpsError=null, operationError=null, notice=NONE, draftRevision=1, hasLoaded=true)> but was:<CaptivePortalUiState(loading=false, saving=false, mode=CUSTOM, httpUrl=http://new.example/check, httpsUrl=https://new.example/check, storedSettings=CaptivePortalSettings(httpUrl=http://new.example/check, httpsUrl=https://new.example/check), httpError=null, httpsError=null, operationError=null, notice=NONE, draftRevision=0, hasLoaded=true)>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:120)
+	at org.junit.Assert.assertEquals(Assert.java:146)
+	at app.mystery0.ims.tensor.ui.DraftRetentionTest.切换后的旧代际回包不替换草稿也不替换系统快照(DraftRetentionTest.kt:68)
+5) 自动重新进入和模式切换后的刷新只更新快照而保留脏草稿(app.mystery0.ims.tensor.ui.DraftRetentionTest)
+org.junit.ComparisonFailure: expected:<http://[draft].example/check> but was:<http://[new].example/check>
+	at org.junit.Assert.assertEquals(Assert.java:117)
+	at org.junit.Assert.assertEquals(Assert.java:146)
+	at app.mystery0.ims.tensor.ui.DraftRetentionTest.自动重新进入和模式切换后的刷新只更新快照而保留脏草稿(DraftRetentionTest.kt:30)
+6) 系统默认模式下未提交的地址也属于应保留草稿(app.mystery0.ims.tensor.ui.DraftRetentionTest)
+java.lang.AssertionError: expected:<SYSTEM_DEFAULT> but was:<CUSTOM>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:120)
+	at org.junit.Assert.assertEquals(Assert.java:146)
+	at app.mystery0.ims.tensor.ui.DraftRetentionTest.系统默认模式下未提交的地址也属于应保留草稿(DraftRetentionTest.kt:84)
+7) 成功读取零张卡与读卡失败不同且不伪造所有SIM(app.mystery0.ims.tensor.ui.DraftRetentionTest)
+java.lang.AssertionError
+	at org.junit.Assert.fail(Assert.java:87)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at org.junit.Assert.assertTrue(Assert.java:53)
+	at app.mystery0.ims.tensor.ui.DraftRetentionTest.成功读取零张卡与读卡失败不同且不伪造所有SIM(DraftRetentionTest.kt:99)
+
+FAILURES!!!
+Tests run: 24,  Failures: 7
+

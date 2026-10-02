@@ -1,0 +1,18 @@
+app/src/test/java/app/mystery0/ims/tensor/ui/BackendUiLogicTest.kt:93:48: error: no parameter with name 'recoveryStartAllowed' found.
+        val start = backendUiActions(embedded, recoveryStartAllowed = true)
+                                               ^^^^^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/ui/BackendUiLogicTest.kt:96:48: error: no parameter with name 'recoveryStartAllowed' found.
+        assertFalse(backendUiActions(embedded, recoveryStartAllowed = true, actionInProgress = true).canStartEmbedded)
+                                               ^^^^^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/ui/BackendUiLogicTest.kt:97:88: error: no parameter with name 'recoveryStartAllowed' found.
+        assertFalse(backendUiActions(embedded.copy(connection = ConnectionState.BUSY), recoveryStartAllowed = true).canStartEmbedded)
+                                                                                       ^^^^^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/ui/BackendUiLogicTest.kt:99:47: error: no parameter with name 'recoveryPermissionAllowed' found.
+        assertTrue(backendUiActions(official, recoveryPermissionAllowed = true).canRequestOfficialPermission)
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/ui/BackendUiLogicTest.kt:100:48: error: no parameter with name 'recoveryStartAllowed' found.
+        assertFalse(backendUiActions(official, recoveryStartAllowed = true).canStartEmbedded)
+                                               ^^^^^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/ui/BackendUiLogicTest.kt:101:48: error: no parameter with name 'recoveryPermissionAllowed' found.
+        assertFalse(backendUiActions(embedded, recoveryPermissionAllowed = true).canRequestOfficialPermission)
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^^

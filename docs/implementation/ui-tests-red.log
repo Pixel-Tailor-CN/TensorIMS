@@ -1,0 +1,70 @@
+error: source file or directory not found: app/src/main/java/app/mystery0/ims/tensor/ui/BackendUiLogic.kt
+app/src/test/java/app/mystery0/ims/tensor/ui/BackendUiLogicTest.kt:14:23: error: unresolved reference 'backendUiActions'.
+        val actions = backendUiActions(status(BackendMode.UNSET, ConnectionState.DISCONNECTED))
+                      ^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/ui/BackendUiLogicTest.kt:15:22: error: unresolved reference 'BackendPrimaryAction'.
+        assertEquals(BackendPrimaryAction.CHOOSE_MODE, actions.primary)
+                     ^^^^^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/ui/BackendUiLogicTest.kt:22:23: error: unresolved reference 'backendUiActions'.
+        val actions = backendUiActions(status(BackendMode.OFFICIAL, ConnectionState.BLOCKED, "PERMISSION_DENIED"))
+                      ^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/ui/BackendUiLogicTest.kt:23:22: error: unresolved reference 'BackendPrimaryAction'.
+        assertEquals(BackendPrimaryAction.AUTHORIZE_OFFICIAL, actions.primary)
+                     ^^^^^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/ui/BackendUiLogicTest.kt:29:23: error: unresolved reference 'backendUiActions'.
+        val actions = backendUiActions(status(BackendMode.EMBEDDED, ConnectionState.DISCONNECTED), actionInProgress = true)
+                      ^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/ui/BackendUiLogicTest.kt:32:22: error: unresolved reference 'BackendPrimaryAction'.
+        assertEquals(BackendPrimaryAction.WAIT, actions.primary)
+                     ^^^^^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/ui/BackendUiLogicTest.kt:37:27: error: unresolved reference 'backendUiActions'.
+            val actions = backendUiActions(status(BackendMode.EMBEDDED, phase))
+                          ^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/ui/BackendUiLogicTest.kt:45:21: error: unresolved reference 'backendUiActions'.
+        assertFalse(backendUiActions(status(BackendMode.OFFICIAL, ConnectionState.READY), businessBusy = true).canChooseMode)
+                    ^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/ui/BackendUiLogicTest.kt:49:22: error: unresolved reference 'BackendPrimaryAction'.
+        assertEquals(BackendPrimaryAction.REVIEW_RECOVERY,
+                     ^^^^^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/ui/BackendUiLogicTest.kt:50:13: error: unresolved reference 'backendUiActions'.
+            backendUiActions(status(BackendMode.EMBEDDED, ConnectionState.RECOVERY_REQUIRED)).primary)
+            ^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/ui/BackendUiLogicTest.kt:54:20: error: unresolved reference 'backendUiActions'.
+        assertTrue(backendUiActions(status(BackendMode.EMBEDDED, ConnectionState.DISCONNECTED)).canStartEmbedded)
+                   ^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/ui/BackendUiLogicTest.kt:55:21: error: unresolved reference 'backendUiActions'.
+        assertFalse(backendUiActions(status(BackendMode.EMBEDDED, ConnectionState.READY)).canStartEmbedded)
+                    ^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/ui/BackendUiLogicTest.kt:59:21: error: unresolved reference 'canConfirmModeChoice'.
+        assertFalse(canConfirmModeChoice(status(BackendMode.UNSET, ConnectionState.DISCONNECTED), null))
+                    ^^^^^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/ui/BackendUiLogicTest.kt:60:21: error: unresolved reference 'canConfirmModeChoice'.
+        assertFalse(canConfirmModeChoice(status(BackendMode.EMBEDDED, ConnectionState.BUSY), BackendMode.OFFICIAL))
+                    ^^^^^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/ui/BackendUiLogicTest.kt:61:21: error: unresolved reference 'canConfirmModeChoice'.
+        assertFalse(canConfirmModeChoice(status(BackendMode.OFFICIAL, ConnectionState.READY), BackendMode.OFFICIAL))
+                    ^^^^^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/ui/BackendUiLogicTest.kt:62:20: error: unresolved reference 'canConfirmModeChoice'.
+        assertTrue(canConfirmModeChoice(status(BackendMode.UNSET, ConnectionState.DISCONNECTED), BackendMode.EMBEDDED))
+                   ^^^^^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/ui/BackendUiLogicTest.kt:66:29: error: unresolved reference 'parseAdbPort'.
+        assertEquals(37123, parseAdbPort("37123"))
+                            ^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/ui/BackendUiLogicTest.kt:67:20: error: unresolved reference 'parseAdbPort'.
+        assertNull(parseAdbPort("0")); assertNull(parseAdbPort("65536")); assertNull(parseAdbPort("abc"))
+                   ^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/ui/BackendUiLogicTest.kt:67:51: error: unresolved reference 'parseAdbPort'.
+        assertNull(parseAdbPort("0")); assertNull(parseAdbPort("65536")); assertNull(parseAdbPort("abc"))
+                                                  ^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/ui/BackendUiLogicTest.kt:67:86: error: unresolved reference 'parseAdbPort'.
+        assertNull(parseAdbPort("0")); assertNull(parseAdbPort("65536")); assertNull(parseAdbPort("abc"))
+                                                                                     ^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/ui/BackendUiLogicTest.kt:68:20: error: unresolved reference 'validPairingCode'.
+        assertTrue(validPairingCode("012345"))
+                   ^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/ui/BackendUiLogicTest.kt:69:21: error: unresolved reference 'validPairingCode'.
+        assertFalse(validPairingCode("12345")); assertFalse(validPairingCode("１２３４５６"))
+                    ^^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/ui/BackendUiLogicTest.kt:69:61: error: unresolved reference 'validPairingCode'.
+        assertFalse(validPairingCode("12345")); assertFalse(validPairingCode("１２３４５６"))
+                                                            ^^^^^^^^^^^^^^^^

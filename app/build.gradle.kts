@@ -3,7 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
-val packageName = "io.github.vvb2060.ims"
+val packageName = "app.mystery0.ims.tensor"
 val gitVersionCode: Int = providers.exec {
     commandLine(
         "git",
@@ -46,6 +46,18 @@ android {
             abiFilters.add("arm64-v8a")
         }
     }
+    // 仅区分安装身份；两个 APK 共用完整的官方/内置双模式实现。
+    flavorDimensions += "identity"
+    productFlavors {
+        create("tensor") {
+            dimension = "identity"
+            applicationId = packageName
+        }
+        create("legacy") {
+            dimension = "identity"
+            applicationId = "io.github.vvb2060.ims"
+        }
+    }
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -61,7 +73,7 @@ android {
             @Suppress("UnstableApiUsage")
             vcsInfo.include = false
             versionNameSuffix = ".d$gitVersionCode.$gitVersionName"
-            signingConfig = signingConfigs.getByName("sign")
+            signingConfig = signingConfigs.getByName("debug")
         }
         release {
             isMinifyEnabled = true
@@ -78,6 +90,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_21
     }
     buildFeatures {
+        aidl = true
         buildConfig = true
         compose = true
     }
@@ -100,6 +113,7 @@ dependencies {
     implementation(libs.shizuku.provider)
     implementation(libs.shizuku.api)
     implementation(libs.hiddenapibypass)
+    implementation(libs.bcpkix)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

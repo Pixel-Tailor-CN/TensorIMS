@@ -1,0 +1,6 @@
+app/src/test/java/app/mystery0/ims/tensor/bridge/BridgePolicyTest.kt:99:22: error: unresolved reference 'requestShutdown' on receiver of type 'BridgePolicy'.
+        assertTrue(p.requestShutdown())
+                     ^^^^^^^^^^^^^^^
+app/src/test/java/app/mystery0/ims/tensor/bridge/BridgePolicyTest.kt:104:22: error: unresolved reference 'claimExpiredShutdown' on receiver of type 'BridgePolicy'.
+        assertTrue(p.claimExpiredShutdown(1200))
+                     ^^^^^^^^^^^^^^^^^^^^
