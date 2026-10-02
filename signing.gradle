@@ -18,7 +18,7 @@ if (missingKeys.isEmpty()) {
 }
 tasks.configureEach { task ->
     // 只阻止发布打包/签名；纯编译、单元测试和 lint 不应要求生产凭据。
-    if (task.name in ['validateSigningRelease', 'packageRelease', 'packageReleaseBundle', 'signReleaseBundle']) {
+    if (task.name ==~ /(?:validateSigning|package|sign).*Release(?:Bundle)?/) {
         task.doFirst {
             if (!missingKeys.isEmpty()) {
                 throw new GradleException('Release signing is not configured. Supply all SIGN_KEY_STORE_FILE, SIGN_KEY_STORE_PASSWORD, SIGN_KEY_ALIAS and SIGN_KEY_PASSWORD values. Debug builds use a development-only certificate.')

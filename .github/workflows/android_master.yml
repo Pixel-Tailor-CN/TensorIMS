@@ -13,6 +13,23 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Check release signing secrets
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for secret in KEYSTORE_BASE64 KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
+            if [[ -z "${!secret}" ]]; then
+              echo "::error::Missing required signing secret: $secret"
+              exit 1
+            fi
+          done
+      - name: Test release artifact collection
+        run: python3 -B -m unittest discover -s scripts -p 'test_*.py' -v
       - name: set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -24,32 +41,25 @@ jobs:
       - name: Decode Keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        shell: bash
         run: |
+          set -euo pipefail
           umask 077
           printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/tensorims-release.jks"
-      - name: Build release APK
+          test -s "$RUNNER_TEMP/tensorims-release.jks"
+      - name: Build both release APKs
         env:
           SIGN_KEY_STORE_FILE: ${{ runner.temp }}/tensorims-release.jks
           SIGN_KEY_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           SIGN_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           SIGN_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: |
-          ./gradlew --no-daemon :app:assembleRelease
+        run: ./gradlew --no-daemon :app:assembleTensorRelease :app:assembleLegacyRelease
       - name: Cleanup keystore
         if: always()
         run: rm -f "$RUNNER_TEMP/tensorims-release.jks"
-      - name: Install jq
-        run: sudo apt-get install jq
-      - name: Parse build files
+      - name: Validate and collect release artifacts
         id: apk
-        run: |
-          metadata=app/build/outputs/apk/release/output-metadata.json
-          versionName=$(jq -er '.elements[0].versionName' "$metadata")
-          outputFile=$(jq -er '.elements[0].outputFile' "$metadata")
-          mkdir -p outputs
-          cp "app/build/outputs/apk/release/$outputFile" "outputs/TensorIMS-release-$versionName.apk"
-          cp app/build/outputs/mapping/release/mapping.txt "outputs/TensorIMS-$versionName-mapping.txt"
-          printf 'versionName=%s\n' "$versionName" >> "$GITHUB_OUTPUT"
+        run: python3 -B scripts/collect_release_artifacts.py
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
@@ -59,7 +69,10 @@ jobs:
           fail_on_unmatched_files: true
           body: |
             注意：该版本为测试版本，可能存在一些问题，不建议日常使用
-            此 APK 使用正式密钥签名，已启用 release 混淆和资源压缩。
+            两个 APK 使用相同正式密钥签名，均包含官方与内置运行模式，并启用 release 混淆和资源压缩。
+            app.mystery0.ims.tensor 为新版独立包，io.github.vvb2060.ims 为旧包身份；旧包覆盖安装仍要求已安装版本的签名一致。
           files: |
-            outputs/TensorIMS-release-${{ steps.apk.outputs.versionName }}.apk
-            outputs/TensorIMS-${{ steps.apk.outputs.versionName }}-mapping.txt
+            ${{ steps.apk.outputs.tensorApk }}
+            ${{ steps.apk.outputs.legacyApk }}
+            ${{ steps.apk.outputs.tensorMapping }}
+            ${{ steps.apk.outputs.legacyMapping }}

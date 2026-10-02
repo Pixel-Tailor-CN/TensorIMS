@@ -9,45 +9,65 @@ jobs:
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, 'ci skip')"
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-    - name: set up JDK 21
-      uses: actions/setup-java@v4
-      with:
-        java-version: '21'
-        distribution: 'temurin'
-        cache: gradle
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
-    - name: Decode Keystore
-      env:
-        KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-      run: |
-        echo "$KEYSTORE_BASE64" | base64 --decode > /tmp/key.jks
-    - name: Build with Gradle
-      env:
-        SIGN_KEY_STORE_FILE: "/tmp/key.jks"
-        SIGN_KEY_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-        SIGN_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-        SIGN_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-      run: |
-        ./gradlew assembleRelease
-    - name: Install jq
-      run: sudo apt-get install jq
-    - name: Parse build files
-      id: apk
-      run: |
-        versionName=$(cat "app/build/outputs/apk/release/output-metadata.json" | jq -r '.elements[0].versionName')
-        versionCode=$(cat "app/build/outputs/apk/release/output-metadata.json" | jq -r '.elements[0].versionCode')
-        mkdir outputs
-        mv "app/build/outputs/apk/release/app-release.apk" "outputs/TensorIMS.apk"
-        echo "versionName=$versionName" >> $GITHUB_OUTPUT
-        echo "versionCode=$versionCode" >> $GITHUB_OUTPUT
-    - name: Release
-      uses: softprops/action-gh-release@v2
-      with:
-        tag_name: ${{ steps.apk.outputs.versionName }}
-        body_path: CHANGELOG.md
-        files: |
-          outputs/TensorIMS.apk
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check release signing secrets
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for secret in KEYSTORE_BASE64 KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
+            if [[ -z "${!secret}" ]]; then
+              echo "::error::Missing required signing secret: $secret"
+              exit 1
+            fi
+          done
+      - name: Test release artifact collection
+        run: python3 -B -m unittest discover -s scripts -p 'test_*.py' -v
+      - name: set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      - name: Decode Keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/tensorims-release.jks"
+          test -s "$RUNNER_TEMP/tensorims-release.jks"
+      - name: Build both release APKs
+        env:
+          SIGN_KEY_STORE_FILE: ${{ runner.temp }}/tensorims-release.jks
+          SIGN_KEY_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          SIGN_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          SIGN_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: ./gradlew --no-daemon :app:assembleTensorRelease :app:assembleLegacyRelease
+      - name: Cleanup keystore
+        if: always()
+        run: rm -f "$RUNNER_TEMP/tensorims-release.jks"
+      - name: Validate and collect release artifacts
+        id: apk
+        run: python3 -B scripts/collect_release_artifacts.py
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.apk.outputs.versionName }}
+          target_commitish: ${{ github.sha }}
+          body_path: CHANGELOG.md
+          fail_on_unmatched_files: true
+          files: |
+            ${{ steps.apk.outputs.tensorApk }}
+            ${{ steps.apk.outputs.legacyApk }}
+            ${{ steps.apk.outputs.tensorMapping }}
+            ${{ steps.apk.outputs.legacyMapping }}

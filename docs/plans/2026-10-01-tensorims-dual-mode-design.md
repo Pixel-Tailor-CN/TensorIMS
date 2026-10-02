@@ -1,5 +1,7 @@
 # TensorIMS 单 APK 双模式工程设计
 
+> **历史文档说明（2026-10-02）：** 用户新增要求以两个 flavor 同时发布新包 `app.mystery0.ims.tensor` 与旧包 `io.github.vvb2060.ims`，每包仍完整包含官方/私有内置双模式；本文“仅一个 APK、不构建旧包、不增加 flavor”的限制已由[双包发布补充设计](2026-10-02-dual-package-release-design.md)和[实施计划](2026-10-02-dual-package-release-plan.md)替代。namespace 与第一方代码仍为 `app.mystery0.ims.tensor`，原其他安全边界不变。原计划“禁止推送/PR”的本地阶段限制亦已由后续明确授权更新并推送现有 PR #39 所替代；仍不得合并或手动触发发布。下文保留历史方案、命令与当时验证状态，不作为当前双包构建或授权范围的依据。
+
 设计评审稿 · 2026 年 10 月 1 日 · v0.1
 
 本文是待评审设计，不是实施授权。Word 与 Markdown 由同一内容源生成。

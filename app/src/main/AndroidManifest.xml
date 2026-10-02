@@ -37,7 +37,7 @@
         <!-- shell/root bootstrap 不持有自定义 signature 权限；Provider 内逐次认证 UID 与挑战。 -->
         <provider
             android:name=".embedded.EmbeddedBridgeProvider"
-            android:authorities="app.mystery0.ims.tensor.embedded.bridge"
+            android:authorities="${applicationId}.embedded.bridge"
             android:exported="true"
             android:multiprocess="false" />
         <provider
@@ -51,37 +51,38 @@
         </provider>
     </application>
 
+    <!-- 顶层 Instrumentation 不依赖相对包名展开，保证旧 applicationId 仍加载统一代码类。 -->
     <instrumentation
-        android:name=".privileged.ImsConfigurationReader"
+        android:name="app.mystery0.ims.tensor.privileged.ImsConfigurationReader"
         android:label="ImsConfigurationReader"
         android:targetPackage="${applicationId}" />
 
     <instrumentation
-        android:name=".privileged.ImsModifier"
+        android:name="app.mystery0.ims.tensor.privileged.ImsModifier"
         android:label="IMS Configurator"
         android:targetPackage="${applicationId}" />
     <instrumentation
-        android:name=".privileged.SimReader"
+        android:name="app.mystery0.ims.tensor.privileged.SimReader"
         android:label="SimReader"
         android:targetPackage="${applicationId}" />
     <instrumentation
-        android:name=".privileged.BrokerInstrumentation"
+        android:name="app.mystery0.ims.tensor.privileged.BrokerInstrumentation"
         android:label="BrokerInstrumentation"
         android:targetPackage="${applicationId}" />
     <instrumentation
-        android:name=".privileged.ImsCapabilityReader"
+        android:name="app.mystery0.ims.tensor.privileged.ImsCapabilityReader"
         android:label="ImsCapabilityReader"
         android:targetPackage="${applicationId}" />
     <instrumentation
-        android:name=".privileged.ImsResetter"
+        android:name="app.mystery0.ims.tensor.privileged.ImsResetter"
         android:label="ImsResetter"
         android:targetPackage="${applicationId}" />
     <instrumentation
-        android:name=".privileged.PersistentVolteModifier"
+        android:name="app.mystery0.ims.tensor.privileged.PersistentVolteModifier"
         android:label="PersistentVolteModifier"
         android:targetPackage="${applicationId}" />
     <instrumentation
-        android:name=".privileged.CaptivePortalSettingsModifier"
+        android:name="app.mystery0.ims.tensor.privileged.CaptivePortalSettingsModifier"
         android:label="CaptivePortalSettingsModifier"
         android:targetPackage="${applicationId}" />
 </manifest>

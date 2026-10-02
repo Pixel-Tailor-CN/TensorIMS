@@ -12,3 +12,7 @@ local.properties
 GEMINI.md
 .agentdocs
 /.claude/
+
+# Python 产物收集测试与本地发布输出
+__pycache__/
+/outputs/

@@ -1,8 +1,11 @@
 package app.mystery0.ims.tensor.bridge
 
+import app.mystery0.ims.tensor.BuildConfig
+
 object BridgeProtocol {
     const val VERSION = 1
-    const val PACKAGE = "app.mystery0.ims.tensor"
+    // 服务由当前 APK 加载；系统 Context 的包名是 android，不能用它识别宿主。
+    const val PACKAGE = BuildConfig.APPLICATION_ID
     const val AUTHORITY = "$PACKAGE.embedded.bridge"
     const val PROVIDER_METHOD = "deliver"
     const val PREFIX = "tensorims.bridge."

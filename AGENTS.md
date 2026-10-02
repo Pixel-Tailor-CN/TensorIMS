@@ -6,7 +6,7 @@
 - 生成或修改的文档、代码注释使用中文；日志打印使用英文。
 - 可保留 Shizuku、Instrumentation、CarrierConfig、IMS、VoLTE、VoWiFi、VoNR、AIDL 等通用英文技术名词。
 - 修改代码前先理解当前实现和设备兼容约束，避免只针对一个 Android 版本做硬编码修复。
-- 本项目不要求添加单元测试。代码变更后至少运行 `.\gradlew.bat :app:assembleDebug --stacktrace --console=plain` 验证编译；适合纯 Kotlin 行为的新增逻辑可增加针对性单元测试。
+- 本项目不要求添加单元测试。代码变更后至少运行 `.\gradlew.bat :app:assembleTensorDebug :app:assembleLegacyDebug --stacktrace --console=plain` 验证两个 flavor 编译；适合纯 Kotlin 行为的新增逻辑可增加针对性单元测试。
 - Git 提交信息使用中文；自动生成提交信息时也必须生成中文内容。
 
 ## 项目概览
@@ -15,7 +15,7 @@ TensorIMS 是一个面向 Google Pixel Tensor 设备的 Android 应用，用于�
 
 主要适配和维护范围为中国大陆的中国移动、中国联通、中国电信网络下的 Pixel Tensor 设备。其他运营商因缺少相应测试条件，不作为主要适配和维护对象。此约定限定维护范围，不代表需要在代码中按地区或运营商限制使用，也不保证所有机型、系统版本和网络功能均可用。
 
-项目原名为 Mystery00/TurboIMS，现由 Mystery00 以 TensorIMS 名称独立维护，仓库归属 Pixel-Tailor-CN 组织。仓库地址为 `https://github.com/Pixel-Tailor-CN/TensorIMS`，项目主页为 `https://pixel.mystery0.app`。本双模式分支采用全新应用身份 `app.mystery0.ims.tensor`，与旧版独立安装，不承诺旧包覆盖升级或私有数据自动迁移；历史文档和上游仓库名称保留来源。
+项目原名为 Mystery00/TurboIMS，现由 Mystery00 以 TensorIMS 名称独立维护，仓库归属 Pixel-Tailor-CN 组织。仓库地址为 `https://github.com/Pixel-Tailor-CN/TensorIMS`，项目主页为 `https://pixel.mystery0.app`。本双模式分支同时构建 `tensor`（`app.mystery0.ims.tensor`）与 `legacy`（`io.github.vvb2060.ims`）两个 flavor，每个 APK 都包含完整官方/私有内置双模式。`tensor` 与旧版独立安装、不自动迁移私有数据；`legacy` 仅在签名与原安装一致且 `versionCode` 更高时可覆盖升级并原地保留数据。历史文档和上游仓库名称保留来源。
 
 应用主要面向 Android 13 及以上系统，当前构建目标为 Android SDK 37。设备侧功能验证应优先在已安装并运行 Shizuku 的真实 Pixel 设备上完成。
 
@@ -35,16 +35,18 @@ TensorIMS 是一个面向 Google Pixel Tensor 设备的 Android 应用，用于�
 常用命令：
 
 ```powershell
-.\gradlew.bat :app:assembleDebug --stacktrace --console=plain
-.\gradlew.bat :app:assembleRelease --stacktrace --console=plain
-.\gradlew.bat :app:testDebugUnitTest --stacktrace --console=plain
-.\gradlew.bat lint --stacktrace --console=plain
+.\gradlew.bat :app:assembleTensorDebug :app:assembleLegacyDebug --stacktrace --console=plain
+.\gradlew.bat :app:assembleTensorRelease :app:assembleLegacyRelease --stacktrace --console=plain
+.\gradlew.bat :app:testTensorDebugUnitTest :app:testLegacyDebugUnitTest --stacktrace --console=plain
+.\gradlew.bat :app:testTensorReleaseUnitTest :app:testLegacyReleaseUnitTest --stacktrace --console=plain
+.\gradlew.bat :app:lintTensorDebug :app:lintLegacyDebug --stacktrace --console=plain
+.\gradlew.bat :app:lintTensorRelease :app:lintLegacyRelease --stacktrace --console=plain
 .\gradlew.bat clean
 ```
 
 依赖版本统一维护在 `gradle/libs.versions.toml`，不要在 Gradle 脚本中硬编码依赖版本。
 
-`master` 的自动预发布由 `.github/workflows/android_master.yml` 管理，保持提交信息包含 `ci` 时触发。预发布使用与正式发布相同的签名 Secrets 构建 `release` 变体，启用混淆和资源压缩，附带 `mapping.txt`；GitHub Release 仍使用 `pre-` 标签并标记为 prerelease。
+`master` 的自动预发布由 `.github/workflows/android_master.yml` 管理，保持提交信息包含 `ci` 时触发。正式发布与预发布均在同一 Release 中提供 `tensorRelease`、`legacyRelease` 两个 APK 及各自的 mapping；两包使用相同 `versionCode`/`versionName` 和既有签名 Secrets，启用混淆和资源压缩。文件名为 `TensorIMS-<applicationId>-<versionName>.apk` 及 `TensorIMS-<applicationId>-<versionName>-mapping.txt`，避免相互覆盖；预发布仍使用 `pre-` 标签并标记为 prerelease。CI 共用签名配置不等于已经核实它与用户已安装旧包的证书一致，覆盖升级前必须单独核对。
 
 ## 模块结构
 
@@ -157,21 +159,23 @@ UI / ViewModel -> ConfigurationOperations -> PrivilegeRuntime
 常规代码变更：
 
 ```powershell
-.\gradlew.bat :app:testDebugUnitTest --stacktrace --console=plain
-.\gradlew.bat :app:assembleDebug --stacktrace --console=plain
-.\gradlew.bat lint --stacktrace --console=plain
+.\gradlew.bat :app:testTensorDebugUnitTest :app:testLegacyDebugUnitTest --stacktrace --console=plain
+.\gradlew.bat :app:assembleTensorDebug :app:assembleLegacyDebug --stacktrace --console=plain
+.\gradlew.bat :app:lintTensorDebug :app:lintLegacyDebug --stacktrace --console=plain
 ```
 
 设备验证示例：
 
 ```powershell
 adb devices -l
-adb install -r app\build\outputs\apk\debug\app-debug.apk
+adb install -r app\build\outputs\apk\tensor\debug\app-tensor-debug.apk
 adb logcat -c
 adb shell am force-stop app.mystery0.ims.tensor
-adb shell am start -n app.mystery0.ims.tensor/.ui.MainActivity
+adb shell am start -n app.mystery0.ims.tensor/app.mystery0.ims.tensor.ui.MainActivity
 adb logcat -d -v time AndroidRuntime:E ShizukuProvider:D SimReader:I ShellPermission:W '*:S'
 ```
+
+验收 `legacy` 时使用 `app\build\outputs\apk\legacy\debug\app-legacy-debug.apk`，启动组件为 `io.github.vvb2060.ims/app.mystery0.ims.tensor.ui.MainActivity`。不要用 debug 包覆盖签名不同的已安装正式版，也不要为安装方便卸载含原值备份的旧版。两包需分别验收，且不可同时启用自动恢复修改同一 SIM。
 
 Captive Portal 设置回读示例：
 
@@ -190,9 +194,13 @@ adb shell settings get global captive_portal_https_url
 - 若项目结构、构建版本、兼容策略或开发约定发生变化，应更新本文件。
 - `CLAUDE.md` 仅作为 Claude Code 的兼容入口，不维护重复的项目说明。
 
-## 单 APK 双模式分支补充
+## 双包名、各自双模式分支补充
 
-- 本分支统一新包名 app.mystery0.ims.tensor，不构建旧包、不增加 flavor；旧包只出现在历史设计和迁移说明。
+- `tensor` 的 applicationId 为 `app.mystery0.ims.tensor`，`legacy` 为 `io.github.vvb2060.ims`；namespace、第一方 Kotlin/Java/AIDL 包仍统一为 `app.mystery0.ims.tensor`，不复制业务代码，不按 flavor 删减后端。
+- Provider authority、Instrumentation 目标包、私有握手和启动器安装身份取当前 applicationId；组件类名仍属于统一 namespace。不同安装包不能借对方的私有服务或会话执行操作。
+- 保留现有 SharedPreferences 名称、键、私有 `noBackupFilesDir` 文件名及原值；legacy 原地升级不重命名或清理它们，tensor 私有数据独立且不自动迁移。
+- 双包可以独立安装，但不允许同时启用自动恢复修改同一 SIM；进程内串行调度不提供跨包或 Android 全局 shell 委托的并发保证。
+- 2026-10-02 的[双包发布补充设计](docs/plans/2026-10-02-dual-package-release-design.md)替代原设计的单包限制；其他安全边界保持不变。
 - `privilege/` 管理选定后端、官方适配、串行调度及未确认操作日志；`bridge/` 定义固定 AIDL/认证/会话；`embedded/` 承载仅供本应用的私有进程和显式启动器。
 - 业务层不可直接读取官方 Shizuku 单例。Instrumentation 必须接收本次操作的会话 Binder；内置 Binder 不交给官方 API 静态入口。
 - `UNSET` 不执行特权操作；官方拒绝授权不切内置；所有后台自动恢复仅在已选后端 READY 时触发，绝不代替用户启动 root/ADB。

@@ -42,6 +42,7 @@ class LogcatViewModel(application: Application) : AndroidViewModel(application) 
                     File.createTempFile("tensor_ims_", ".log", directory).apply {
                         bufferedWriter().use { writer ->
                             writer.appendLine("App Version: ${BuildConfig.VERSION_NAME}")
+                            writer.appendLine("Application ID: ${BuildConfig.APPLICATION_ID} (${BuildConfig.FLAVOR})")
                             writer.appendLine("Device: ${Build.MANUFACTURER} ${Build.MODEL}")
                             writer.appendLine("Android Version: Android ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})")
                             writer.appendLine("System Build Version: ${Build.DISPLAY}")
