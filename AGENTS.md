@@ -139,6 +139,8 @@ UI / ViewModel -> ConfigurationOperations -> PrivilegeRuntime
 
 ## UI 信息架构约定
 
+- 应用设置通过首页右上角齿轮进入；语言使用 Android 13+ LocaleManager 持久化，空语言列表表示跟随系统，与系统应用语言设置同步；选择器语言列表读取 `locales_config.xml`，新增语言必须同时提供相应翻译资源。
+
 - 首页只承担设备/Shizuku 状态、SIM 选择、功能分类导航、应用日志入口和自动恢复开关，不继续堆叠具体功能按钮。
 - IMS 配置页面以实时 CarrierConfig 初始化目标草稿，区分已读取、待应用、应用核对和失败状态；按“通话 / 网络 / 显示 / 自定义覆盖（恢复需重置）”分组，应用配置仍是主操作。预设与历史仅修改草稿，重新读取前确认丢弃未应用修改。
 - 系统网络页面承载与 SIM 无关的设备级网络设置；Captive Portal 是首个入口。

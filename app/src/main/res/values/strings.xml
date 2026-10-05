@@ -222,4 +222,8 @@
     <string name="ims_edit">Edit</string>
     <string name="ims_undo">Undo edit</string>
     <string name="ims_reset_to_restore">Reset to restore</string>
+    <string name="app_settings">App settings</string>
+    <string name="app_language">Language</string>
+    <string name="app_language_auto">Auto (follow system)</string>
+    <string name="app_language_summary">Choose the display language for this app. Changes apply immediately.</string>
 </resources>
