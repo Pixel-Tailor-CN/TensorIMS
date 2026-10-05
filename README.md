@@ -13,6 +13,8 @@
 
 本分支尚未通过真实 Pixel 的双包安装/覆盖升级、私有桥接、双服务共存或 IMS 通信验收；下方历史截图及现有 Release 下载不代表本分支已经发布或验证。设备支持清单沿用上游范围，不等于本次已验证。请先阅读 [真机验收与迁移](docs/implementation/DEVICE_ACCEPTANCE.md)。换用 `tensor` 前，先关闭旧版自动恢复并恢复旧版持久化 VoLTE 原值，不要先卸载旧版或清理其数据。两包不可同时启用自动恢复修改同一 SIM；独立安装不代表 Android 全局 shell 委托可并行使用。
 
+本分支新增可选的“修复 TikTok 无网络”单卡入口：Android 14+ 且可读取 SIM 国家 ISO 配置时，在“IMS 配置”页确认后点击“应用更改”，写入随机三位数字 `sim_country_iso_override_string`，并逐卡回读。该兼容思路参考 [Carrier IMS](https://github.com/ryfineZ/carrier-ims-for-pixel)，不修改 MCC/MNC，不提供网络访问能力，也不保证 TikTok 可用；可能影响其他读取 SIM 区域的应用。预设不会启用该项，成功目标沿用现有历史和后端就绪后的自动恢复。移除需使用高级工具的运营商配置重置，涉及该卡其他覆盖值；当前重置仍受上文“已请求、尚未确认”的限制。详情见[中文使用说明](README_CN.md)。
+
 本地构建需要 JDK 21、SDK 37：
 
 ```sh

@@ -21,6 +21,12 @@ enum class Feature(
         R.string.ims_user_agent_desc,
         "",
     ),
+    TIKTOK_NETWORK_FIX(
+        FeatureValueType.STRING,
+        R.string.tiktok_network_fix,
+        R.string.tiktok_network_fix_desc,
+        "",
+    ),
     VOLTE(
         FeatureValueType.BOOLEAN,
         R.string.volte,

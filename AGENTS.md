@@ -133,6 +133,7 @@ UI / ViewModel -> ConfigurationOperations -> PrivilegeRuntime
 - `Feature` 和 `FeatureConfigMapper` 是 IMS 功能开关到运营商配置键的主要映射入口。
 - IMS 配置页从系统实时读取，缺键／权限失败不能补成 Feature 默认值。普通开关关闭显式写入 false（5G NR 写空可用性数组），仅下发用户明确修改或预设指定的项目。所有 SIM 的不同值显示“各卡不同”，不得自动补成关闭。
 - 参数类只有在 `CarrierConfigManager.getDefaultConfig()` 提供完整、类型匹配的默认参数时支持单项恢复；界面必须说明它是系统默认参数、不是运营商默认。字符串和无完整默认参数的覆盖项独立分组，恢复引导至高级工具重置，不能用空字符串或省略键假装恢复；不引入原值备份，不为单项恢复清空全卡覆盖。
+- TikTok 区域兼容使用字符串目标 `TIKTOK_NETWORK_FIX`，仅 Android 14+ 且实时可读时开放单卡确认入口，写入随机三位 ASCII 数字（001–999）`sim_country_iso_override_string`。不修改 MCC/MNC，不按地区限制使用，不加入预设；目标数值随新协议历史保存，恢复沿用同一数值，移除引导至高级工具重置，不写空值或猜测国家 ISO。
 - 新历史以 `_config_version=2` 保存稀疏、明确的目标及 SIM 身份摘要 `_target_identity`，逐卡回读成功才保存；自动恢复新历史同样检查身份并回读。旧历史保留只写开启项的语义，旧 false 不迁移为禁用。批量部分失败保留待应用目标，只保存成功卡历史；持久化 VoLTE 与 Captive Portal 不参与此协议。
 - 修改运营商配置时优先走 `ImsModifier`，必要时由当前后端在同一操作事务内触发 `BrokerInstrumentation` fallback，不能跨模式。
 - UI 不直接执行业务写入逻辑，业务动作应放在 ViewModel 或特权入口中。

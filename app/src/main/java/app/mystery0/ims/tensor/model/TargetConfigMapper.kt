@@ -46,7 +46,7 @@ object TargetConfigMapper {
         )
         Feature.ENHANCED_4G_LTE -> mapOf("editable_enhanced_4g_lte_bool" to true,
             "enhanced_4g_lte_on_by_default_bool" to true, "hide_enhanced_4g_lte_bool" to false)
-        Feature.CARRIER_NAME, Feature.IMS_USER_AGENT -> emptyMap()
+        Feature.CARRIER_NAME, Feature.IMS_USER_AGENT, Feature.TIKTOK_NETWORK_FIX -> emptyMap()
         else -> mapOf(primaryKeys.getValue(feature) to true)
     }
 
@@ -59,6 +59,7 @@ object TargetConfigMapper {
     fun keys(feature: Feature): Set<String> = when (feature) {
         Feature.CARRIER_NAME -> setOf(NAME_ENABLED, NAME)
         Feature.IMS_USER_AGENT -> setOf(USER_AGENT)
+        Feature.TIKTOK_NETWORK_FIX -> setOf(TikTokNetworkFix.COUNTRY_ISO_KEY)
         else -> enabledValues(feature).keys
     }
 
@@ -86,6 +87,10 @@ object TargetConfigMapper {
             return when (feature) {
                 Feature.CARRIER_NAME -> mapOf(NAME_ENABLED to true, NAME to text)
                 Feature.IMS_USER_AGENT -> mapOf(USER_AGENT to text)
+                Feature.TIKTOK_NETWORK_FIX -> {
+                    require(TikTokNetworkFix.isNumericIso(text)) { "TikTok compatibility requires a three-digit numeric ISO" }
+                    mapOf(TikTokNetworkFix.COUNTRY_ISO_KEY to text)
+                }
                 else -> error("Unsupported string feature")
             }
         }
@@ -115,6 +120,10 @@ object TargetConfigMapper {
         (values[NAME_ENABLED] as? Boolean)?.let { enabled ->
             val name = if (!enabled) "" else values[NAME] as? String
             name?.let { put(Feature.CARRIER_NAME, FeatureValue(it, FeatureValueType.STRING)) }
+        }
+        // 与参考实现一致，Android 14+ 才开放操作；Android 13 不因隐藏键存在而推断兼容。
+        if (sdk >= 34) (values[TikTokNetworkFix.COUNTRY_ISO_KEY] as? String)?.let {
+            put(Feature.TIKTOK_NETWORK_FIX, FeatureValue(it, FeatureValueType.STRING))
         }
         (values[USER_AGENT] as? String)?.let { put(Feature.IMS_USER_AGENT, FeatureValue(it, FeatureValueType.STRING)) }
     }

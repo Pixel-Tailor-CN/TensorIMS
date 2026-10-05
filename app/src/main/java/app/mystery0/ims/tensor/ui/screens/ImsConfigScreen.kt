@@ -51,6 +51,7 @@ import app.mystery0.ims.tensor.model.ImsEditorState
 import app.mystery0.ims.tensor.model.ShizukuStatus
 import app.mystery0.ims.tensor.model.SimSelection
 import app.mystery0.ims.tensor.model.imsConfigPreset
+import app.mystery0.ims.tensor.ui.components.TikTokFixCard
 import app.mystery0.ims.tensor.ui.components.TargetFeatureSection
 
 @Composable
@@ -61,6 +62,8 @@ fun ImsConfigScreen(
     state: ImsEditorState,
     onEdit: (Feature, FeatureValue) -> Unit,
     onPreset: (Map<Feature, FeatureValue>) -> Unit,
+    onEnableTikTokFix: () -> Unit,
+    onUndoTikTokFix: () -> Unit,
     onLoadHistory: () -> Unit,
     onRefresh: () -> Unit,
     onApply: () -> Unit,
@@ -158,7 +161,9 @@ fun ImsConfigScreen(
                 TargetFeatureSection(stringResource(title), features.filterNot { it in resetOnly }, state, canEdit,
                     onEdit, { editingFeature = it }, { explainReset = true })
             }
-            val overrides = Feature.entries.filter { feature ->
+            if (selectedSim?.subId != -1) TikTokFixCard(state, canEdit,
+                onEnableTikTokFix, onUndoTikTokFix, { explainReset = true })
+            val overrides = Feature.entries.filter { it != Feature.TIKTOK_NETWORK_FIX }.filter { feature ->
                 if (feature.valueType == FeatureValueType.STRING) selectedSim?.subId != -1 else feature in resetOnly
             }
             TargetFeatureSection(stringResource(R.string.ims_reset_only_group), overrides, state, canEdit,

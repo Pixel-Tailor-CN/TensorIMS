@@ -1,6 +1,7 @@
 ﻿package app.mystery0.ims.tensor.ui
 
 import app.mystery0.ims.tensor.model.Feature
+import app.mystery0.ims.tensor.model.FeatureValueType
 import app.mystery0.ims.tensor.model.SimSelection
 
 /**
@@ -22,6 +23,6 @@ fun reconcileSelectedSim(
 fun visibleFeaturesForSelection(isAllSim: Boolean): List<Feature> {
     if (!isAllSim) return Feature.entries
     return Feature.entries.filterNot {
-        it == Feature.CARRIER_NAME || it == Feature.IMS_USER_AGENT
+        it.valueType == FeatureValueType.STRING
     }
 }

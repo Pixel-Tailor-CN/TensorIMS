@@ -43,7 +43,8 @@ class MainScreenLogicTest {
 
         assertFalse(features.contains(Feature.CARRIER_NAME))
         assertFalse(features.contains(Feature.IMS_USER_AGENT))
-        assertEquals(Feature.entries.size - 2, features.size)
+        assertFalse(features.contains(Feature.TIKTOK_NETWORK_FIX))
+        assertEquals(Feature.entries.size - 3, features.size)
     }
 
     @Test

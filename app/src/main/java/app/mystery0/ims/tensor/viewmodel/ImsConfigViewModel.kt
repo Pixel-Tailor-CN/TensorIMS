@@ -9,6 +9,8 @@ import app.mystery0.ims.tensor.R
 import app.mystery0.ims.tensor.ShizukuProvider
 import app.mystery0.ims.tensor.model.Feature
 import app.mystery0.ims.tensor.model.FeatureValue
+import app.mystery0.ims.tensor.model.FeatureValueType
+import app.mystery0.ims.tensor.model.TikTokNetworkFix
 import app.mystery0.ims.tensor.model.ImsEditorState
 import app.mystery0.ims.tensor.model.TargetConfigSnapshot
 import app.mystery0.ims.tensor.model.stageTargetEdits
@@ -64,6 +66,23 @@ class ImsConfigViewModel(private val app: Application) : AndroidViewModel(app) {
         val staged = stageTargetEdits(current, values)
         _state.value = current.copy(edits = staged.edits, applied = false,
             notice = if (staged.skipped) R.string.ims_some_targets_skipped else null)
+    }
+
+    /** 此兼容操作只接受单卡显式确认；预设和页面初始化不生成随机值。 */
+    fun enableTikTokFix() {
+        val current = _state.value
+        if (current.subId == null || current.subId < 0 || !current.ready || current.applying ||
+            ConfigurationOperations.busy.value || !shizukuReady || Feature.TIKTOK_NETWORK_FIX !in current.supported) return
+        val existing = current.values[Feature.TIKTOK_NETWORK_FIX]?.data as? String
+        if (existing != null && TikTokNetworkFix.isNumericIso(existing)) return
+        edit(Feature.TIKTOK_NETWORK_FIX, FeatureValue(TikTokNetworkFix.newIso(), FeatureValueType.STRING))
+    }
+
+    /** 只撤销尚未提交的该项草稿，不写空字符串，也不改动其他待应用项目。 */
+    fun undoTikTokFix() {
+        val current = _state.value
+        if (!current.ready || current.applying || ConfigurationOperations.busy.value || !shizukuReady) return
+        _state.value = current.copy(edits = current.edits - Feature.TIKTOK_NETWORK_FIX, notice = null)
     }
 
     fun loadHistory() {

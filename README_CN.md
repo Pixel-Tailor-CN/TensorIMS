@@ -127,7 +127,8 @@ TensorIMS 是一个允许您在 Google Pixel 手机上启用或禁用 VoLTE（�
 3. **IMS 配置**：进入“IMS 配置”，可直接使用“推荐配置”、“国内 5G”或“国内 LTE”快捷预设，亦可按分组手动微调开关，点击底部“应用更改”生效。
 4. **自动恢复（可选）**：在首页开启“后端就绪后自动应用配置”，设备重启且当前选定后端启动授权后将自动恢复已保存的配置。
 5. **系统网络**：进入“系统网络”管理 Captive Portal 联网探测地址，可一键选择国内节点预设；该设置作用于全局设备，不随 SIM 切换。
-6. **高级工具**：进入“高级工具”可查看当前 SIM 的实时 IMS 能力快照、卡死时重启 IMS，或在“危险操作”区重置配置覆盖。
+6. **TikTok 区域兼容（可选）**：在单张 SIM 的“IMS 配置”页中，确认“修复 TikTok 无网络”后点击“应用更改”。Android 14+ 且可读取该键时可用；此操作为该卡设置随机三位数字 `sim_country_iso_override_string`，不会修改基带 MCC/MNC，也不提供网络访问能力。它可能影响其他读取 SIM 区域的应用，实际效果取决于 TikTok 版本；应用后重新启动 TikTok 验证。预设不会开启此项，已保存的目标仅在用户开启自动恢复且后端就绪后恢复。移除需在高级工具中重置该卡运营商配置，同时涉及该卡其他覆盖值；当前重置仅返回“已请求、尚未确认”，须在真机核对结果。
+7. **高级工具**：进入“高级工具”可查看当前 SIM 的实时 IMS 能力快照、卡死时重启 IMS，或在“危险操作”区重置配置覆盖。
 
 ## 项目说明
 
@@ -143,6 +144,8 @@ TensorIMS 是一个允许您在 Google Pixel 手机上启用或禁用 VoLTE（�
 - **[nullbytepl/CarrierVanityName](https://github.com/nullbytepl/CarrierVanityName)**：运营商名称修改功能的代码参考自此项目。
 - **[kyujin-cho/pixel-volte-patch](https://github.com/kyujin-cho/pixel-volte-patch)**
 - App 图标源于 [iconfont](https://www.iconfont.cn/collections/detail?cid=28924) 平台的设计，并在此基础上进行了修改以适配本项目。
+
+TikTok 数字 ISO 兼容思路参考 [ryfineZ/carrier-ims-for-pixel](https://github.com/ryfineZ/carrier-ims-for-pixel)；本项目通过现有稀疏目标协议实现逐卡写入、回读确认及历史恢复，不复制其国家码推断或 MCC/MNC 修改路径。
 
 ## 免责声明
 

@@ -222,4 +222,11 @@
     <string name="ims_edit">Edit</string>
     <string name="ims_undo">Undo edit</string>
     <string name="ims_reset_to_restore">Reset to restore</string>
+    <string name="tiktok_network_fix">Fix TikTok No Network</string>
+    <string name="tiktok_network_fix_desc">Experimental SIM-region compatibility for mainland China SIMs. Changes the reported SIM country ISO; effectiveness depends on TikTok. Apply changes, then restart TikTok to test.</string>
+    <string name="tiktok_network_fix_unavailable">Requires Android 14+ and a readable SIM country ISO configuration.</string>
+    <string name="tiktok_network_fix_configured">Numeric ISO configured; TikTok availability needs verification.</string>
+    <string name="tiktok_network_fix_not_configured">Numeric ISO compatibility is not configured.</string>
+    <string name="tiktok_network_fix_iso">Target SIM country ISO: %1$s</string>
+    <string name="tiktok_network_fix_confirmation">Stage a random three-digit numeric SIM country ISO for this SIM. This can affect other apps that read SIM region; it does not change MCC/MNC or provide network access. Tap Apply changes to write it. Removing it requires resetting this SIM’s carrier configuration in Advanced tools, which also targets its other carrier overrides. Reset completion is currently unconfirmed; verify the result on your device.</string>
 </resources>

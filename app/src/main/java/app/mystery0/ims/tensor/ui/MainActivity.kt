@@ -152,6 +152,8 @@ class MainActivity : BaseActivity() {
                     state = editorState,
                     onEdit = imsConfigViewModel::edit,
                     onPreset = imsConfigViewModel::editAll,
+                    onEnableTikTokFix = imsConfigViewModel::enableTikTokFix,
+                    onUndoTikTokFix = imsConfigViewModel::undoTikTokFix,
                     onLoadHistory = imsConfigViewModel::loadHistory,
                     onRefresh = { imsConfigViewModel.load(selectedSim?.subId, shizukuStatus == ShizukuStatus.READY, discardEdits = true) },
                     onApply = imsConfigViewModel::apply,

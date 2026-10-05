@@ -222,4 +222,11 @@
     <string name="ims_edit">修改</string>
     <string name="ims_undo">撤销修改</string>
     <string name="ims_reset_to_restore">恢复需重置</string>
+    <string name="tiktok_network_fix">修复 TikTok 无网络</string>
+    <string name="tiktok_network_fix_desc">面向大陆 SIM 的实验性区域兼容功能。修改系统报告的 SIM 国家 ISO，实际效果取决于 TikTok。应用更改后请重新启动 TikTok 验证。</string>
+    <string name="tiktok_network_fix_unavailable">需要 Android 14 及以上且能够读取 SIM 国家 ISO 配置。</string>
+    <string name="tiktok_network_fix_configured">已配置数字 ISO；仍需验证 TikTok 是否可用。</string>
+    <string name="tiktok_network_fix_not_configured">尚未配置数字 ISO 兼容目标。</string>
+    <string name="tiktok_network_fix_iso">目标 SIM 国家 ISO：%1$s</string>
+    <string name="tiktok_network_fix_confirmation">为当前 SIM 暂存随机三位数字 ISO，可能影响其他读取 SIM 区域的应用；不会修改 MCC/MNC，也不提供网络访问能力。点击“应用更改”后才会写入。移除此覆盖值需在高级工具中重置当前 SIM 的运营商配置，同时涉及该卡其他运营商覆盖配置。当前重置仅返回“已请求、尚未确认”，请在真机核对结果。</string>
 </resources>
