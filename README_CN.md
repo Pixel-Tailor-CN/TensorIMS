@@ -151,3 +151,7 @@ TensorIMS 是一个允许您在 Google Pixel 手机上启用或禁用 VoLTE（�
 ## 许可证
 
 本项目使用 Apache License 2.0 许可证。有关详细信息，请参阅 [LICENSE](LICENSE) 文件。
+
+### 应用语言
+
+点击首页右上角齿轮进入“应用设置”，可选择“自动（跟随系统）”、English 或简体中文。默认使用自动，更改立即生效并由 Android 系统保存，与系统应用语言设置同步。新增翻译需添加相应 `values-<语言限定符>/strings.xml` 并更新 `app/src/main/res/xml/locales_config.xml`；选择器自动读取该列表，缺失文案回退到默认英语资源。

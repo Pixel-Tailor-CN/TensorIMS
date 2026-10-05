@@ -2,6 +2,7 @@ package app.mystery0.ims.tensor.ui.navigation
 
 object TensorImsRoutes {
     const val BACKEND_SETTINGS = "backend_settings"
+    const val APP_SETTINGS = "app_settings"
     const val HOME = "home"
     const val IMS_CONFIG = "ims_config"
     const val SYSTEM_NETWORK = "system_network"

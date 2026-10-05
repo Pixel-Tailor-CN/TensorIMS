@@ -18,6 +18,8 @@ import androidx.compose.material.icons.rounded.Public
 import androidx.compose.material.icons.rounded.SimCard
 import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
@@ -58,11 +60,17 @@ fun HomeScreen(
     onOpenSystemNetwork: () -> Unit,
     onOpenAdvancedTools: () -> Unit,
     onOpenLogcat: () -> Unit,
+    onOpenAppSettings: () -> Unit,
     onAutoRestoreEnabledChange: (Boolean) -> Unit,
 ) {
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
+                actions = {
+                    IconButton(onClick = onOpenAppSettings) {
+                        Icon(Icons.Rounded.Settings, stringResource(R.string.app_settings))
+                    }
+                },
                 title = {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(

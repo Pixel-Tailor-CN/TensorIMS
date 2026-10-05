@@ -8,7 +8,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.mystery0.ims.tensor.ui.screens.AppSettingsScreen
+import app.mystery0.ims.tensor.viewmodel.AppSettingsViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -31,6 +34,7 @@ import app.mystery0.ims.tensor.viewmodel.ImsConfigViewModel
 import app.mystery0.ims.tensor.viewmodel.SystemNetworkViewModel
 
 class MainActivity : BaseActivity() {
+    private val appSettingsViewModel: AppSettingsViewModel by viewModels()
     private val viewModel: MainViewModel by viewModels()
     private val imsConfigViewModel: ImsConfigViewModel by viewModels()
     private val systemNetworkViewModel: SystemNetworkViewModel by viewModels()
@@ -110,10 +114,25 @@ class MainActivity : BaseActivity() {
                     onOpenImsConfig = { navigate(TensorImsRoutes.IMS_CONFIG) },
                     onOpenSystemNetwork = { navigate(TensorImsRoutes.SYSTEM_NETWORK) },
                     onOpenAdvancedTools = { navigate(TensorImsRoutes.ADVANCED_TOOLS) },
+                    onOpenAppSettings = { navigate(TensorImsRoutes.APP_SETTINGS) },
                     onOpenLogcat = {
                         startActivity(Intent(this@MainActivity, LogcatActivity::class.java))
                     },
                     onAutoRestoreEnabledChange = viewModel::setAutoRestoreEnabled,
+                )
+            }
+
+            composable(TensorImsRoutes.APP_SETTINGS) {
+                val languageTag by appSettingsViewModel.languageTag.collectAsStateWithLifecycle()
+                LifecycleResumeEffect(Unit) {
+                    appSettingsViewModel.refreshLanguage()
+                    onPauseOrDispose { }
+                }
+                AppSettingsScreen(
+                    languageTag = languageTag,
+                    supportedLanguageTags = appSettingsViewModel.supportedLanguageTags,
+                    onSelectLanguage = appSettingsViewModel::selectLanguage,
+                    onBack = onBack,
                 )
             }
 

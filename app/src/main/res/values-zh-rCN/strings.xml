@@ -222,4 +222,8 @@
     <string name="ims_edit">修改</string>
     <string name="ims_undo">撤销修改</string>
     <string name="ims_reset_to_restore">恢复需重置</string>
+    <string name="app_settings">应用设置</string>
+    <string name="app_language">语言</string>
+    <string name="app_language_auto">自动（跟随系统）</string>
+    <string name="app_language_summary">选择本应用的显示语言，更改后立即生效。</string>
 </resources>
