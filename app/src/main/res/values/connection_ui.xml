@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="connection_ready_help">The service is connected. You can now configure IMS.</string>
+    <string name="connection_open_ims">Open IMS configuration</string>
+    <string name="connection_home">Return home</string>
+    <string name="connection_details">Connection details</string>
+    <string name="connection_hide_details">Hide connection details</string>
+    <string name="connection_working">An operation is in progress…</string>
+    <string name="connection_progress">Connection in progress</string>
+    <string name="connection_waiting_code">Pairing service found. Keep the system pairing dialog open, pull down the notification shade, and enter the six-digit code in the TensorIMS notification.</string>
+    <string name="connection_recovery_start">Connect to review recovery</string>
+    <string name="connection_paired_failed">Pairing completed in this session, but the connection did not finish. Try reconnecting first.</string>
+    <string name="connection_failed">Connection incomplete. Check wireless debugging and try again.</string>
+    <string name="connection_connect_help">Paired before? Connect the phone to Wi-Fi and enable wireless debugging in Developer options, then connect and start the service.</string>
+    <string name="connection_connect">Connect and start service</string>
+    <string name="connection_retry">Reconnect</string>
+    <string name="connection_pair_title">First use or pairing again</string>
+    <string name="connection_pair_steps">1. Tap below and allow notifications and local discovery when prompted.\n2. Open Wireless debugging and choose Pair device with pairing code.\n3. Keep the dialog open, pull down notifications, and enter the code in TensorIMS.</string>
+    <string name="connection_other_methods">Other startup methods (Root)</string>
+    <string name="connection_hide_root">Hide Root startup</string>
+</resources>

@@ -155,6 +155,8 @@ class MainActivity : BaseActivity() {
                     onCancelWireless = viewModel::cancelEmbeddedWireless,
                     onStartRoot = viewModel::startEmbeddedRoot,
                     onAcknowledgeMigration = viewModel::acknowledgeMigrationNotice,
+                    onOpenImsConfig = { navigate(TensorImsRoutes.IMS_CONFIG) },
+                    onHome = { navController.popBackStack(TensorImsRoutes.HOME, false) },
                     onBack = onBack,
                 )
             }

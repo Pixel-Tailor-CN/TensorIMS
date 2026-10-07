@@ -44,6 +44,8 @@ data class WirelessAdbState(
     val active: Boolean = false,
     val phase: WirelessAdbPhase = WirelessAdbPhase.IDLE,
     val error: String? = null,
+    // 仅代表本次通知会话完成配对，不持久化，也不推断系统当前是否仍授权。
+    val pairedInSession: Boolean = false,
 )
 
 /** 用户明确启动的短时前台流程；通知直接接收验证码，不打开 Activity 或申请悬浮窗。 */
@@ -198,7 +200,7 @@ class WirelessAdbService : Service() {
         // 首次找到配对服务时允许再次提醒；后续进度和输入重试仍只更新原通知。
         val alert = _state.value.phase == WirelessAdbPhase.SEARCHING_PAIRING &&
             phase == WirelessAdbPhase.WAITING_CODE
-        val next = WirelessAdbState(active = true, phase = phase, error = error)
+        val next = WirelessAdbState(active = true, phase = phase, error = error, pairedInSession = paired)
         _state.value = next
         manager.notify(NOTIFICATION_ID, notification(next, alert))
     }
@@ -211,7 +213,7 @@ class WirelessAdbService : Service() {
 
     private fun finish(token: String, phase: WirelessAdbPhase, error: String? = null) {
         if (!owns(token)) return
-        val next = WirelessAdbState(phase = phase, error = error)
+        val next = WirelessAdbState(phase = phase, error = error, pairedInSession = paired)
         _state.value = next
         replies?.close(); replies = null
         modeWatch?.cancel(); modeWatch = null
@@ -252,7 +254,8 @@ class WirelessAdbService : Service() {
         scope.cancel()
         replies?.close(); replies = null
         if (wasOwner && _state.value.active) _state.value = WirelessAdbState(
-            phase = WirelessAdbPhase.FAILED, error = getString(R.string.wireless_service_interrupted))
+            phase = WirelessAdbPhase.FAILED, error = getString(R.string.wireless_service_interrupted),
+            pairedInSession = paired)
         super.onDestroy()
     }
 

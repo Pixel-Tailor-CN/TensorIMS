@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="connection_ready_help">服务已连接，可以继续配置 IMS。</string>
+    <string name="connection_open_ims">进入 IMS 配置</string>
+    <string name="connection_home">返回首页</string>
+    <string name="connection_details">查看连接详情</string>
+    <string name="connection_hide_details">收起连接详情</string>
+    <string name="connection_working">正在处理，请稍候…</string>
+    <string name="connection_progress">正在连接</string>
+    <string name="connection_waiting_code">已发现配对服务。请保持系统配对码弹窗打开，手动下拉通知栏，在 TensorIMS 通知中输入六位配对码。</string>
+    <string name="connection_recovery_start">连接服务以协助核对</string>
+    <string name="connection_paired_failed">本次配对已完成，连接尚未完成。请先重新连接。</string>
+    <string name="connection_failed">连接未完成，请检查无线调试后重试。</string>
+    <string name="connection_connect_help">已配对过？确认手机已连接 Wi-Fi，并在开发者选项中开启无线调试，然后连接并启动服务。</string>
+    <string name="connection_connect">连接并启动服务</string>
+    <string name="connection_retry">重新连接</string>
+    <string name="connection_pair_title">首次使用或需要重新配对</string>
+    <string name="connection_pair_steps">1. 点击下方按钮，按提示允许通知及本地发现权限。\n2. 进入「无线调试」，选择「使用配对码配对设备」。\n3. 保持弹窗打开，下拉通知栏，在 TensorIMS 通知中输入配对码。</string>
+    <string name="connection_other_methods">其他启动方式（Root）</string>
+    <string name="connection_hide_root">收起 Root 启动</string>
+</resources>

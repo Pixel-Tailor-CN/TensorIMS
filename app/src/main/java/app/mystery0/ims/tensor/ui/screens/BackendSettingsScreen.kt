@@ -1,6 +1,7 @@
 package app.mystery0.ims.tensor.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -16,6 +17,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -29,7 +31,6 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import app.mystery0.ims.tensor.R
-import app.mystery0.ims.tensor.embedded.WirelessAdbPhase
 import app.mystery0.ims.tensor.embedded.WirelessAdbState
 import app.mystery0.ims.tensor.ui.rememberWirelessAdbUiActions
 import app.mystery0.ims.tensor.privilege.BackendMode
@@ -65,17 +66,24 @@ fun BackendSettingsScreen(
     onStartRoot: () -> Unit,
     onRecoverPersistentVolte: () -> Unit,
     onAcknowledgeMigration: () -> Unit,
+    onOpenImsConfig: () -> Unit,
+    onHome: () -> Unit,
     onBack: () -> Unit,
 ) {
     val uriHandler = LocalUriHandler.current
     var confirmRecovery by rememberSaveable { mutableStateOf(false) }
     var showChoices by rememberSaveable { mutableStateOf(false) }
     var pendingMode by rememberSaveable { mutableStateOf<String?>(null) }
+    var showDetails by rememberSaveable { mutableStateOf(false) }
     val operationBusy = busy || wirelessState.active
     val actions = backendUiActions(status, action.inProgress, operationBusy,
         recoveryStartAllowed = canStartEmbeddedForRecovery,
         recoveryPermissionAllowed = canRequestOfficialPermissionForRecovery)
     val wirelessActions = rememberWirelessAdbUiActions(wirelessState, actions.canStartEmbedded, onPair, onStartWireless)
+    val recovering = status.connection == ConnectionState.RECOVERY_REQUIRED
+    val locked = operationBusy || action.inProgress || wirelessActions.pending || status.connection in
+        setOf(ConnectionState.BUSY, ConnectionState.SWITCHING, ConnectionState.CONNECTING)
+    val ready = status.isReady && !locked && !recovering
 
     Scaffold(topBar = {
         CenterAlignedTopAppBar(
@@ -89,37 +97,56 @@ fun BackendSettingsScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)) {
             BackendSection {
                 Text(stringResource(R.string.backend_selected_mode, backendModeLabel(status.mode)), style = MaterialTheme.typography.titleMedium)
-                Text(stringResource(R.string.backend_connection, backendConnectionLabel(status.connection)))
-                val identity = when (status.runtimeUid) {
-                    0 -> "root (UID 0)"
-                    2000 -> "shell (UID 2000)"
-                    null -> stringResource(R.string.backend_unknown)
-                    else -> "UID ${status.runtimeUid}"
+                Text(if (!recovering && (wirelessState.active || wirelessActions.pending))
+                    stringResource(R.string.connection_progress) else backendConnectionLabel(status.connection),
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = if (recovering) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary)
+                if (ready) {
+                    Text(stringResource(R.string.connection_ready_help), style = MaterialTheme.typography.bodyMedium)
+                    Button(onClick = onOpenImsConfig, modifier = Modifier.fillMaxWidth()) {
+                        Text(stringResource(R.string.connection_open_ims))
+                    }
+                    OutlinedButton(onClick = onHome, modifier = Modifier.fillMaxWidth()) {
+                        Text(stringResource(R.string.connection_home))
+                    }
                 }
-                Text(stringResource(R.string.backend_identity, identity))
-                val authorization = when {
-                    status.errorCode in setOf("PERMISSION_REQUIRED", "PERMISSION_DENIED") -> R.string.backend_permission_needed
-                    status.connection in setOf(ConnectionState.READY, ConnectionState.BUSY) || canRecoverPersistentVolte -> R.string.backend_authorized
-                    else -> R.string.backend_not_authorized
+                if (showDetails) {
+                    val identity = when (status.runtimeUid) {
+                        0 -> "root (UID 0)"
+                        2000 -> "shell (UID 2000)"
+                        null -> stringResource(R.string.backend_unknown)
+                        else -> "UID ${status.runtimeUid}"
+                    }
+                    Text(stringResource(R.string.backend_identity, identity))
+                    val authorization = when {
+                        status.errorCode in setOf("PERMISSION_REQUIRED", "PERMISSION_DENIED") -> R.string.backend_permission_needed
+                        status.connection in setOf(ConnectionState.READY, ConnectionState.BUSY) || canRecoverPersistentVolte -> R.string.backend_authorized
+                        else -> R.string.backend_not_authorized
+                    }
+                    Text(stringResource(R.string.backend_authorization, stringResource(authorization)))
+                    Text(stringResource(R.string.backend_version, status.version ?: stringResource(R.string.backend_unknown)))
                 }
-                Text(stringResource(R.string.backend_authorization, stringResource(authorization)))
-                Text(stringResource(R.string.backend_version, status.version ?: stringResource(R.string.backend_unknown)))
-                BackendErrorGuidance(status)
+                if (recovering || (!locked && status.errorCode != null)) BackendErrorGuidance(status)
                 if (canRecoverPersistentVolte && status.connection == ConnectionState.RECOVERY_REQUIRED) {
                     Button(onClick = { confirmRecovery = true },
-                        enabled = canConfirmPersistentRecovery(status, canRecoverPersistentVolte, action.inProgress, operationBusy)) {
+                        enabled = canConfirmPersistentRecovery(status, canRecoverPersistentVolte, action.inProgress, operationBusy || wirelessActions.pending)) {
                         Text(stringResource(R.string.backend_restore_originals))
                     }
                 }
-                TextButton(onClick = { showChoices = true }, enabled = actions.canChooseMode) {
-                    Text(stringResource(if (status.mode == BackendMode.UNSET) R.string.backend_choose_title else R.string.backend_switch))
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    TextButton(onClick = { showDetails = !showDetails }) {
+                        Text(stringResource(if (showDetails) R.string.connection_hide_details else R.string.connection_details))
+                    }
+                    TextButton(onClick = { showChoices = true }, enabled = actions.canChooseMode && !wirelessActions.pending) {
+                        Text(stringResource(if (status.mode == BackendMode.UNSET) R.string.backend_choose_title else R.string.backend_switch))
+                    }
+                    TextButton(onClick = onRefresh, enabled = !locked) {
+                        Text(stringResource(R.string.backend_refresh_readonly))
+                    }
                 }
                 if (!actions.canChooseMode) Text(stringResource(R.string.backend_switch_busy), style = MaterialTheme.typography.bodySmall)
-                TextButton(onClick = onRefresh, enabled = !operationBusy && !action.inProgress && status.connection !in setOf(ConnectionState.BUSY, ConnectionState.SWITCHING, ConnectionState.CONNECTING)) {
-                    Text(stringResource(R.string.backend_refresh_readonly))
-                }
             }
-            if (action.inProgress) {
+            if (locked && !wirelessState.active) {
                 BackendSection {
                     CircularProgressIndicator()
                     Text(stringResource(when (action.action) {
@@ -127,16 +154,16 @@ fun BackendSettingsScreen(
                         BackendAction.PAIR -> R.string.backend_pairing
                         BackendAction.ROOT -> R.string.backend_starting_root
                         BackendAction.WIRELESS -> R.string.backend_starting_wireless
-                        else -> R.string.backend_switching
+                        else -> if (status.connection == ConnectionState.SWITCHING) R.string.backend_switching else R.string.connection_working
                     }))
                     Text(stringResource(R.string.backend_action_in_progress), style = MaterialTheme.typography.bodySmall)
                 }
             }
-            action.notice?.let { Text(stringResource(it), color = MaterialTheme.colorScheme.primary) }
-            action.error?.let { Text(stringResource(R.string.backend_action_failed, it), color = MaterialTheme.colorScheme.error) }
+            if (!ready) action.notice?.let { Text(stringResource(it), color = MaterialTheme.colorScheme.primary) }
+            if (!ready) action.error?.let { Text(stringResource(R.string.backend_action_failed, it), color = MaterialTheme.colorScheme.error) }
             when (status.mode) {
                 BackendMode.UNSET -> Text(stringResource(R.string.backend_choose_description))
-                BackendMode.OFFICIAL -> BackendSection {
+                BackendMode.OFFICIAL -> if (!ready) BackendSection {
                     Text(stringResource(R.string.backend_official_guidance))
                     Button(onClick = onRequestPermission, enabled = actions.canRequestOfficialPermission) {
                         Text(stringResource(R.string.request_permission))
@@ -145,53 +172,19 @@ fun BackendSettingsScreen(
                         Text(stringResource(R.string.backend_official_guide))
                     }
                 }
-                BackendMode.EMBEDDED -> {
-                    BackendSection {
-                        Text(stringResource(R.string.backend_wireless_title), style = MaterialTheme.typography.titleMedium)
-                        Text(stringResource(R.string.wireless_ui_instructions), style = MaterialTheme.typography.bodySmall)
-                        Text(stringResource(R.string.wireless_ui_privacy), style = MaterialTheme.typography.bodySmall)
-                        Button(onClick = wirelessActions.startPairing,
-                            enabled = actions.canStartEmbedded && !wirelessActions.pending) {
-                            Text(stringResource(R.string.wireless_ui_pair_and_open_settings))
-                        }
-                        Text(stringResource(R.string.wireless_ui_reconnect_help), style = MaterialTheme.typography.bodySmall)
-                        Button(onClick = wirelessActions.startConnect,
-                            enabled = actions.canStartEmbedded && !wirelessActions.pending) {
-                            Text(stringResource(R.string.wireless_ui_reconnect))
-                        }
-                        if (wirelessState.phase != WirelessAdbPhase.IDLE || wirelessState.active) {
-                            if (wirelessState.active) CircularProgressIndicator()
-                            Text(stringResource(when (wirelessState.phase) {
-                                WirelessAdbPhase.IDLE -> R.string.wireless_ui_preparing
-                                WirelessAdbPhase.SEARCHING_PAIRING -> R.string.wireless_ui_searching_pairing
-                                WirelessAdbPhase.WAITING_CODE -> R.string.wireless_ui_waiting_code
-                                WirelessAdbPhase.PAIRING -> R.string.wireless_ui_pairing
-                                WirelessAdbPhase.SEARCHING_CONNECT -> R.string.wireless_ui_searching_connect
-                                WirelessAdbPhase.STARTING -> R.string.wireless_ui_starting
-                                WirelessAdbPhase.SUCCESS -> R.string.wireless_ui_success
-                                WirelessAdbPhase.FAILED -> R.string.wireless_ui_failed
-                            }))
-                            wirelessState.error?.let {
-                                Text(stringResource(R.string.backend_action_failed, it), color = MaterialTheme.colorScheme.error)
-                            }
-                        }
-                        if (wirelessState.active) {
-                            Text(stringResource(R.string.wireless_ui_background_help), style = MaterialTheme.typography.bodySmall)
-                            TextButton(onClick = wirelessActions.reopenSettings) {
-                                Text(stringResource(R.string.backend_open_wireless_settings))
-                            }
-                            TextButton(onClick = onCancelWireless) {
-                                Text(stringResource(R.string.wireless_ui_cancel))
-                            }
-                        }
-                    }
-                    BackendSection {
-                        Text(stringResource(R.string.backend_root_title), style = MaterialTheme.typography.titleMedium)
-                        Text(stringResource(R.string.backend_root_help), style = MaterialTheme.typography.bodySmall)
-                        Button(onClick = onStartRoot, enabled = actions.canStartEmbedded) { Text(stringResource(R.string.backend_start_root)) }
-                    }
-                }
+                BackendMode.EMBEDDED -> if (!ready) EmbeddedConnectionContent(
+                    state = wirelessState,
+                    recovering = recovering,
+                    locked = locked,
+                    canStart = actions.canStartEmbedded && !wirelessActions.pending,
+                    onConnect = wirelessActions.startConnect,
+                    onPair = wirelessActions.startPairing,
+                    onSettings = wirelessActions.reopenSettings,
+                    onCancel = onCancelWireless,
+                    onRoot = onStartRoot,
+                )
             }
+
             if (showMigrationNotice) BackendMigrationNotice(onAcknowledgeMigration)
         }
     }
@@ -202,14 +195,14 @@ fun BackendSettingsScreen(
         confirmButton = { TextButton(onClick = {
             confirmRecovery = false
             onRecoverPersistentVolte()
-        }, enabled = canConfirmPersistentRecovery(status, canRecoverPersistentVolte, action.inProgress, operationBusy)) {
+        }, enabled = canConfirmPersistentRecovery(status, canRecoverPersistentVolte, action.inProgress, operationBusy || wirelessActions.pending)) {
             Text(stringResource(R.string.backend_restore_originals))
         } },
         dismissButton = { TextButton(onClick = { confirmRecovery = false }) { Text(stringResource(android.R.string.cancel)) } },
     )
     if (showChoices) BackendChoiceDialog(
         currentMode = status.mode,
-        enabled = actions.canChooseMode,
+        enabled = actions.canChooseMode && !wirelessActions.pending,
         showMigration = showMigrationNotice,
         onChoose = { mode ->
             showChoices = false
@@ -228,7 +221,7 @@ fun BackendSettingsScreen(
         confirmButton = { TextButton(onClick = {
             pendingMode = null
             onChooseMode(target)
-        }, enabled = canConfirmModeChoice(status, target, action.inProgress, operationBusy)) {
+        }, enabled = canConfirmModeChoice(status, target, action.inProgress, operationBusy || wirelessActions.pending)) {
             Text(stringResource(R.string.backend_switch_confirm))
         } },
         dismissButton = { TextButton(onClick = { pendingMode = null }) { Text(stringResource(android.R.string.cancel)) } },
@@ -236,7 +229,7 @@ fun BackendSettingsScreen(
 }
 
 @Composable
-private fun BackendSection(content: @Composable () -> Unit) {
+internal fun BackendSection(content: @Composable () -> Unit) {
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) { content() }
     }
