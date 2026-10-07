@@ -279,13 +279,16 @@ class WirelessAdbService : Service() {
             .setSmallIcon(R.drawable.ic_wireless_adb)
             .setContentTitle(getString(if (current.phase == WirelessAdbPhase.WAITING_CODE)
                 R.string.wireless_service_code_ready_title else R.string.wireless_service_title))
-            .setContentText(text)
-            .setStyle(Notification.BigTextStyle().bigText(text))
             .setCategory(Notification.CATEGORY_SERVICE)
             .setVisibility(Notification.VISIBILITY_SECRET)
             .setOnlyAlertOnce(!alert)
             .setOngoing(current.active)
             .setAutoCancel(!current.active)
+        // 输入配对码时仅保留标题，避免正文撑高通知后遮挡系统配对码。
+        if (current.phase != WirelessAdbPhase.WAITING_CODE) {
+            builder.setContentText(text)
+                .setStyle(Notification.BigTextStyle().bigText(text))
+        }
         // 进行中的通知本体也不打开应用，避免误触关闭系统配对对话框。
         if (!current.active) builder.setContentIntent(PendingIntent.getActivity(this, 0,
             Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT))
