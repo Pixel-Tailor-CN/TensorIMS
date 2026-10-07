@@ -10,6 +10,14 @@ import kotlinx.coroutines.flow.asStateFlow
 import org.xmlpull.v1.XmlPullParser
 
 class AppSettingsViewModel(application: Application) : AndroidViewModel(application) {
+    private val settings = (application as app.mystery0.ims.tensor.Application).settings
+    val theme = settings.theme
+    val autoCapture = settings.autoCapture
+
+    fun selectTheme(theme: app.mystery0.ims.tensor.AppTheme) = settings.setTheme(theme)
+
+    fun setAutoCapture(enabled: Boolean) = settings.setAutoCapture(enabled)
+
     private val localeManager = application.getSystemService(LocaleManager::class.java)
 
     // 与系统声明共用语言列表，新增翻译时不需要另维护一份选择器名单。

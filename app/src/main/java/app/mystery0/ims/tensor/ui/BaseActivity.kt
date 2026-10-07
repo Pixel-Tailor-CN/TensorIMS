@@ -5,6 +5,13 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.activity.SystemBarStyle
+import app.mystery0.ims.tensor.AppTheme
+import app.mystery0.ims.tensor.Application
 import app.mystery0.ims.tensor.ui.theme.TensorIMSTheme
 
 abstract class BaseActivity : ComponentActivity() {
@@ -12,7 +19,17 @@ abstract class BaseActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContent {
-            TensorIMSTheme {
+            val theme by (application as Application).settings.theme.collectAsStateWithLifecycle()
+            val dark = when (theme) {
+                AppTheme.SYSTEM -> isSystemInDarkTheme()
+                AppTheme.LIGHT -> false
+                AppTheme.DARK -> true
+            }
+            SideEffect {
+                val bars = SystemBarStyle.auto(android.graphics.Color.TRANSPARENT, android.graphics.Color.TRANSPARENT) { dark }
+                enableEdgeToEdge(statusBarStyle = bars, navigationBarStyle = bars)
+            }
+            TensorIMSTheme(darkTheme = dark) {
                 content()
             }
         }

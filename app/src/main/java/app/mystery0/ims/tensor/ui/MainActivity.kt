@@ -115,9 +115,6 @@ class MainActivity : BaseActivity() {
                     onOpenSystemNetwork = { navigate(TensorImsRoutes.SYSTEM_NETWORK) },
                     onOpenAdvancedTools = { navigate(TensorImsRoutes.ADVANCED_TOOLS) },
                     onOpenAppSettings = { navigate(TensorImsRoutes.APP_SETTINGS) },
-                    onOpenLogcat = {
-                        startActivity(Intent(this@MainActivity, LogcatActivity::class.java))
-                    },
                     onAutoRestoreEnabledChange = viewModel::setAutoRestoreEnabled,
                     onLoadImsStatus = viewModel::loadRealSystemConfig,
                     onRestartIms = { sim, complete ->
@@ -128,11 +125,20 @@ class MainActivity : BaseActivity() {
 
             composable(TensorImsRoutes.APP_SETTINGS) {
                 val languageTag by appSettingsViewModel.languageTag.collectAsStateWithLifecycle()
+                val theme by appSettingsViewModel.theme.collectAsStateWithLifecycle()
+                val autoCapture by appSettingsViewModel.autoCapture.collectAsStateWithLifecycle()
                 LifecycleResumeEffect(Unit) {
                     appSettingsViewModel.refreshLanguage()
                     onPauseOrDispose { }
                 }
                 AppSettingsScreen(
+                    theme = theme,
+                    autoCapture = autoCapture,
+                    onSelectTheme = appSettingsViewModel::selectTheme,
+                    onAutoCaptureChange = appSettingsViewModel::setAutoCapture,
+                    onOpenLogcat = {
+                        startActivity(Intent(this@MainActivity, LogcatActivity::class.java))
+                    },
                     languageTag = languageTag,
                     supportedLanguageTags = appSettingsViewModel.supportedLanguageTags,
                     onSelectLanguage = appSettingsViewModel::selectLanguage,

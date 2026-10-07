@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_appearance">外观与语言</string>
+    <string name="settings_theme">应用主题</string>
+    <string name="settings_theme_light">明亮</string>
+    <string name="settings_theme_dark">深色</string>
+    <string name="settings_logs">日志</string>
+    <string name="settings_auto_capture">自动启用日志记录</string>
+    <string name="settings_auto_capture_summary">应用进程启动时开始记录，方便排查开机自动应用等问题。最多保留最近 2000 条，进程结束后不保留。</string>
+    <string name="settings_about">关于</string>
+    <string name="settings_version">应用版本</string>
+    <string name="settings_version_value">%1$s（版本号 %2$d）</string>
+    <string name="settings_telegram">Telegram 频道</string>
+    <string name="settings_link_unavailable">没有可打开此链接的应用</string>
+</resources>

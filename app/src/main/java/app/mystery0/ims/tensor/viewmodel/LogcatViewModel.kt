@@ -23,7 +23,12 @@ class LogcatViewModel(application: Application) : AndroidViewModel(application) 
     private var isExporting = false
 
     init {
-        LogcatRepository.startLogcat()
+        LogcatRepository.openViewer()
+    }
+
+    override fun onCleared() {
+        LogcatRepository.closeViewer()
+        super.onCleared()
     }
 
     fun clearLogs() {

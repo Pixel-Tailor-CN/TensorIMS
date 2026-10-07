@@ -9,6 +9,7 @@ import android.os.UserManager
 import app.mystery0.ims.tensor.privilege.PrivilegeRuntime
 
 class Application : Application() {
+    val settings by lazy { AppSettingsRepository(this) }
     private val restoreDelegate = lazy { AutoRestoreController(this) }
     val autoRestore by restoreDelegate
 
@@ -16,6 +17,7 @@ class Application : Application() {
         super.onCreate()
         // 配置保存在凭据加密存储中；首次解锁前不能读取或创建 SharedPreferences。
         if (getSystemService(UserManager::class.java).isUserUnlocked) {
+            LogcatRepository.setAutomaticCapture(settings.autoCapture.value)
             PrivilegeRuntime.initialize(this)
             autoRestore.start()
         } else {
@@ -23,6 +25,7 @@ class Application : Application() {
                 override fun onReceive(context: Context, intent: Intent) {
                     if (intent.action != Intent.ACTION_USER_UNLOCKED) return
                     unregisterReceiver(this)
+                    LogcatRepository.setAutomaticCapture(settings.autoCapture.value)
                     PrivilegeRuntime.initialize(this@Application)
                     autoRestore.start()
                 }
