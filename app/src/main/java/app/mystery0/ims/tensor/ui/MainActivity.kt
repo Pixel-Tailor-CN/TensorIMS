@@ -48,7 +48,6 @@ class MainActivity : BaseActivity() {
         val backendStatus by viewModel.backendStatus.collectAsStateWithLifecycle()
         val backendAction by viewModel.backendAction.collectAsStateWithLifecycle()
         val wirelessAdbState by viewModel.wirelessAdbState.collectAsStateWithLifecycle()
-        val showMigrationNotice by viewModel.migrationNotice.collectAsStateWithLifecycle()
         var firstChoiceDismissed by rememberSaveable { mutableStateOf(false) }
         val shizukuStatus by viewModel.shizukuStatus.collectAsStateWithLifecycle()
         val simReadError by viewModel.simReadError.collectAsStateWithLifecycle()
@@ -104,7 +103,6 @@ class MainActivity : BaseActivity() {
                     systemInfo = systemInfo,
                     backendStatus = backendStatus,
                     busy = isOperationInProgress,
-                    showMigrationNotice = showMigrationNotice,
                     allSimList = allSimList,
                     simReadError = simReadError,
                     selectedSim = selectedSim,
@@ -113,7 +111,6 @@ class MainActivity : BaseActivity() {
                     onRefresh = viewModel::refreshBackendStatus,
                     onRequestPermission = viewModel::requestOfficialPermission,
                     onOpenBackendSettings = { navigate(TensorImsRoutes.BACKEND_SETTINGS) },
-                    onAcknowledgeMigration = viewModel::acknowledgeMigrationNotice,
                     onOpenImsConfig = { navigate(TensorImsRoutes.IMS_CONFIG) },
                     onOpenSystemNetwork = { navigate(TensorImsRoutes.SYSTEM_NETWORK) },
                     onOpenAdvancedTools = { navigate(TensorImsRoutes.ADVANCED_TOOLS) },
@@ -149,7 +146,6 @@ class MainActivity : BaseActivity() {
                     action = backendAction,
                     wirelessState = wirelessAdbState,
                     busy = isOperationInProgress,
-                    showMigrationNotice = showMigrationNotice,
                     canRecoverPersistentVolte = canRecoverPersistentVolte,
                     canStartEmbeddedForRecovery = canStartEmbeddedForRecovery,
                     canRequestOfficialPermissionForRecovery = canRequestOfficialPermissionForRecovery,
@@ -161,7 +157,6 @@ class MainActivity : BaseActivity() {
                     onStartWireless = viewModel::startEmbeddedWireless,
                     onCancelWireless = viewModel::cancelEmbeddedWireless,
                     onStartRoot = viewModel::startEmbeddedRoot,
-                    onAcknowledgeMigration = viewModel::acknowledgeMigrationNotice,
                     onOpenImsConfig = { navigate(TensorImsRoutes.IMS_CONFIG) },
                     onHome = { navController.popBackStack(TensorImsRoutes.HOME, false) },
                     onBack = onBack,
@@ -243,7 +238,6 @@ class MainActivity : BaseActivity() {
             BackendChoiceDialog(
                 currentMode = backendStatus.mode,
                 enabled = backendUiActions(backendStatus, backendAction.inProgress, isOperationInProgress).canChooseMode,
-                showMigration = showMigrationNotice,
                 onChoose = { mode ->
                     firstChoiceDismissed = true
                     viewModel.chooseBackend(mode)

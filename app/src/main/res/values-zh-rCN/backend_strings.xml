@@ -48,9 +48,6 @@
     <string name="backend_start_success">已验证私有服务启动成功。</string>
     <string name="backend_action_failed">操作失败：%1$s</string>
     <string name="backend_action_in_progress">离开页面后本次操作仍会继续；重新打开或旋转屏幕不会重复启动。</string>
-    <string name="backend_migration_title">从旧版 TensorIMS 迁移？</string>
-    <string name="backend_migration_description">这是独立的新应用，不会继承旧版私有数据。请先关闭旧版自动恢复，并在旧版恢复每张已修改 SIM 的持久化 VoLTE 原值，包括需要重新激活的 SIM。确认原值恢复及新版功能前，请保留旧版及其数据。切勿同时启用两版自动恢复；卸载或清空旧版会删除恢复备份。</string>
-    <string name="backend_migration_understood">我已了解</string>
     <string name="backend_auto_restore_title">所选后端就绪后自动应用配置</string>
     <string name="backend_auto_restore_description">默认关闭。仅在所选后端就绪并获得授权后应用已保存配置；不会配对、请求 root、启动服务或修改无线调试设置；不包含持久化 VoLTE。</string>
     <string name="backend_required">请先连接所选后端并完成授权</string>
@@ -69,7 +66,6 @@
     <string name="backend_no_sim_available">暂无 SIM 信息。请连接所选后端并完成授权，然后刷新。</string>
     <string name="backend_persistent_description">立即对当前 SIM 生效。在兼容设备和运营商下，正常重启后无需启动特权服务或打开 TensorIMS 也可继续使用 VoLTE。</string>
     <string name="backend_persistent_limits">此功能仅保留 VoLTE 设置。其他已保存 IMS 配置仍需所选后端就绪后才能在重启后重新应用。实际通话取决于设备、运营商和网络。</string>
-    <string name="backend_migration_short">全新应用身份：请保留旧版及恢复备份，先关闭旧版自动恢复，并在旧版恢复持久化 VoLTE 原值后再使用新版。</string>
     <string name="backend_portal_discard_title">丢弃未保存的 Captive Portal 修改？</string>
     <string name="backend_portal_discard_description">重新读取当前系统值，并替换未保存的输入。取消可保留草稿。</string>
     <string name="backend_portal_read_failed">无法读取 Captive Portal 设置，已保留未保存的输入。</string>

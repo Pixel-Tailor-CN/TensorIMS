@@ -1,7 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">TensorIMS（旧包名）</string>
-    <string name="backend_migration_title">正在使用旧包名版本</string>
-    <string name="backend_migration_description">此 APK 保留旧包名。覆盖现有安装需要签名证书一致且版本号更高；满足条件的原地更新会保留私有配置和持久化 VoLTE 原值备份，请勿先卸载或清空数据。新包名版本的数据独立，但两版会修改同一设备和 SIM 设置。切勿同时启用两版自动恢复，也不要并发执行写入。</string>
-    <string name="backend_migration_short">旧包名版本：兼容的原地更新保留私有数据与恢复备份。请勿清空数据，也不要同时开启两个包的自动恢复。</string>
+    <string name="app_name">TensorIMS</string>
 </resources>

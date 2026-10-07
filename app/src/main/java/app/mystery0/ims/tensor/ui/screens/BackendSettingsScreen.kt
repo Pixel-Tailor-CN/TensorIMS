@@ -43,7 +43,6 @@ import app.mystery0.ims.tensor.ui.canConfirmPersistentRecovery
 import app.mystery0.ims.tensor.ui.canConfirmModeChoice
 import app.mystery0.ims.tensor.ui.components.BackendChoiceDialog
 import app.mystery0.ims.tensor.ui.components.BackendErrorGuidance
-import app.mystery0.ims.tensor.ui.components.BackendMigrationNotice
 import app.mystery0.ims.tensor.ui.components.backendConnectionLabel
 import app.mystery0.ims.tensor.ui.components.backendModeLabel
 
@@ -53,7 +52,6 @@ fun BackendSettingsScreen(
     action: BackendActionState,
     wirelessState: WirelessAdbState,
     busy: Boolean,
-    showMigrationNotice: Boolean,
     canRecoverPersistentVolte: Boolean,
     canStartEmbeddedForRecovery: Boolean,
     canRequestOfficialPermissionForRecovery: Boolean,
@@ -65,7 +63,6 @@ fun BackendSettingsScreen(
     onCancelWireless: () -> Unit,
     onStartRoot: () -> Unit,
     onRecoverPersistentVolte: () -> Unit,
-    onAcknowledgeMigration: () -> Unit,
     onOpenImsConfig: () -> Unit,
     onHome: () -> Unit,
     onBack: () -> Unit,
@@ -185,7 +182,6 @@ fun BackendSettingsScreen(
                 )
             }
 
-            if (showMigrationNotice) BackendMigrationNotice(onAcknowledgeMigration)
         }
     }
     if (confirmRecovery) AlertDialog(
@@ -203,7 +199,6 @@ fun BackendSettingsScreen(
     if (showChoices) BackendChoiceDialog(
         currentMode = status.mode,
         enabled = actions.canChooseMode && !wirelessActions.pending,
-        showMigration = showMigrationNotice,
         onChoose = { mode ->
             showChoices = false
             if (status.mode == BackendMode.UNSET) onChooseMode(mode) else pendingMode = mode.name

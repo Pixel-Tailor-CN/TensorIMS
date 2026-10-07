@@ -42,7 +42,6 @@ import androidx.compose.ui.unit.dp
 import app.mystery0.ims.tensor.R
 import app.mystery0.ims.tensor.privilege.BackendStatus
 import androidx.compose.material.icons.rounded.Settings
-import app.mystery0.ims.tensor.ui.components.BackendMigrationNotice
 import app.mystery0.ims.tensor.model.SimSelection
 import app.mystery0.ims.tensor.model.SystemInfo
 import app.mystery0.ims.tensor.ui.components.AutoRestoreCard
@@ -54,7 +53,6 @@ fun HomeScreen(
     systemInfo: SystemInfo,
     backendStatus: BackendStatus,
     busy: Boolean,
-    showMigrationNotice: Boolean,
     allSimList: List<SimSelection>,
     simReadError: String?,
     selectedSim: SimSelection?,
@@ -63,7 +61,6 @@ fun HomeScreen(
     onRefresh: () -> Unit,
     onRequestPermission: () -> Unit,
     onOpenBackendSettings: () -> Unit,
-    onAcknowledgeMigration: () -> Unit,
     onOpenImsConfig: () -> Unit,
     onOpenSystemNetwork: () -> Unit,
     onOpenAdvancedTools: () -> Unit,
@@ -126,7 +123,6 @@ fun HomeScreen(
                 onRequestPermission = onRequestPermission,
                 onOpenBackendSettings = onOpenBackendSettings,
             )
-            if (showMigrationNotice) BackendMigrationNotice(onAcknowledgeMigration)
             SimSelectionCard(
                 selectedSim = selectedSim,
                 allSimList = allSimList,

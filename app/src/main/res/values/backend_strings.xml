@@ -48,9 +48,6 @@
     <string name="backend_start_success">Private service startup verified.</string>
     <string name="backend_action_failed">Action failed: %1$s</string>
     <string name="backend_action_in_progress">This action continues if you leave this page. Reopening the page or rotating the device will not start it again.</string>
-    <string name="backend_migration_title">Coming from the old TensorIMS?</string>
-    <string name="backend_migration_description">This is a separate app and does not inherit old private data. First disable auto-restore in the old app and use it to restore persistent VoLTE original values for every modified SIM, including currently inactive SIMs. Keep the old app and its data until restoration and the new app are verified. Never enable auto-restore in both apps at once. Uninstalling or clearing the old app removes its recovery backups.</string>
-    <string name="backend_migration_understood">I understand</string>
     <string name="backend_auto_restore_title">Auto-apply when the selected backend is ready</string>
     <string name="backend_auto_restore_description">Off by default. Applies saved configurations after the selected backend is ready and authorized. Does not pair, request root, start a service or change wireless debugging settings. Persistent VoLTE is not included.</string>
     <string name="backend_required">Connect and authorize the selected backend first</string>
@@ -69,7 +66,6 @@
     <string name="backend_no_sim_available">No SIM information is available. Connect and authorize the selected backend, then refresh.</string>
     <string name="backend_persistent_description">Takes effect immediately for this SIM. On compatible devices and carriers, VoLTE remains usable after a normal restart without starting a privilege service or opening TensorIMS.</string>
     <string name="backend_persistent_limits">This only preserves VoLTE settings. Other saved IMS configurations still need the selected backend to be ready before they can be applied again after a restart. Actual calls depend on the device, carrier and network.</string>
-    <string name="backend_migration_short">New app identity: keep the old app and its recovery backups. Disable its auto-restore and restore persistent VoLTE original values there before using this app.</string>
     <string name="backend_portal_discard_title">Discard unsaved Captive Portal changes?</string>
     <string name="backend_portal_discard_description">Reload the current system values and replace the unsaved input. Cancel to keep your draft.</string>
     <string name="backend_portal_read_failed">Could not read Captive Portal settings. Your unsaved input has been kept.</string>

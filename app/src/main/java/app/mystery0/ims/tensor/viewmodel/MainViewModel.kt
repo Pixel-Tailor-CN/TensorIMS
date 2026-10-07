@@ -59,17 +59,9 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
     private val _backendAction = MutableStateFlow(BackendActionState())
     val backendAction = _backendAction.asStateFlow()
     private val launcher = EmbeddedLauncher(application)
-    private val uiPreferences = application.getSharedPreferences("backend_ui", Application.MODE_PRIVATE)
-    private val _migrationNotice = MutableStateFlow(!uiPreferences.getBoolean("migration_notice_seen", false))
-    val migrationNotice = _migrationNotice.asStateFlow()
     val isOperationInProgress = combine(ConfigurationOperations.busy, backendStatus, backendAction, wirelessAdbState) { busy, status, action, wireless ->
         busy || status.connection in setOf(ConnectionState.BUSY, ConnectionState.SWITCHING, ConnectionState.CONNECTING) || action.inProgress || wireless.active
     }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
-
-    fun acknowledgeMigrationNotice() {
-        uiPreferences.edit().putBoolean("migration_notice_seen", true).apply()
-        _migrationNotice.value = false
-    }
 
     fun chooseBackend(mode: BackendMode) {
         if (!canConfirmModeChoice(backendStatus.value, mode, _backendAction.value.inProgress, backendActionBusy())) {

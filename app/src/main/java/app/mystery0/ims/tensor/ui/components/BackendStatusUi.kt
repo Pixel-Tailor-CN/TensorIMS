@@ -113,7 +113,6 @@ fun BackendStatusBanner(
 fun BackendChoiceDialog(
     currentMode: BackendMode,
     enabled: Boolean,
-    showMigration: Boolean,
     onChoose: (BackendMode) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -123,7 +122,6 @@ fun BackendChoiceDialog(
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(stringResource(R.string.backend_choose_description))
-                if (showMigration) Text(stringResource(R.string.backend_migration_short), style = MaterialTheme.typography.bodySmall)
                 // 两个同等样式的显式按钮，不预选、不因检测到任一服务而自动选择。
                 listOf(BackendMode.OFFICIAL, BackendMode.EMBEDDED).forEach { mode ->
                     FilledTonalButton(
@@ -140,22 +138,9 @@ fun BackendChoiceDialog(
                     }
                 }
                 if (!enabled) Text(stringResource(R.string.backend_switch_busy))
-                if (showMigration) {
-                    Text(stringResource(R.string.backend_migration_title), style = MaterialTheme.typography.titleSmall)
-                    Text(stringResource(R.string.backend_migration_description), style = MaterialTheme.typography.bodySmall)
-                }
             }
         },
         confirmButton = {},
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(android.R.string.cancel)) } },
     )
-}
-
-@Composable
-fun BackendMigrationNotice(onAcknowledge: () -> Unit) {
-    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(stringResource(R.string.backend_migration_title), style = MaterialTheme.typography.titleMedium)
-        Text(stringResource(R.string.backend_migration_description), style = MaterialTheme.typography.bodySmall)
-        TextButton(onClick = onAcknowledge) { Text(stringResource(R.string.backend_migration_understood)) }
-    }
 }

@@ -1,7 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">TensorIMS (Legacy)</string>
-    <string name="backend_migration_title">Using the legacy package</string>
-    <string name="backend_migration_description">This APK keeps the legacy package name. Updating an existing installation requires the same signing certificate and a higher version code. An in-place update retains private settings and persistent VoLTE recovery backups; do not uninstall or clear app data first. The new-package version has separate data but changes the same device and SIM settings. Never enable auto-restore in both apps or run their writes concurrently.</string>
-    <string name="backend_migration_short">Legacy package: a compatible in-place update retains private data and recovery backups. Do not clear data or enable auto-restore in both package versions.</string>
+    <string name="app_name">TensorIMS</string>
 </resources>
