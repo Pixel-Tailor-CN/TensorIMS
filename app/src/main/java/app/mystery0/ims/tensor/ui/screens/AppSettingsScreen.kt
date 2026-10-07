@@ -4,10 +4,6 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.widget.Toast
 import androidx.core.net.toUri
-import androidx.compose.foundation.background
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.draw.clip
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
@@ -16,14 +12,12 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -31,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import app.mystery0.ims.tensor.AppTheme
 import app.mystery0.ims.tensor.BuildConfig
 import app.mystery0.ims.tensor.R
+import app.mystery0.ims.tensor.ui.components.GroupedSettingsItem
 import java.util.Locale
 
 @Composable
@@ -69,12 +64,12 @@ fun AppSettingsScreen(
             verticalArrangement = Arrangement.spacedBy(24.dp),
         ) {
             SettingsSection(stringResource(R.string.settings_appearance)) {
-                SettingsRow(
+                GroupedSettingsItem(
                     title = stringResource(R.string.settings_theme), summary = themeLabel(theme),
                     first = true,
                     icon = Icons.Rounded.Palette, onClick = { dialog = "theme" },
                 )
-                SettingsRow(
+                GroupedSettingsItem(
                     title = stringResource(R.string.app_language),
                     last = true,
                     summary = languageLabel(languageTag.substringBefore(',')),
@@ -82,7 +77,7 @@ fun AppSettingsScreen(
                 )
             }
             SettingsSection(stringResource(R.string.settings_logs)) {
-                SettingsRow(
+                GroupedSettingsItem(
                     title = stringResource(R.string.settings_auto_capture),
                     first = true,
                     summary = stringResource(R.string.settings_auto_capture_summary),
@@ -90,7 +85,7 @@ fun AppSettingsScreen(
                     modifier = Modifier.toggleable(value = autoCapture, role = Role.Switch, onValueChange = onAutoCaptureChange),
                     trailing = { Switch(checked = autoCapture, onCheckedChange = null) },
                 )
-                SettingsRow(
+                GroupedSettingsItem(
                     title = stringResource(R.string.application_logs),
                     last = true,
                     summary = stringResource(R.string.application_logs_summary),
@@ -98,17 +93,17 @@ fun AppSettingsScreen(
                 )
             }
             SettingsSection(stringResource(R.string.settings_about)) {
-                SettingsRow(
+                GroupedSettingsItem(
                     title = stringResource(R.string.settings_version),
                     first = true,
                     summary = stringResource(R.string.settings_version_value, BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE),
                     icon = Icons.Rounded.Info,
                 )
-                SettingsRow(
+                GroupedSettingsItem(
                     title = "PixelTailorCN", summary = "pixel.mystery0.app", icon = Icons.Rounded.Public,
                     onClick = { openLink("https://pixel.mystery0.app") },
                 )
-                SettingsRow(
+                GroupedSettingsItem(
                     last = true,
                     title = stringResource(R.string.settings_telegram), summary = "@pixel_tailor_cn", icon = Icons.Rounded.Forum,
                     onClick = { openLink("https://t.me/pixel_tailor_cn") },
@@ -185,44 +180,4 @@ private fun SettingsChoiceDialog(
         confirmButton = { TextButton(enabled = draft in values, onClick = { onConfirm(draft) }) { Text(stringResource(android.R.string.ok)) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(android.R.string.cancel)) } },
     )
-}
-
-/** 说明可以换行，图标和操作始终相对整行垂直居中。 */
-@Composable
-private fun SettingsRow(
-    title: String,
-    summary: String,
-    icon: ImageVector,
-    modifier: Modifier = Modifier,
-    first: Boolean = false,
-    last: Boolean = false,
-    trailing: (@Composable () -> Unit)? = null,
-    onClick: (() -> Unit)? = null,
-) {
-    Row(
-        Modifier.fillMaxWidth()
-            .clip(RoundedCornerShape(
-                topStart = if (first) 24.dp else 4.dp,
-                topEnd = if (first) 24.dp else 4.dp,
-                bottomStart = if (last) 24.dp else 4.dp,
-                bottomEnd = if (last) 24.dp else 4.dp,
-            ))
-            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-            .then(modifier)
-            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
-            .heightIn(min = 72.dp).padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        Icon(icon, null, tint = MaterialTheme.colorScheme.primary)
-        Column(Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.bodyLarge)
-            Text(summary, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        if (trailing != null) {
-            trailing()
-        } else if (onClick != null) {
-            Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, null)
-        }
-    }
 }

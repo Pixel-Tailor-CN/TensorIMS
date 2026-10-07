@@ -45,7 +45,8 @@ import app.mystery0.ims.tensor.model.SimSelection
 import app.mystery0.ims.tensor.model.SystemInfo
 import app.mystery0.ims.tensor.ui.components.AutoRestoreCard
 import app.mystery0.ims.tensor.ui.components.DeviceStatusCard
-import app.mystery0.ims.tensor.ui.components.SettingsListItem
+import app.mystery0.ims.tensor.ui.components.GroupedSettingsItem
+import androidx.compose.foundation.layout.Arrangement
 
 @Composable
 fun HomeScreen(
@@ -128,40 +129,39 @@ fun HomeScreen(
                 onSelectSim = onSelectSim,
                 onRefresh = onRefresh,
             )
-            Card(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
-                SettingsListItem(
+                GroupedSettingsItem(
                     title = stringResource(R.string.nav_ims_status),
+                    first = true,
                     summary = stringResource(R.string.nav_ims_status_summary),
                     icon = Icons.Rounded.Info,
                     onClick = { showImsStatus = true },
                 )
-                androidx.compose.material3.HorizontalDivider()
-                SettingsListItem(
+                GroupedSettingsItem(
                     title = stringResource(R.string.ims_configuration),
                     summary = stringResource(R.string.ims_configuration_summary),
                     icon = Icons.Rounded.Phone,
                     enabled = selectedSim != null,
                     onClick = onOpenImsConfig,
                 )
-                androidx.compose.material3.HorizontalDivider()
-                SettingsListItem(
+                GroupedSettingsItem(
                     title = stringResource(R.string.system_network),
                     summary = stringResource(R.string.system_network_summary),
                     icon = Icons.Rounded.Public,
                     onClick = onOpenSystemNetwork,
                 )
-                androidx.compose.material3.HorizontalDivider()
-                SettingsListItem(
+                GroupedSettingsItem(
                     title = stringResource(R.string.advanced_tools),
+                    last = true,
                     summary = stringResource(R.string.advanced_tools_summary),
                     icon = Icons.Rounded.Build,
                     onClick = onOpenAdvancedTools,
                 )
-                androidx.compose.material3.HorizontalDivider()
             }
             AutoRestoreCard(
                 enabled = autoRestoreEnabled,
