@@ -49,7 +49,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -352,7 +354,8 @@ private fun CaptivePortalTextField(
     onValueChange: (String) -> Unit,
     error: String?,
 ) {
-    val clipboardManager = LocalClipboardManager.current
+    val clipboard = LocalClipboard.current
+    val scope = rememberCoroutineScope()
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
@@ -377,7 +380,11 @@ private fun CaptivePortalTextField(
                 }
             } else {
                 IconButton(onClick = {
-                    clipboardManager.getText()?.text?.let { onValueChange(it) }
+                    scope.launch {
+                        clipboard.getClipEntry()?.clipData?.let { clip ->
+                            if (clip.itemCount > 0) clip.getItemAt(0).text?.toString()?.let(onValueChange)
+                        }
+                    }
                 }) {
                     Icon(
                         imageVector = Icons.Rounded.ContentPaste,

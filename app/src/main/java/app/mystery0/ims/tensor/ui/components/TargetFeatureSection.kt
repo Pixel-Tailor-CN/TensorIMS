@@ -63,7 +63,7 @@ fun TargetFeatureSection(
             }
             ListItem(modifier = rowModifier,
                 colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                headlineContent = { Text(stringResource(feature.showTitleRes)) },
+                content = { Text(stringResource(feature.showTitleRes)) },
                 supportingContent = { Column {
                     Text(if (feature.valueType == FeatureValueType.STRING && value is String && value.isNotBlank()) value
                         else stringResource(feature.showDescriptionRes))

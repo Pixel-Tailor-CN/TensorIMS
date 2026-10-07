@@ -30,7 +30,7 @@ fun SettingsListItem(
             .alpha(if (enabled) 1f else 0.5f)
             .clickable(enabled = enabled, onClick = onClick),
         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-        headlineContent = { Text(title) },
+        content = { Text(title) },
         supportingContent = if (summary != null) {
             {
                 Text(

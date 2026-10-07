@@ -32,7 +32,10 @@ fun ImsStatusSheet(
     LaunchedEffect(sims) {
         if (target == null) inspectedId = sims.firstOrNull()?.subId
     }
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberBottomSheetState(
+        initialValue = SheetValue.Hidden,
+        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded),
+    )) {
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(R.string.nav_ims_status), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f))
