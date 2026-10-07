@@ -13,7 +13,9 @@ internal object BootstrapCommand {
         val args = listOf(userId.toString(), uid.toString(), version.toString(), signer, challenge, apk).joinToString(" ", transform = ::quote)
         // 进程名仅用于诊断，按安装包和用户区分；关闭仍只依据认证 Binder 与实例 ID。
         val processName = "${BridgeProtocol.PACKAGE}:embedded:$userId"
-        return "CLASSPATH=${quote(apk)} /system/bin/setsid /system/bin/app_process /system/bin --nice-name=${quote(processName)} " +
+        // 旧式 ADB shell 即使请求 raw 仍使用 PTY；父 shell 退出可能先于 setsid 完成。
+        // 在派生后台进程前忽略 HUP，避免尚未脱离终端就被挂断信号终止；生命周期仍由认证会话和租约管理。
+        return "trap '' HUP; CLASSPATH=${quote(apk)} /system/bin/setsid /system/bin/app_process /system/bin --nice-name=${quote(processName)} " +
             "app.mystery0.ims.tensor.embedded.EmbeddedServerMain $args </dev/null >/dev/null 2>&1 &"
     }
     private fun quote(value: String) = "'" + value.replace("'", "'\\''") + "'"

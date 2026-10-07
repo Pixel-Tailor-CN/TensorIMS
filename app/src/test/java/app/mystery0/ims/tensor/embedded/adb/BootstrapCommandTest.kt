@@ -10,7 +10,7 @@ class BootstrapCommandTest {
     }
     @Test fun commandQuotesEveryArgumentAndOnlyUsesFixedEntryPoint() {
         val command = BootstrapCommand.create(0, 10345, 27, "a".repeat(64), "b".repeat(64), "/data/app/a'b/base.apk")
-        assertTrue(command.startsWith("CLASSPATH='/data/app/a'\\''b/base.apk' /system/bin/setsid /system/bin/app_process /system/bin"))
+        assertTrue(command.startsWith("trap '' HUP; CLASSPATH='/data/app/a'\\''b/base.apk' /system/bin/setsid /system/bin/app_process /system/bin"))
         assertTrue(command.contains("app.mystery0.ims.tensor.embedded.EmbeddedServerMain '0' '10345' '27'"))
         assertTrue(command.endsWith("'/data/app/a'\\''b/base.apk' </dev/null >/dev/null 2>&1 &"))
     }

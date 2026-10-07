@@ -27,6 +27,29 @@ class AdbDiscoverySessionTest {
         assertTrue(AdbNsdCompatibility.supportsResolutionCancellation(37, 0))
     }
 
+    @Test fun androidResolvedTypeWithLeadingDotIsAcceptedForBothKinds() {
+        for (kind in AdbServiceKind.entries) {
+            val fixture = Fixture(kind)
+            val discovered = service("device", kind).copy(type = kind.serviceType + ".")
+            fixture.driver.found(discovered)
+            fixture.driver.complete(0, discovered.copy(
+                type = "." + kind.serviceType, port = 30001, addresses = listOf(local)))
+            fixture.driver.advance(350)
+            assertEquals(30001, fixture.results.single().getOrThrow())
+        }
+    }
+
+    @Test fun lostWithEquivalentTypeCancelsResolveAndRejectsLateResult() {
+        val fixture = Fixture()
+        val discovered = service("device").copy(type = AdbServiceKind.CONNECT.serviceType + ".")
+        fixture.driver.found(discovered)
+        fixture.driver.lost(discovered.copy(type = "." + AdbServiceKind.CONNECT.serviceType))
+        fixture.driver.complete(0, discovered.copy(port = 30001, addresses = listOf(local)))
+        fixture.driver.advance(350)
+        assertTrue(fixture.driver.resolutions.single().cancelled)
+        assertTrue(fixture.results.isEmpty())
+    }
+
     @Test fun addressPolicyAcceptsOnlyDeviceAndLoopbackAddresses() {
         assertTrue(AdbLocalAddress.belongsToDevice(local, listOf(local)))
         assertTrue(AdbLocalAddress.belongsToDevice(loopback, emptyList()))

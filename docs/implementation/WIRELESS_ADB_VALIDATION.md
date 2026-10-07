@@ -32,3 +32,23 @@
 运行 `scripts/test-wireless-adb-emulator.ps1 -ApkPath <测试 APK 绝对路径> -Serial <adb devices 中设备序号> -Flavor tensor`；旧包 flavor 使用 `legacy`。
 
 脚本只使用已有 adb/运行中的设备；安装前确认，使用 `adb install -r`，签名不匹配即停止，绝不卸载、清数据、擦模拟器或修改系统 ADB 设置。验收仍由用户操作系统设置与通知。日志只收集本应用选定诊断标签，不收集或传输配对码；结果留在本机，用户核对后再分享。
+
+## 2026-10-07 Pixel 6 Pro 发现阶段排查
+
+- 设备：Pixel 6 Pro，Android 17 / API 37，构建 `CP31.260623.012`；连接 Wi-Fi，安装 legacy debug 包，通知及本地网络权限均已授予。
+- 现象：系统配对码弹窗保持打开，TensorIMS 仍停留在搜索配对服务直至超时。
+- 证据：系统 NSD 日志显示发现及解析成功；应用诊断显示解析类型为 `._adb-tls-pairing._tcp`，名称匹配、端口有效且属于本机。旧代码只去掉类型尾点，误拒绝带前导点的解析结果。
+- 平台依据：[AOSP NsdService](https://android.googlesource.com/platform/packages/modules/Connectivity/+/refs/heads/main/service-t/src/com/android/server/NsdService.java) 的 `buildNsdServiceInfoFromMdnsEvent` 为保持历史兼容，发现回调的类型带尾点，解析回调的类型带前导点；不能仅按 Android 版本硬编码。
+- 修正：匹配和候选键共用类型规范化，兼容单个前导点、尾点及大小写；继续严格检查服务类型、名称、本机地址和端口，实际连接保持回环限定。回归覆盖配对、连接两类服务及等价类型的丢失/迟到回调。
+- 真机反馈：保留数据覆盖安装修复版后，用户确认通知已出现输入配对码动作，发现阶段恢复正常；同时发现通知静默更新缺少引导。
+- 通知调整：首次从搜索配对服务进入等待配对码时允许原通知再次提醒，标题明确提示输入配对码，并在搜索和等待文案中说明下拉通知的步骤；后续进度和输入重试仍仅更新原通知，结束通知保留原有发布方式。横幅仍受系统通知设置、免打扰等策略控制，不新建渠道绕过用户设置。
+- 本地验证：两 flavor 的无线相关测试、debug 构建及 lint 通过，通知调整后已重新通过双包构建及 lint。全量测试中 `OperationJournalTest` 两项在 Windows 上因目录访问抛出 `AccessDeniedException`，不计为全量通过。
+- 本记录只说明该故障的定位与修正，不能替代完整配对、JNI、私有服务握手、两 flavor 或最终 release 验收。
+
+### 同日启动阶段验证
+
+- 用户在通知输入配对码后，应用确认配对成功，但启动命令提交后等待认证连接超时；后续使用「已配对，重新连接」复现，无需再次配对。
+- 实时日志及无参数启动探针表明：旧式 ADB shell 的后台命令可能尚未进入 `EmbeddedServerMain.main()` 就结束。AOSP [shell_service.cpp](https://android.googlesource.com/platform/packages/modules/adb/+/refs/heads/main/daemon/shell_service.cpp) 中，不使用 shell v2 协议时，即使请求 raw 仍使用 PTY；shell 退出的挂断信号可早于后台进程完成 `setsid`。
+- 固定启动命令在派生进程前执行 `trap '' HUP`，让后台进程继承对挂断信号的忽略，再通过 `setsid` 脱离终端。仍使用当前 APK、固定入口、安装身份及一次性挑战，退出由原有认证连接和租约负责，不新增任意命令入口。
+- 真机结果：保留数据安装修复后的 legacy debug 包，使用已有配对身份重连；日志出现 `Private server started`，界面显示「连接状态：已就绪」「运行身份：shell (UID 2000)」「授权状态：已验证」，服务版本为 202。
+- 上述证明本次 legacy debug 的配对、通知输入、ADB 连接和私有服务认证链路已贯通；尚未验证 tensor 包、release 混淆包、其他 Android 版本、故障矩阵及 IMS 写入。再次提醒的代码调整已安装，横幅效果尚无用户单独确认。

@@ -159,7 +159,14 @@ private class AndroidAdbDiscoveryDriver(
                 result(Result.failure(nsdFailure("resolution", errorCode)))
             } }
             override fun onServiceResolved(serviceInfo: NsdServiceInfo) { handler.post {
-                result(runCatching { serviceInfo.snapshot() })
+                result(runCatching {
+                    serviceInfo.snapshot().also { resolved ->
+                        // 仅记录校验所需的类型和数量，不输出设备名称、地址或配对码。
+                        Log.d("AdbServiceDiscovery", "NSD resolved type=${resolved.type}, " +
+                            "nameMatches=${resolved.name == service.name}, validPort=${LaunchInput.validPort(resolved.port)}, " +
+                            "addressCount=${resolved.addresses.size}")
+                    }
+                })
             } }
             override fun onResolutionStopped(serviceInfo: NsdServiceInfo) { handler.post {
                 result(Result.failure(AdbDiscoveryException("NSD resolution cancelled")))

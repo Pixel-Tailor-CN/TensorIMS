@@ -8,8 +8,13 @@ internal enum class AdbServiceKind(val serviceType: String) {
     PAIRING("_adb-tls-pairing._tcp"),
     CONNECT("_adb-tls-connect._tcp");
 
-    fun matches(type: String) = type.trimEnd('.').lowercase(Locale.ROOT) == serviceType
+    fun matches(type: String) = normalizeAdbServiceType(type) == serviceType
 }
+
+// Android 的发现回调带尾点，resolveService 回调则带前导点；两者表示同一类型。
+// 只处理分隔点和大小写，仍严格区分配对、连接及其他服务类型。
+private fun normalizeAdbServiceType(type: String) =
+    type.removePrefix(".").trimEnd('.').lowercase(Locale.ROOT)
 
 internal open class AdbDiscoveryException(message: String, cause: Throwable? = null) : IOException(message, cause)
 internal class AdbDiscoveryAmbiguousException : AdbDiscoveryException("Multiple local ADB services")
@@ -29,7 +34,7 @@ internal data class AdbDiscoveredService(
     val addresses: List<InetAddress> = emptyList(),
     val platformInfo: Any? = null,
 ) {
-    val key get() = Key(name, type.trimEnd('.').lowercase(Locale.ROOT), network)
+    val key get() = Key(name, normalizeAdbServiceType(type), network)
     data class Key(val name: String, val type: String, val network: Any?)
 }
 

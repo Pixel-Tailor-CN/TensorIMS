@@ -195,9 +195,12 @@ class WirelessAdbService : Service() {
 
     private fun update(token: String, phase: WirelessAdbPhase, error: String? = null) {
         if (!owns(token)) return
+        // 首次找到配对服务时允许再次提醒；后续进度和输入重试仍只更新原通知。
+        val alert = _state.value.phase == WirelessAdbPhase.SEARCHING_PAIRING &&
+            phase == WirelessAdbPhase.WAITING_CODE
         val next = WirelessAdbState(active = true, phase = phase, error = error)
         _state.value = next
-        manager.notify(NOTIFICATION_ID, notification(next))
+        manager.notify(NOTIFICATION_ID, notification(next, alert))
     }
 
     private fun fail(token: String, error: String) {
@@ -259,7 +262,7 @@ class WirelessAdbService : Service() {
         replies?.close(); replies = null
     }
 
-    private fun notification(current: WirelessAdbState): Notification {
+    private fun notification(current: WirelessAdbState, alert: Boolean = false): Notification {
         val text = current.error ?: getString(when (current.phase) {
             WirelessAdbPhase.SEARCHING_PAIRING -> R.string.wireless_service_searching_pairing
             WirelessAdbPhase.WAITING_CODE -> R.string.wireless_service_enter_code
@@ -271,12 +274,13 @@ class WirelessAdbService : Service() {
         })
         val builder = Notification.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_wireless_adb)
-            .setContentTitle(getString(R.string.wireless_service_title))
+            .setContentTitle(getString(if (current.phase == WirelessAdbPhase.WAITING_CODE)
+                R.string.wireless_service_code_ready_title else R.string.wireless_service_title))
             .setContentText(text)
             .setStyle(Notification.BigTextStyle().bigText(text))
             .setCategory(Notification.CATEGORY_SERVICE)
             .setVisibility(Notification.VISIBILITY_SECRET)
-            .setOnlyAlertOnce(true)
+            .setOnlyAlertOnce(!alert)
             .setOngoing(current.active)
             .setAutoCancel(!current.active)
         // 进行中的通知本体也不打开应用，避免误触关闭系统配对对话框。

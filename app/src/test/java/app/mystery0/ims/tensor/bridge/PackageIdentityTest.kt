@@ -28,7 +28,7 @@ class PackageIdentityTest {
     @Test fun bootstrapSeparatesPackageAndUserButKeepsFixedEntry() {
         val apk = "/data/app/${BuildConfig.APPLICATION_ID}-random/base.apk"
         val command = BootstrapCommand.create(10, 1010345, 27, "a".repeat(64), "b".repeat(64), apk)
-        assertTrue(command.startsWith("CLASSPATH='$apk' "))
+        assertTrue(command.startsWith("trap '' HUP; CLASSPATH='$apk' "))
         assertTrue(command.contains("--nice-name='${BuildConfig.APPLICATION_ID}:embedded:10' "))
         assertTrue(command.contains("app.mystery0.ims.tensor.embedded.EmbeddedServerMain '10' '1010345'"))
         assertFalse(command.contains("io.github.vvb2060.ims.embedded.EmbeddedServerMain"))

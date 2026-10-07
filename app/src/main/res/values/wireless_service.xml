@@ -8,8 +8,9 @@
     <string name="wireless_service_code_invalid">Enter the six digits currently shown in the system pairing dialog.</string>
     <string name="wireless_service_retry">This reply was not accepted. Enter the current pairing code again.</string>
     <string name="wireless_service_interrupted">Wireless setup was interrupted. Start again from TensorIMS.</string>
-    <string name="wireless_service_searching_pairing">Enable Wireless debugging in Developer options, then tap Pair device with pairing code. Keep that dialog open. Searching for this device automatically…</string>
-    <string name="wireless_service_enter_code">Keep the system pairing dialog open. Expand this notification and enter its six-digit code below.</string>
+    <string name="wireless_service_searching_pairing">Enable Wireless debugging and tap Pair device with pairing code. Keep the dialog open. Once found, pull down notifications and enter the code in the TensorIMS notification. Searching…</string>
+    <string name="wireless_service_code_ready_title">Device found — enter pairing code</string>
+    <string name="wireless_service_enter_code">Keep the system pairing dialog open. Pull down notifications, expand this notification, and tap Enter pairing code to enter the six digits from the dialog.</string>
     <string name="wireless_service_pairing">Pairing securely with this device… Keep the system pairing dialog open.</string>
     <string name="wireless_service_searching_connect">Discovering this device’s wireless debugging connection port…</string>
     <string name="wireless_service_starting">Starting the private TensorIMS service…</string>

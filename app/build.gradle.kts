@@ -61,6 +61,8 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            // Bouncy Castle 多个模块携带同名许可文件，合并保留全部声明。
+            merges += "META-INF/LICENSE.md"
         }
     }
     signingConfigs {
