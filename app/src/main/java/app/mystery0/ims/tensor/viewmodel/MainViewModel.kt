@@ -298,8 +298,12 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
     /**
      * 重置选中 SIM 卡的配置到运营商默认状态。
      */
-    fun onResetConfiguration(selectedSim: SimSelection) {
-        launchExclusiveOperation {
+    fun onResetConfiguration(selectedSim: SimSelection, expectedEpoch: Long, onComplete: (Boolean) -> Unit) {
+        var success = false
+        launchExclusiveOperation(onFinished = { onComplete(success) }) {
+            // 确认窗口绑定单卡与后端代次，排队期间切换后不得把旧确认用于新会话。
+            if (selectedSim.subId < 0 || backendStatus.value.epoch != expectedEpoch ||
+                !backendStatus.value.isReady || _allSimList.value.none { it.subId == selectedSim.subId }) return@launchExclusiveOperation
             val restored = ShizukuProvider.persistentVolte(
                 application, selectedSim.subId, PersistentVolteModifier.RESTORE_FOR_RESET,
             )
@@ -313,6 +317,7 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
             val resultMsg = ShizukuProvider.overrideImsConfig(application, bundle)
             if (resultMsg == null) {
                 configurations.recordReset(selectedSim.subId)
+                success = true
                 toast(application.getString(R.string.config_success_reset_message))
             } else {
                 toast(application.getString(R.string.config_failed, resultMsg), false)
@@ -320,11 +325,15 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
         }
     }
 
-    fun onResetIms(simSelection: SimSelection) {
-        launchExclusiveOperation {
+    fun onResetIms(simSelection: SimSelection, expectedEpoch: Long, onComplete: (Boolean) -> Unit) {
+        var success = false
+        launchExclusiveOperation(onFinished = { onComplete(success) }) {
+            if (simSelection.subId < 0 || backendStatus.value.epoch != expectedEpoch ||
+                !backendStatus.value.isReady || _allSimList.value.none { it.subId == simSelection.subId }) return@launchExclusiveOperation
             try {
                 val error = ShizukuProvider.resetIms(application, simSelection.subId)
                 if (error == null) {
+                    success = true
                     toast(application.getString(R.string.restart_ims_success))
                 } else {
                     toast(application.getString(R.string.restart_ims_failed, error), false)
@@ -335,8 +344,11 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
         }
     }
 
-    private fun launchExclusiveOperation(block: suspend () -> Unit) {
-        if (backendOperationBusy() || !operationGate.tryEnter()) return
+    private fun launchExclusiveOperation(onFinished: () -> Unit = {}, block: suspend () -> Unit) {
+        if (backendOperationBusy() || !operationGate.tryEnter()) {
+            onFinished()
+            return
+        }
         viewModelScope.launch {
             try {
                 ConfigurationOperations.run { block() }
@@ -348,6 +360,7 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
             } finally {
                 operationGate.leave()
                 drainPendingPersistentRefresh()
+                onFinished()
             }
         }
     }

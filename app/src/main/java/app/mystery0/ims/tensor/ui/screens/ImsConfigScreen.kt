@@ -63,17 +63,22 @@ fun ImsConfigScreen(
     onPreset: (Map<Feature, FeatureValue>) -> Unit,
     onLoadHistory: () -> Unit,
     onRefresh: () -> Unit,
+    onRetryRead: () -> Unit,
     onApply: () -> Unit,
-    onOpenReset: () -> Unit,
+    backendEpoch: Long,
+    onReset: (SimSelection) -> Unit,
     onBack: () -> Unit,
 ) {
     var editingFeature by remember(selectedSim?.subId) { mutableStateOf<Feature?>(null) }
     var showMenu by remember { mutableStateOf(false) }
     var confirmRefresh by remember { mutableStateOf(false) }
-    var explainReset by remember { mutableStateOf(false) }
+    var explainReset by remember(selectedSim?.subId, backendEpoch, shizukuStatus) { mutableStateOf(false) }
     val sameSelection = state.subId == selectedSim?.subId
     val ready = sameSelection && state.ready && shizukuStatus == ShizukuStatus.READY
     val canEdit = ready && !state.applying && !isOperationInProgress
+
+    val canReset = (selectedSim?.subId ?: -1) >= 0 && shizukuStatus == ShizukuStatus.READY &&
+        !state.applying && !state.loading && !isOperationInProgress
 
     Scaffold(
         topBar = {
@@ -129,10 +134,11 @@ fun ImsConfigScreen(
                 state.notice?.let { Text(stringResource(it), modifier = Modifier.padding(horizontal = 16.dp)) }
             }
             if (!ready) {
-                TextButton(onClick = onRefresh, enabled = selectedSim != null &&
+                TextButton(onClick = onRetryRead, enabled = selectedSim != null &&
                     shizukuStatus == ShizukuStatus.READY && !state.loading && !isOperationInProgress) {
                     Text(stringResource(R.string.ims_reload))
                 }
+                ResetConfigurationEntry(canReset, selectedSim, { explainReset = true })
                 return@Column
             }
 
@@ -166,10 +172,8 @@ fun ImsConfigScreen(
             if (overrides.isNotEmpty()) {
                 Text(stringResource(R.string.ims_reset_required), style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(16.dp))
-                TextButton(onClick = { explainReset = true }, enabled = canEdit) {
-                    Text(stringResource(R.string.ims_open_reset))
-                }
             }
+            ResetConfigurationEntry(canReset, selectedSim, { explainReset = true })
             Spacer(Modifier.size(16.dp))
         }
     }
@@ -181,9 +185,12 @@ fun ImsConfigScreen(
         dismissButton = { TextButton(onClick = { confirmRefresh = false }) { Text(stringResource(android.R.string.cancel)) } })
 
     if (explainReset) AlertDialog(onDismissRequest = { explainReset = false },
-        title = { Text(stringResource(R.string.ims_reset_only_group)) },
-        text = { Text(stringResource(R.string.ims_reset_required)) },
-        confirmButton = { TextButton(onClick = { explainReset = false; onOpenReset() }) { Text(stringResource(R.string.ims_open_reset)) } },
+        title = { Text(stringResource(R.string.nav_reset_configuration)) },
+        text = { Text(stringResource(R.string.reset_config_confirm, selectedSim?.showTitle.orEmpty())) },
+        confirmButton = { TextButton(enabled = canReset, onClick = {
+            explainReset = false
+            selectedSim?.let(onReset)
+        }) { Text(stringResource(R.string.nav_reset_configuration), color = MaterialTheme.colorScheme.error) } },
         dismissButton = { TextButton(onClick = { explainReset = false }) { Text(stringResource(android.R.string.cancel)) } })
 
     editingFeature?.takeIf { canEdit }?.let { feature ->
@@ -197,5 +204,17 @@ fun ImsConfigScreen(
                 onEdit(feature, FeatureValue(text.trim(), FeatureValueType.STRING)); editingFeature = null
             }) { Text(stringResource(R.string.save)) } },
             dismissButton = { TextButton(onClick = { editingFeature = null }) { Text(stringResource(android.R.string.cancel)) } })
+    }
+}
+
+@Composable
+private fun ResetConfigurationEntry(enabled: Boolean, selectedSim: SimSelection?, onClick: () -> Unit) {
+    Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+        TextButton(onClick = onClick, enabled = enabled) {
+            Text(stringResource(R.string.nav_reset_configuration),
+                color = if (enabled) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f))
+        }
+        if ((selectedSim?.subId ?: -1) < 0) Text(stringResource(R.string.nav_reset_single_sim),
+            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

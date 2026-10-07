@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nav_ims_status">IMS 状态</string>
+    <string name="nav_ims_status_summary">查看实时注册与通话能力，排查 IMS 异常</string>
+    <string name="nav_all_sims_hint">批量配置所有活动 SIM</string>
+    <string name="nav_sim_slot">SIM %1$d</string>
+    <string name="nav_close">关闭</string>
+    <string name="nav_snapshot_note">当前读取的状态快照，可能随网络变化；功能不可用不一定表示配置异常。</string>
+    <string name="nav_restart_done">重启请求已完成，正在重新读取状态；是否注册成功请以最新结果为准。</string>
+    <string name="nav_restart_failed">重启未完成，请检查特权连接及错误提示后重试。</string>
+    <string name="nav_restarting">正在重启…</string>
+    <string name="nav_reset_configuration">重置运营商配置</string>
+    <string name="nav_reset_single_sim">请先在首页选择具体 SIM，再重置该卡配置。</string>
+    <string name="nav_reset_failed_snapshot">重置未完成。草稿已保留，旧快照已失效；请重新读取配置后再操作。</string>
+</resources>

@@ -2,6 +2,7 @@ package app.mystery0.ims.tensor.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -14,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import app.mystery0.ims.tensor.R
@@ -78,7 +80,10 @@ fun BackendStatusBanner(
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(stringResource(R.string.backend_selected_mode, backendModeLabel(status.mode)), style = MaterialTheme.typography.titleSmall)
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(backendModeLabel(status.mode), style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
+                TextButton(onClick = onOpenSettings) { Text(stringResource(R.string.backend_settings)) }
+            }
             Text(backendConnectionLabel(status.connection), style = MaterialTheme.typography.bodyMedium)
             if (status.mode == BackendMode.UNSET) Text(stringResource(R.string.backend_choose_description), style = MaterialTheme.typography.bodySmall)
             val label = when (actions.primary) {

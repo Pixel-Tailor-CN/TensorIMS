@@ -27,6 +27,20 @@ class ImsConfigViewModel(private val app: Application) : AndroidViewModel(app) {
     private var generation = 0
     private var shizukuReady = false
 
+    /** 只清理成功重置的当前目标，迟到结果不能覆盖用户切换后的草稿。 */
+    fun reloadAfterReset(subId: Int, success: Boolean) {
+        if (_state.value.subId != subId) return
+        if (success) {
+            load(subId, shizukuReady, discardEdits = true)
+        } else {
+            // 失败可能发生在部分写入之后：保留草稿，但旧快照不能继续作为写入依据。
+            ++generation
+            _state.value = _state.value.copy(loading = false, applying = false, applied = false,
+                snapshots = _state.value.snapshots.map { it.copy(error = "Reset did not complete") },
+                error = app.getString(R.string.nav_reset_failed_snapshot))
+        }
+    }
+
     fun load(subId: Int?, ready: Boolean, discardEdits: Boolean = false) {
         shizukuReady = ready
         val previous = if (!discardEdits && _state.value.subId == subId) _state.value else ImsEditorState(subId = subId)

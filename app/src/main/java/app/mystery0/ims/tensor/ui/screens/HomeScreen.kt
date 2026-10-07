@@ -25,7 +25,15 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
+import androidx.compose.material.icons.rounded.Info
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.ui.semantics.Role
+import app.mystery0.ims.tensor.model.ImsCapabilityStatus
+import app.mystery0.ims.tensor.model.ShizukuStatus
+import app.mystery0.ims.tensor.model.asLegacyUiStatus
+import app.mystery0.ims.tensor.ui.components.ImsStatusSheet
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -62,7 +70,24 @@ fun HomeScreen(
     onOpenLogcat: () -> Unit,
     onOpenAppSettings: () -> Unit,
     onAutoRestoreEnabledChange: (Boolean) -> Unit,
+    onLoadImsStatus: suspend (Int) -> ImsCapabilityStatus?,
+    onRestartIms: (SimSelection, (Boolean) -> Unit) -> Unit,
 ) {
+    var showImsStatus by remember { mutableStateOf(false) }
+    if (showImsStatus) {
+        key(backendStatus.epoch, selectedSim?.subId) {
+            ImsStatusSheet(
+                sims = allSimList.filter { it.subId >= 0 },
+                selectedSim = selectedSim,
+                ready = backendStatus.asLegacyUiStatus() == ShizukuStatus.READY,
+                busy = busy,
+                onLoad = onLoadImsStatus,
+                onRestart = onRestartIms,
+                onOpenBackend = { showImsStatus = false; onOpenBackendSettings() },
+                onDismiss = { showImsStatus = false },
+            )
+        }
+    }
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -115,10 +140,10 @@ fun HomeScreen(
                     .padding(horizontal = 16.dp, vertical = 8.dp),
             ) {
                 SettingsListItem(
-                    title = stringResource(R.string.backend_settings),
-                    summary = stringResource(R.string.backend_settings_summary),
-                    icon = Icons.Rounded.Settings,
-                    onClick = onOpenBackendSettings,
+                    title = stringResource(R.string.nav_ims_status),
+                    summary = stringResource(R.string.nav_ims_status_summary),
+                    icon = Icons.Rounded.Info,
+                    onClick = { showImsStatus = true },
                 )
                 androidx.compose.material3.HorizontalDivider()
                 SettingsListItem(
@@ -209,36 +234,46 @@ private fun SimSelectionCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            allSimList.forEach { sim ->
-                val isSelected = selectedSim?.subId == sim.subId
-                androidx.compose.material3.Surface(
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(10.dp),
-                    color = if (isSelected) MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f) else androidx.compose.ui.graphics.Color.Transparent,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 2.dp)
-                        .selectable(
-                            selected = isSelected,
-                            onClick = { onSelectSim(sim) },
-                        ),
-                ) {
-                    androidx.compose.foundation.layout.Row(
+            val actualSims = allSimList.filter { it.subId >= 0 }
+            val displaySims = if (actualSims.size == 1) actualSims else allSimList
+            Column(Modifier.selectableGroup()) {
+                displaySims.forEach { sim ->
+                    val isSelected = selectedSim?.subId == sim.subId
+                    androidx.compose.material3.Surface(
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(10.dp),
+                        color = if (isSelected && actualSims.size > 1) MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f) else androidx.compose.ui.graphics.Color.Transparent,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 8.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
+                            .padding(vertical = 2.dp)
+                            .then(if (actualSims.size > 1) Modifier.selectable(
+                                selected = isSelected,
+                                role = Role.RadioButton,
+                                onClick = { onSelectSim(sim) },
+                            ) else Modifier),
                     ) {
-                        RadioButton(
-                            selected = isSelected,
-                            onClick = null,
-                        )
-                        Text(
-                            text = sim.showTitle,
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                            color = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.padding(start = 8.dp),
-                        )
+                        androidx.compose.foundation.layout.Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            if (actualSims.size > 1) RadioButton(selected = isSelected, onClick = null)
+                            Column(Modifier.weight(1f).padding(start = 8.dp)) {
+                                Text(
+                                    text = if (sim.subId < 0) sim.showTitle else
+                                        sim.displayName.trim().ifBlank { sim.carrierName.trim() }
+                                            .ifBlank { stringResource(R.string.sim_card) },
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Medium,
+                                )
+                                Text(
+                                    text = if (sim.subId < 0) stringResource(R.string.nav_all_sims_hint)
+                                        else stringResource(R.string.nav_sim_slot, sim.simSlotIndex + 1),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
                     }
                 }
             }

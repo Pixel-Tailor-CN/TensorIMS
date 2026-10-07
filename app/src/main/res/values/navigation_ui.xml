@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nav_ims_status">IMS status</string>
+    <string name="nav_ims_status_summary">View registration and calling capabilities, and troubleshoot IMS</string>
+    <string name="nav_all_sims_hint">Configure all active SIMs together</string>
+    <string name="nav_sim_slot">SIM %1$d</string>
+    <string name="nav_close">Close</string>
+    <string name="nav_snapshot_note">A snapshot of the current network state. Unavailable capabilities do not necessarily indicate a configuration problem.</string>
+    <string name="nav_restart_done">Restart request completed. Refreshing status; check the latest result to confirm registration.</string>
+    <string name="nav_restart_failed">Restart did not complete. Check the privilege connection and error message before retrying.</string>
+    <string name="nav_restarting">Restarting…</string>
+    <string name="nav_reset_configuration">Reset carrier configuration</string>
+    <string name="nav_reset_single_sim">Select an individual SIM on Home before resetting its configuration.</string>
+    <string name="nav_reset_failed_snapshot">Reset did not complete. The draft has been retained, but the previous snapshot is no longer valid. Read the configuration again before making further changes.</string>
+</resources>

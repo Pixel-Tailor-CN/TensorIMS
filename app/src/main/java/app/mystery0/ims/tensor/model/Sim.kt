@@ -13,7 +13,6 @@ data class SimSelection(
         append("SIM ")
         append(simSlotIndex + 1)
         append(": ")
-        append(displayName)
-        append(" (${carrierName})")
+        append(displayName.trim().ifBlank { carrierName.trim() })
     }
 )

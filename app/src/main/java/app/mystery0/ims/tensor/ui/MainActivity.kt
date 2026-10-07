@@ -61,8 +61,11 @@ class MainActivity : BaseActivity() {
         var selectedSubId by rememberSaveable { mutableStateOf<Int?>(null) }
         val selectedSim = allSimList.firstOrNull { it.subId == selectedSubId }
 
-        LaunchedEffect(allSimList, selectedSubId) {
-            if (allSimList.isEmpty()) {
+        LaunchedEffect(allSimList, selectedSubId, simReadError) {
+            val actualSims = allSimList.filter { it.subId >= 0 }
+            if (actualSims.size == 1 && simReadError == null) {
+                selectedSubId = actualSims.single().subId
+            } else if (allSimList.isEmpty()) {
                 selectedSubId = null
             } else if (selectedSim == null) {
                 selectedSubId = allSimList.firstOrNull { it.subId != -1 }?.subId
@@ -119,6 +122,10 @@ class MainActivity : BaseActivity() {
                         startActivity(Intent(this@MainActivity, LogcatActivity::class.java))
                     },
                     onAutoRestoreEnabledChange = viewModel::setAutoRestoreEnabled,
+                    onLoadImsStatus = viewModel::loadRealSystemConfig,
+                    onRestartIms = { sim, complete ->
+                        viewModel.onResetIms(sim, backendStatus.epoch, complete)
+                    },
                 )
             }
 
@@ -175,10 +182,16 @@ class MainActivity : BaseActivity() {
                     onPreset = imsConfigViewModel::editAll,
                     onLoadHistory = imsConfigViewModel::loadHistory,
                     onRefresh = { imsConfigViewModel.load(selectedSim?.subId, shizukuStatus == ShizukuStatus.READY, discardEdits = true) },
+                    onRetryRead = { imsConfigViewModel.load(selectedSim?.subId, shizukuStatus == ShizukuStatus.READY) },
                     onApply = imsConfigViewModel::apply,
-                    onOpenReset = {
-                        navController.popBackStack()
-                        navigate(TensorImsRoutes.ADVANCED_TOOLS)
+                    backendEpoch = backendStatus.epoch,
+                    onReset = { sim ->
+                        val epoch = backendStatus.epoch
+                        viewModel.onResetConfiguration(sim, epoch) { success ->
+                            if (viewModel.backendStatus.value.epoch == epoch) {
+                                imsConfigViewModel.reloadAfterReset(sim.subId, success)
+                            }
+                        }
                     },
                     onBack = onBack,
                 )
@@ -215,7 +228,6 @@ class MainActivity : BaseActivity() {
                     shizukuStatus = shizukuStatus,
                     isOperationInProgress = isOperationInProgress,
                     persistentVolteState = persistentVolteState,
-                    onLoadImsStatus = viewModel::loadRealSystemConfig,
                     onEnablePersistentVolte = {
                         viewModel.onPersistentVolteChange(it, restore = false)
                     },
@@ -223,8 +235,6 @@ class MainActivity : BaseActivity() {
                         viewModel.onPersistentVolteChange(it, restore = true)
                     },
                     onRefreshPersistentVolte = viewModel::refreshPersistentVolte,
-                    onRestartIms = viewModel::onResetIms,
-                    onResetConfiguration = viewModel::onResetConfiguration,
                     onBack = onBack,
                 )
             }
