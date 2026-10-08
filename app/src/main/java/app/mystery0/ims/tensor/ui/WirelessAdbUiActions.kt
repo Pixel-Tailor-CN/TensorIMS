@@ -19,6 +19,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
@@ -51,6 +52,20 @@ fun rememberWirelessAdbUiActions(
     var pendingRequest by rememberSaveable { mutableStateOf<WirelessRequest?>(null) }
     var waitingForForegroundService by rememberSaveable { mutableStateOf(false) }
     var permissionIssue by rememberSaveable { mutableStateOf<WirelessPermissionIssue?>(null) }
+    // 只保护当前界面的跳转，不跨 Activity 重建保存，避免恢复后入口被永久锁住。
+    var settingsLaunchPending by remember { mutableStateOf(false) }
+
+    fun launchWirelessSettings() {
+        if (settingsLaunchPending) return
+        settingsLaunchPending = true
+        if (!openWirelessAdbSettings(context)) settingsLaunchPending = false
+    }
+
+    // 独立于配对状态变化解锁；仅真正回到前台后才允许再次打开设置。
+    LifecycleResumeEffect(Unit) {
+        settingsLaunchPending = false
+        onPauseOrDispose { }
+    }
 
     fun finishPermissionRequest() {
         val request = pendingRequest ?: return
@@ -84,7 +99,7 @@ fun rememberWirelessAdbUiActions(
         // startForeground 已经完成后再离开应用；通知回复绝不通过这里拉起 Activity。
         if (wirelessAdbShouldOpenSettings(waitingForForegroundService, state.active, state.phase)) {
             waitingForForegroundService = false
-            openWirelessAdbSettings(context)
+            launchWirelessSettings()
         } else if (waitingForForegroundService && !state.active && !WirelessAdbService.state.value.active) {
             // 启动失败或进程重建后不能重放旧请求。
             waitingForForegroundService = false
@@ -126,7 +141,7 @@ fun rememberWirelessAdbUiActions(
         pending = pendingRequest != null || waitingForForegroundService,
         startPairing = { requestStart(WirelessRequest.PAIR) },
         startConnect = { requestStart(WirelessRequest.CONNECT) },
-        reopenSettings = { openWirelessAdbSettings(context) },
+        reopenSettings = { launchWirelessSettings() },
     )
 }
 
@@ -142,15 +157,21 @@ internal fun wirelessAdbPermissionsToRequest(sdk: Int, notificationsGranted: Boo
         if (sdk >= 37 && !localNetworkGranted) add(Manifest.permission.ACCESS_LOCAL_NETWORK)
     }
 
-private fun openWirelessAdbSettings(context: Context) =
-    openSettings(context, Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS))
+private fun openWirelessAdbSettings(context: Context): Boolean =
+    openSettings(context, Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS).apply {
+        // 设置使用自身任务栈；重复进入时回到已有入口，不在应用栈内叠加设置页面。
+        // 保留公开设置 action，避免依赖不同 Android 版本的内部 Activity 名称。
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+    })
 
-private fun openSettings(context: Context, intent: Intent) {
+private fun openSettings(context: Context, intent: Intent): Boolean {
     try {
         context.startActivity(intent)
+        return true
     } catch (_: ActivityNotFoundException) {
         Toast.makeText(context, R.string.wireless_ui_settings_unavailable, Toast.LENGTH_LONG).show()
     } catch (_: SecurityException) {
         Toast.makeText(context, R.string.wireless_ui_settings_unavailable, Toast.LENGTH_LONG).show()
     }
+    return false
 }
