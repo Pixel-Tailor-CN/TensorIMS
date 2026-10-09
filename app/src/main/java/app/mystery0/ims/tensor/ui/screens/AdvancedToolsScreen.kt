@@ -13,6 +13,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import app.mystery0.ims.tensor.ui.components.pageContentInsets
+import app.mystery0.ims.tensor.ui.components.pageContentPadding
+import app.mystery0.ims.tensor.ui.components.ScrollEndSpacer
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -38,7 +41,7 @@ fun AdvancedToolsScreen(
     onBack: () -> Unit,
 ) {
     val singleSimSelected = (selectedSim?.subId ?: -1) >= 0
-    Scaffold(topBar = {
+    Scaffold(contentWindowInsets = pageContentInsets, topBar = {
         CenterAlignedTopAppBar(
             title = { Text(stringResource(R.string.advanced_tools)) },
             navigationIcon = { IconButton(onClick = onBack) {
@@ -46,7 +49,7 @@ fun AdvancedToolsScreen(
             } },
         )
     }) { innerPadding ->
-        Column(Modifier.padding(innerPadding).verticalScroll(rememberScrollState())) {
+        Column(Modifier.pageContentPadding(innerPadding).verticalScroll(rememberScrollState())) {
             Text(
                 text = selectedSim?.takeIf { singleSimSelected }?.showTitle
                     ?: stringResource(R.string.advanced_tools_single_sim_hint),
@@ -63,7 +66,7 @@ fun AdvancedToolsScreen(
                 onRestore = { selectedSim?.let { onRestorePersistentVolte(it.subId) } },
                 onRefresh = onRefreshPersistentVolte,
             )
-            Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
+            ScrollEndSpacer(innerPadding)
         }
     }
 }

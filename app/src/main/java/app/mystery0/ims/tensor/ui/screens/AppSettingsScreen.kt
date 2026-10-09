@@ -25,6 +25,9 @@ import androidx.compose.ui.unit.dp
 import app.mystery0.ims.tensor.AppTheme
 import app.mystery0.ims.tensor.BuildConfig
 import app.mystery0.ims.tensor.R
+import app.mystery0.ims.tensor.ui.components.pageContentInsets
+import app.mystery0.ims.tensor.ui.components.pageContentPadding
+import app.mystery0.ims.tensor.ui.components.ScrollEndSpacer
 import app.mystery0.ims.tensor.ui.components.GroupedSettingsItem
 import java.util.Locale
 
@@ -49,7 +52,7 @@ fun AppSettingsScreen(
             Toast.makeText(context, R.string.settings_link_unavailable, Toast.LENGTH_SHORT).show()
         }
     }
-    Scaffold(topBar = {
+    Scaffold(contentWindowInsets = pageContentInsets, topBar = {
         CenterAlignedTopAppBar(
             title = { Text(stringResource(R.string.app_settings)) },
             navigationIcon = {
@@ -60,7 +63,7 @@ fun AppSettingsScreen(
         )
     }) { padding ->
         Column(
-            Modifier.padding(padding).verticalScroll(rememberScrollState()).padding(16.dp),
+            Modifier.pageContentPadding(padding).verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp),
         ) {
             SettingsSection(stringResource(R.string.settings_appearance)) {
@@ -109,6 +112,7 @@ fun AppSettingsScreen(
                     onClick = { openLink("https://t.me/pixel_tailor_cn") },
                 )
             }
+            ScrollEndSpacer(padding)
         }
     }
     when (dialog) {

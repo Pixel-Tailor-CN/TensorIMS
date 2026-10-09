@@ -1,5 +1,7 @@
 package app.mystery0.ims.tensor.ui.screens
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -12,6 +14,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import app.mystery0.ims.tensor.ui.components.pageContentInsets
+import app.mystery0.ims.tensor.ui.components.pageContentPadding
+import app.mystery0.ims.tensor.ui.components.ScrollEndSpacer
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -45,6 +50,7 @@ fun SystemNetworkScreen(
     }
 
     Scaffold(
+        contentWindowInsets = pageContentInsets,
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text(stringResource(R.string.system_network)) },
@@ -64,7 +70,7 @@ fun SystemNetworkScreen(
             )
         },
     ) { innerPadding ->
-        Column(modifier = Modifier.padding(innerPadding)) {
+        Column(modifier = Modifier.pageContentPadding(innerPadding).verticalScroll(rememberScrollState())) {
             SettingsListItem(
                 title = stringResource(R.string.captive_portal),
                 summary = when {
@@ -86,6 +92,7 @@ fun SystemNetworkScreen(
                     color = MaterialTheme.colorScheme.error,
                 )
             }
+            ScrollEndSpacer(innerPadding)
         }
     }
 }

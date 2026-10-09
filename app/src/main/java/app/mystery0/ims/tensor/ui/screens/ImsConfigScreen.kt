@@ -32,6 +32,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import app.mystery0.ims.tensor.ui.components.pageContentInsets
+import app.mystery0.ims.tensor.ui.components.pageContentPadding
+import app.mystery0.ims.tensor.ui.components.ScrollEndSpacer
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -81,6 +84,7 @@ fun ImsConfigScreen(
         !state.applying && !state.loading && !isOperationInProgress
 
     Scaffold(
+        contentWindowInsets = pageContentInsets,
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Column {
@@ -111,7 +115,7 @@ fun ImsConfigScreen(
             Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
         } },
     ) { innerPadding ->
-        Column(Modifier.padding(innerPadding).verticalScroll(rememberScrollState())) {
+        Column(Modifier.pageContentPadding(innerPadding).verticalScroll(rememberScrollState())) {
             Surface(shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.surfaceContainerHigh,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
                 Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -139,6 +143,7 @@ fun ImsConfigScreen(
                     Text(stringResource(R.string.ims_reload))
                 }
                 ResetConfigurationEntry(canReset, selectedSim, { explainReset = true })
+                ScrollEndSpacer(innerPadding)
                 return@Column
             }
 
@@ -175,6 +180,7 @@ fun ImsConfigScreen(
             }
             ResetConfigurationEntry(canReset, selectedSim, { explainReset = true })
             Spacer(Modifier.size(16.dp))
+            ScrollEndSpacer(innerPadding)
         }
     }
 

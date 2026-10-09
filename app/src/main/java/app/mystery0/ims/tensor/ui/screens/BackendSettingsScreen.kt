@@ -21,6 +21,9 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import app.mystery0.ims.tensor.ui.components.pageContentInsets
+import app.mystery0.ims.tensor.ui.components.pageContentPadding
+import app.mystery0.ims.tensor.ui.components.ScrollEndSpacer
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -87,7 +90,7 @@ fun BackendSettingsScreen(
         setOf(ConnectionState.BUSY, ConnectionState.SWITCHING, ConnectionState.CONNECTING)
     val ready = status.isReady && !locked && !recovering
 
-    Scaffold(topBar = {
+    Scaffold(contentWindowInsets = pageContentInsets, topBar = {
         CenterAlignedTopAppBar(
             title = { Text(stringResource(R.string.backend_settings)) },
             navigationIcon = { IconButton(onClick = onBack) {
@@ -95,7 +98,7 @@ fun BackendSettingsScreen(
             } },
         )
     }) { padding ->
-        Column(Modifier.padding(padding).verticalScroll(rememberScrollState()).padding(16.dp),
+        Column(Modifier.pageContentPadding(padding).verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)) {
             BackendSection {
                 Text(stringResource(R.string.backend_selected_mode, backendModeLabel(status.mode)), style = MaterialTheme.typography.titleMedium)
@@ -190,6 +193,7 @@ fun BackendSettingsScreen(
             if (status.mode == BackendMode.EMBEDDED && ready) {
                 EmbeddedIdleStopCard(idleStopEnabled, idleStopMinutes, onIdleStopEnabledChange, onIdleStopMinutesChange)
             }
+            ScrollEndSpacer(padding)
         }
     }
     if (confirmRecovery) AlertDialog(

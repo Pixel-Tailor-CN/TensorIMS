@@ -3,6 +3,7 @@ package app.mystery0.ims.tensor.ui
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.FabPosition
@@ -52,6 +53,7 @@ class LogcatActivity : BaseActivity() {
                 contentWindowInsets = WindowInsets(0.dp),
                 floatingActionButtonPosition = FabPosition.Center,
                 floatingActionButton = {
+                    Box(Modifier.navigationBarsPadding()) {
                     LogcatToolbar(
                         expanded = expanded,
                         onBack = { finish() },
@@ -66,6 +68,7 @@ class LogcatActivity : BaseActivity() {
                             }
                         }
                     )
+                    }
                 }
             ) { innerPadding ->
                 LogList(

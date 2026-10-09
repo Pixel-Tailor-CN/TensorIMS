@@ -3,6 +3,11 @@ package app.mystery0.ims.tensor.ui.screens
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
@@ -85,8 +90,19 @@ fun HomeScreen(
         }
     }
     Scaffold(
-        topBar = {
+        // 顶部和横向避让系统栏/挖孔；底部允许正文绘制到透明导航栏后方。
+        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .consumeWindowInsets(innerPadding)
+                .verticalScroll(rememberScrollState()),
+        ) {
+            // 标题和设置入口属于滚动内容，只在回到顶部时重新出现。
             CenterAlignedTopAppBar(
+                windowInsets = WindowInsets(0.dp),
                 actions = {
                     IconButton(onClick = onOpenAppSettings) {
                         Icon(Icons.Rounded.Settings, stringResource(R.string.app_settings))
@@ -107,13 +123,6 @@ fun HomeScreen(
                     }
                 },
             )
-        },
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .verticalScroll(rememberScrollState()),
-        ) {
             DeviceStatusCard(
                 systemInfo = systemInfo,
                 backendStatus = backendStatus,
@@ -167,6 +176,7 @@ fun HomeScreen(
                 enabled = autoRestoreEnabled,
                 onEnabledChange = onAutoRestoreEnabledChange,
             )
+            // 留白随正文滚动，仅滚到底时将最后一张卡片托出导航栏，不制造固定底部色块。
             Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
         }
     }

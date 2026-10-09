@@ -28,6 +28,8 @@ abstract class BaseActivity : ComponentActivity() {
             SideEffect {
                 val bars = SystemBarStyle.auto(android.graphics.Color.TRANSPARENT, android.graphics.Color.TRANSPARENT) { dark }
                 enableEdgeToEdge(statusBarStyle = bars, navigationBarStyle = bars)
+                // 所有页面均允许内容透过三键导航区域，主题更新后也不恢复系统底色。
+                window.isNavigationBarContrastEnforced = false
             }
             TensorIMSTheme(darkTheme = dark) {
                 content()
