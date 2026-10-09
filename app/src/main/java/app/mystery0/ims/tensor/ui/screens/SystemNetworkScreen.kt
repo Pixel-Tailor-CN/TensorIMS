@@ -28,7 +28,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import app.mystery0.ims.tensor.ui.components.CaptivePortalRefreshDialog
 import app.mystery0.ims.tensor.R
-import app.mystery0.ims.tensor.ui.components.SettingsListItem
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material.icons.rounded.Language
+import app.mystery0.ims.tensor.ui.components.GroupedSettingsItem
 import app.mystery0.ims.tensor.ui.CaptivePortalUiState
 
 @Composable
@@ -70,8 +72,14 @@ fun SystemNetworkScreen(
             )
         },
     ) { innerPadding ->
-        Column(modifier = Modifier.pageContentPadding(innerPadding).verticalScroll(rememberScrollState())) {
-            SettingsListItem(
+        Column(
+            modifier = Modifier
+                .pageContentPadding(innerPadding)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            GroupedSettingsItem(
                 title = stringResource(R.string.captive_portal),
                 summary = when {
                     state.loading -> stringResource(R.string.loading)
@@ -79,6 +87,9 @@ fun SystemNetworkScreen(
                     state.storedSettings.hasOverride -> stringResource(R.string.captive_portal_custom)
                     else -> stringResource(R.string.captive_portal_system_default)
                 },
+                first = true,
+                last = true,
+                icon = Icons.Rounded.Language,
                 enabled = !state.loading,
                 onClick = onOpenCaptivePortal,
             )
@@ -87,7 +98,7 @@ fun SystemNetworkScreen(
                     text = error,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                        .padding(horizontal = 8.dp),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.error,
                 )

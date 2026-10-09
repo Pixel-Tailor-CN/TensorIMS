@@ -60,6 +60,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.mystery0.ims.tensor.ui.components.CaptivePortalRefreshDialog
 import app.mystery0.ims.tensor.R
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.ui.semantics.Role
+import app.mystery0.ims.tensor.ui.components.GroupedSettingsItem
+import app.mystery0.ims.tensor.ui.components.SettingsSection
 import app.mystery0.ims.tensor.model.CaptivePortalUrlError
 import app.mystery0.ims.tensor.model.ShizukuStatus
 import app.mystery0.ims.tensor.ui.CaptivePortalMode
@@ -159,51 +164,63 @@ fun CaptivePortalScreen(
             )
         },
         bottomBar = {
-            Column {
-                Button(
-                    onClick = onSave,
-                    enabled = !state.loading && !state.saving && shizukuStatus == ShizukuStatus.READY,
+            Surface(
+                color = MaterialTheme.colorScheme.surfaceContainer,
+                tonalElevation = 3.dp,
+                shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+            ) {
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .navigationBarsPadding()
                         .padding(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    if (state.saving) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(18.dp),
-                            strokeWidth = 2.dp,
+                    Button(
+                        onClick = onSave,
+                        enabled = !state.loading && !state.saving && shizukuStatus == ShizukuStatus.READY,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                    ) {
+                        if (state.saving) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(18.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.onPrimary,
+                            )
+                            Spacer(modifier = Modifier.size(8.dp))
+                        }
+                        Text(
+                            if (state.mode == CaptivePortalMode.SYSTEM_DEFAULT) {
+                                stringResource(R.string.restore_system_default)
+                            } else {
+                                stringResource(R.string.save)
+                            },
                         )
-                        Spacer(modifier = Modifier.size(8.dp))
                     }
-                    Text(
-                        if (state.mode == CaptivePortalMode.SYSTEM_DEFAULT) {
-                            stringResource(R.string.restore_system_default)
-                        } else {
-                            stringResource(R.string.save)
-                        },
-                    )
                 }
-                Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
             }
         },
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .pageContentPadding(innerPadding)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp),
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             // 警示容器
             Surface(
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(20.dp),
                 color = MaterialTheme.colorScheme.surfaceContainerHigh,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 8.dp),
+                    .padding(horizontal = 16.dp),
             ) {
                 Row(
-                    modifier = Modifier.padding(14.dp),
+                    modifier = Modifier.padding(16.dp),
                     verticalAlignment = Alignment.Top,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     Icon(
                         imageVector = Icons.Rounded.WarningAmber,
@@ -214,13 +231,13 @@ fun CaptivePortalScreen(
                     Column {
                         Text(
                             text = stringResource(R.string.captive_portal_experimental_title),
-                            style = MaterialTheme.typography.titleSmall,
+                            style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
                         )
                         Text(
                             text = stringResource(R.string.captive_portal_experimental_description),
                             modifier = Modifier.padding(top = 4.dp),
-                            style = MaterialTheme.typography.bodySmall,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
@@ -229,41 +246,69 @@ fun CaptivePortalScreen(
 
             Text(
                 text = stringResource(R.string.captive_portal_description),
-                modifier = Modifier.padding(vertical = 8.dp),
+                modifier = Modifier.padding(horizontal = 24.dp, vertical = 2.dp),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
-            ModeRow(
-                title = stringResource(R.string.captive_portal_system_default),
-                summary = stringResource(R.string.captive_portal_system_default_summary),
-                selected = state.mode == CaptivePortalMode.SYSTEM_DEFAULT,
-                onClick = { onModeChange(CaptivePortalMode.SYSTEM_DEFAULT) },
-            )
-            ModeRow(
-                title = stringResource(R.string.captive_portal_custom),
-                summary = stringResource(R.string.captive_portal_custom_summary),
-                selected = state.mode == CaptivePortalMode.CUSTOM,
-                onClick = { onModeChange(CaptivePortalMode.CUSTOM) },
-            )
+            // 模式选择组：最新系统设置风格分组卡片
+            SettingsSection(modifier = Modifier.padding(horizontal = 16.dp)) {
+                GroupedSettingsItem(
+                    title = stringResource(R.string.captive_portal_system_default),
+                    summary = stringResource(R.string.captive_portal_system_default_summary),
+                    first = true,
+                    last = false,
+                    leading = {
+                        RadioButton(
+                            selected = state.mode == CaptivePortalMode.SYSTEM_DEFAULT,
+                            onClick = null,
+                        )
+                    },
+                    modifier = Modifier.selectable(
+                        selected = state.mode == CaptivePortalMode.SYSTEM_DEFAULT,
+                        role = Role.RadioButton,
+                        onClick = { onModeChange(CaptivePortalMode.SYSTEM_DEFAULT) },
+                    ),
+                )
+                GroupedSettingsItem(
+                    title = stringResource(R.string.captive_portal_custom),
+                    summary = stringResource(R.string.captive_portal_custom_summary),
+                    first = false,
+                    last = true,
+                    leading = {
+                        RadioButton(
+                            selected = state.mode == CaptivePortalMode.CUSTOM,
+                            onClick = null,
+                        )
+                    },
+                    modifier = Modifier.selectable(
+                        selected = state.mode == CaptivePortalMode.CUSTOM,
+                        role = Role.RadioButton,
+                        onClick = { onModeChange(CaptivePortalMode.CUSTOM) },
+                    ),
+                )
+            }
 
             AnimatedVisibility(
                 visible = state.mode == CaptivePortalMode.CUSTOM,
                 enter = expandVertically() + fadeIn(),
                 exit = shrinkVertically() + fadeOut(),
             ) {
-                Column(modifier = Modifier.padding(top = 4.dp)) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
                     Text(
                         text = stringResource(R.string.captive_portal_presets),
-                        style = MaterialTheme.typography.labelMedium,
+                        style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
                     )
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState()),
+                            .horizontalScroll(rememberScrollState())
+                            .padding(horizontal = 16.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         captivePortalPresets.forEach { preset ->
@@ -283,12 +328,18 @@ fun CaptivePortalScreen(
                         value = state.httpUrl,
                         onValueChange = onHttpUrlChange,
                         error = captivePortalErrorText(state.httpError, "http://"),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 4.dp),
                     )
                     CaptivePortalTextField(
                         label = stringResource(R.string.captive_portal_https_url),
                         value = state.httpsUrl,
                         onValueChange = onHttpsUrlChange,
                         error = captivePortalErrorText(state.httpsError, "https://"),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 4.dp),
                     )
                 }
             }
@@ -296,7 +347,7 @@ fun CaptivePortalScreen(
             state.operationError?.let { error ->
                 Text(
                     text = error,
-                    modifier = Modifier.padding(top = 12.dp),
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.error,
                 )
@@ -305,7 +356,7 @@ fun CaptivePortalScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 20.dp),
+                        .padding(horizontal = 24.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     CircularProgressIndicator(modifier = Modifier.size(24.dp))
@@ -317,37 +368,11 @@ fun CaptivePortalScreen(
             }
             Text(
                 text = stringResource(R.string.captive_portal_reconnect_note),
-                modifier = Modifier.padding(vertical = 16.dp),
+                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             ScrollEndSpacer(innerPadding)
-        }
-    }
-}
-
-@Composable
-private fun ModeRow(
-    title: String,
-    summary: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .selectable(selected = selected, onClick = onClick)
-            .padding(vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        RadioButton(selected = selected, onClick = null)
-        Column(modifier = Modifier.padding(start = 8.dp)) {
-            Text(text = title, style = MaterialTheme.typography.bodyLarge)
-            Text(
-                text = summary,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
         }
     }
 }
@@ -358,15 +383,15 @@ private fun CaptivePortalTextField(
     value: String,
     onValueChange: (String) -> Unit,
     error: String?,
+    modifier: Modifier = Modifier,
 ) {
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 12.dp),
+        modifier = modifier,
+        shape = RoundedCornerShape(16.dp),
         label = { Text(label) },
         singleLine = true,
         isError = error != null,

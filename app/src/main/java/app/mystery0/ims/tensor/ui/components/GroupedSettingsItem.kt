@@ -20,17 +20,19 @@ import androidx.compose.ui.unit.dp
 /** 系统设置风格的分组容器：同组条目以背景色细缝分隔，首尾圆角由条目控制。 */
 @Composable
 fun SettingsSection(
-    title: String,
+    title: String? = null,
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(
-            text = title,
-            modifier = Modifier.padding(horizontal = 8.dp),
-            style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.primary,
-        )
+        if (!title.isNullOrEmpty()) {
+            Text(
+                text = title,
+                modifier = Modifier.padding(horizontal = 8.dp),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.primary,
+            )
+        }
         Column(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(2.dp),
@@ -45,6 +47,7 @@ fun GroupedSettingsItem(
     title: String,
     summary: String? = null,
     icon: ImageVector? = null,
+    leading: (@Composable () -> Unit)? = null,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     first: Boolean = false,
@@ -69,7 +72,9 @@ fun GroupedSettingsItem(
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         val opacity = if (enabled) 1f else 0.5f
-        if (icon != null) {
+        if (leading != null) {
+            leading()
+        } else if (icon != null) {
             Icon(icon, null, modifier = Modifier.alpha(opacity), tint = MaterialTheme.colorScheme.primary)
         }
         Column(
