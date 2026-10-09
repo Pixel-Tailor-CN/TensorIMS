@@ -1,5 +1,9 @@
 package app.mystery0.ims.tensor.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -7,11 +11,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -20,6 +28,7 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DropdownMenu
@@ -40,6 +49,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -79,6 +89,7 @@ fun ImsConfigScreen(
     val sameSelection = state.subId == selectedSim?.subId
     val ready = sameSelection && state.ready && shizukuStatus == ShizukuStatus.READY
     val canEdit = ready && !state.applying && !isOperationInProgress
+    val showApplyPanel = sameSelection && (state.edits.isNotEmpty() || state.applying)
 
     val canReset = (selectedSim?.subId ?: -1) >= 0 && shizukuStatus == ShizukuStatus.READY &&
         !state.applying && !state.loading && !isOperationInProgress
@@ -107,13 +118,14 @@ fun ImsConfigScreen(
                 } },
             )
         },
-        bottomBar = { Column {
-            Button(onClick = onApply, enabled = canEdit && state.edits.isNotEmpty(),
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
-                Text(stringResource(if (state.applying) R.string.ims_applying else R.string.apply_changes))
-            }
-            Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
-        } },
+        bottomBar = {
+            ImsApplyPanel(
+                visible = showApplyPanel,
+                enabled = canEdit && state.edits.isNotEmpty(),
+                applying = state.applying,
+                onApply = onApply,
+            )
+        },
     ) { innerPadding ->
         Column(Modifier.pageContentPadding(innerPadding).verticalScroll(rememberScrollState())) {
             Surface(shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -210,6 +222,53 @@ fun ImsConfigScreen(
                 onEdit(feature, FeatureValue(text.trim(), FeatureValueType.STRING)); editingFeature = null
             }) { Text(stringResource(R.string.save)) } },
             dismissButton = { TextButton(onClick = { editingFeature = null }) { Text(stringResource(android.R.string.cancel)) } })
+    }
+}
+
+@Composable
+private fun ImsApplyPanel(
+    visible: Boolean,
+    enabled: Boolean,
+    applying: Boolean,
+    onApply: () -> Unit,
+) {
+    val visibilityState = remember { MutableTransitionState(false) }
+    visibilityState.targetState = visible
+
+    // Scaffold 将底栏贴底放置；顶部对齐的高度动画让完整面板上下滑动，
+    // 同时更新滚动内容的底部安全距离，退出结束后不再保留按钮或占位。
+    AnimatedVisibility(
+        visibleState = visibilityState,
+        modifier = Modifier.fillMaxWidth(),
+        enter = expandVertically(
+            animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec(),
+            expandFrom = Alignment.Top,
+            clip = false,
+        ),
+        exit = shrinkVertically(
+            animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
+            shrinkTowards = Alignment.Top,
+            clip = false,
+        ),
+        label = "ImsApplyPanel",
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = BottomSheetDefaults.ExpandedShape,
+            color = BottomSheetDefaults.ContainerColor,
+            shadowElevation = 3.dp,
+        ) {
+            Column(Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))) {
+                Button(
+                    onClick = onApply,
+                    enabled = enabled,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 16.dp),
+                ) {
+                    Text(stringResource(if (applying) R.string.ims_applying else R.string.apply_changes))
+                }
+                Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
+            }
+        }
     }
 }
 
