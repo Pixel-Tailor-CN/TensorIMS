@@ -187,8 +187,12 @@ fun ImsConfigScreen(
             TargetFeatureSection(stringResource(R.string.ims_reset_only_group), overrides, state, canEdit,
                 onEdit, { editingFeature = it }, { explainReset = true })
             if (overrides.isNotEmpty()) {
-                Text(stringResource(R.string.ims_reset_required), style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(16.dp))
+                Text(
+                    text = stringResource(R.string.ims_reset_required),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                )
             }
             ResetConfigurationEntry(canReset, selectedSim, { explainReset = true })
             Spacer(Modifier.size(16.dp))

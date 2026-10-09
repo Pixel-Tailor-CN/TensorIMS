@@ -29,6 +29,7 @@ import app.mystery0.ims.tensor.ui.components.pageContentInsets
 import app.mystery0.ims.tensor.ui.components.pageContentPadding
 import app.mystery0.ims.tensor.ui.components.ScrollEndSpacer
 import app.mystery0.ims.tensor.ui.components.GroupedSettingsItem
+import app.mystery0.ims.tensor.ui.components.SettingsSection
 import java.util.Locale
 
 @Composable
@@ -134,14 +135,7 @@ fun AppSettingsScreen(
     }
 }
 
-@Composable
-private fun SettingsSection(title: String, content: @Composable ColumnScope.() -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(title, Modifier.padding(horizontal = 8.dp), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
-        // 与系统设置一致：同组条目以背景色细缝分隔，首尾圆角由条目控制。
-        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(2.dp), content = content)
-    }
-}
+
 
 @Composable
 private fun themeLabel(theme: AppTheme): String = stringResource(when (theme) {
