@@ -11,6 +11,16 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class OperationCoordinatorTest {
+    @Test fun quickCompletedTaskChangesIdleGenerationEvenWhenBusyReturnsToFalse() = runBlocking {
+        val before = OperationCoordinator.completionVersion.value
+        OperationCoordinator.serialized {
+            OperationCoordinator.serialized { assertTrue(OperationCoordinator.busy.value) }
+            assertEquals(before, OperationCoordinator.completionVersion.value)
+        }
+        assertFalse(OperationCoordinator.busy.value)
+        assertEquals(before + 1, OperationCoordinator.completionVersion.value)
+    }
+
     @Test fun childCoroutinesCannotAcquireTwoActiveBackendOperations() = runBlocking {
         val machine = BackendStateMachine(BackendMode.OFFICIAL).apply {
             updateConnection(status.copy(connection = ConnectionState.READY))

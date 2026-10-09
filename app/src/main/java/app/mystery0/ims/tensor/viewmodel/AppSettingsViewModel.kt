@@ -13,6 +13,11 @@ class AppSettingsViewModel(application: Application) : AndroidViewModel(applicat
     private val settings = (application as app.mystery0.ims.tensor.Application).settings
     val theme = settings.theme
     val autoCapture = settings.autoCapture
+    val idleStopEnabled = settings.idleStopEnabled
+    val idleStopMinutes = settings.idleStopMinutes
+
+    fun setIdleStopEnabled(enabled: Boolean) = settings.setIdleStopEnabled(enabled)
+    fun setIdleStopMinutes(minutes: Int) = settings.setIdleStopMinutes(minutes)
 
     fun selectTheme(theme: app.mystery0.ims.tensor.AppTheme) = settings.setTheme(theme)
 

@@ -41,6 +41,7 @@ import app.mystery0.ims.tensor.ui.BackendActionState
 import app.mystery0.ims.tensor.ui.backendUiActions
 import app.mystery0.ims.tensor.ui.canConfirmPersistentRecovery
 import app.mystery0.ims.tensor.ui.canConfirmModeChoice
+import app.mystery0.ims.tensor.ui.components.EmbeddedIdleStopCard
 import app.mystery0.ims.tensor.ui.components.BackendChoiceDialog
 import app.mystery0.ims.tensor.ui.components.BackendErrorGuidance
 import app.mystery0.ims.tensor.ui.components.backendConnectionLabel
@@ -52,6 +53,10 @@ fun BackendSettingsScreen(
     action: BackendActionState,
     wirelessState: WirelessAdbState,
     busy: Boolean,
+    idleStopEnabled: Boolean,
+    idleStopMinutes: Int,
+    onIdleStopEnabledChange: (Boolean) -> Unit,
+    onIdleStopMinutesChange: (Int) -> Unit,
     canRecoverPersistentVolte: Boolean,
     canStartEmbeddedForRecovery: Boolean,
     canRequestOfficialPermissionForRecovery: Boolean,
@@ -181,7 +186,10 @@ fun BackendSettingsScreen(
                     onRoot = onStartRoot,
                 )
             }
-
+            // 仅内置服务就绪时显示；隐藏组件不修改已保存偏好。
+            if (status.mode == BackendMode.EMBEDDED && ready) {
+                EmbeddedIdleStopCard(idleStopEnabled, idleStopMinutes, onIdleStopEnabledChange, onIdleStopMinutesChange)
+            }
         }
     }
     if (confirmRecovery) AlertDialog(

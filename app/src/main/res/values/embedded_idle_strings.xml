@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="embedded_idle_title">Auto-stop idle embedded service</string>
+    <string name="embedded_idle_on">Attempts to stop about %1$d min after the app is in the background and tasks have finished.</string>
+    <string name="embedded_idle_off">No timed idle shutdown. Safe shutdown after Android reclaims the app still applies.</string>
+    <string name="embedded_idle_delay">Stop delay</string>
+    <string name="embedded_idle_minutes">%1$d min</string>
+    <string name="embedded_idle_input_help">Default: 2 minutes. Choose 1–30 minutes. Returning to the app cancels the timer; completing background tasks restarts it.</string>
+    <string name="embedded_idle_input_label">Delay (minutes)</string>
+    <string name="embedded_idle_input_error">Enter an integer from 1 to 30</string>
+    <string name="embedded_idle_timing_note">Timing is approximate. TensorIMS does not keep itself alive for this timer, and Android scheduling may affect it. With longer delays, Android may reclaim the app before the timer ends. The embedded service will also exit once tasks and permission cleanup are confirmed complete, without waiting for the full delay. This safety mechanism remains active when this switch is off.</string>
+    <string name="embedded_idle_restart_note">Applied settings, original-value backups, and pairing data are retained. Next time, start the service manually; wireless debugging may require additional steps.</string>
+</resources>

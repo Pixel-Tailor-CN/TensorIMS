@@ -16,6 +16,24 @@ class AppSettingsRepository(context: Context) {
     private val _autoCapture = MutableStateFlow(preferences.getBoolean("auto_capture", false))
     val autoCapture = _autoCapture.asStateFlow()
 
+    private val _idleStopEnabled = MutableStateFlow(preferences.getBoolean("embedded_idle_stop", false))
+    val idleStopEnabled = _idleStopEnabled.asStateFlow()
+    private val _idleStopMinutes = MutableStateFlow(
+        preferences.getInt("embedded_idle_minutes", 2).takeIf { it in 1..30 } ?: 2,
+    )
+    val idleStopMinutes = _idleStopMinutes.asStateFlow()
+
+    fun setIdleStopEnabled(enabled: Boolean) {
+        preferences.edit().putBoolean("embedded_idle_stop", enabled).apply()
+        _idleStopEnabled.value = enabled
+    }
+
+    fun setIdleStopMinutes(minutes: Int) {
+        require(minutes in 1..30)
+        preferences.edit().putInt("embedded_idle_minutes", minutes).apply()
+        _idleStopMinutes.value = minutes
+    }
+
     fun setTheme(theme: AppTheme) {
         preferences.edit().putString("theme", theme.name).apply()
         _theme.value = theme

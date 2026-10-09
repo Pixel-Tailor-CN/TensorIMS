@@ -119,6 +119,36 @@ object PrivilegeRuntime {
         return if (entered) error else "当前操作尚未完成，请稍后再切换"
     }
 
+    /** 与写入、历史提交和模式切换共用安全门；计时到期不等于允许停止。 */
+    suspend fun stopEmbeddedWhenIdle(expectedEpoch: Long, stillIdle: () -> Boolean): Boolean {
+        if (!initialized) return false
+        return OperationCoordinator.tryExclusive {
+            if (!stillIdle() || machine.status.epoch != expectedEpoch ||
+                machine.status.mode != BackendMode.EMBEDDED || !machine.status.isReady ||
+                machine.activeOperationId != null || pending != null || corruptJournal || recoveryInFlight) {
+                return@tryExclusive false
+            }
+            val previous = machine.freezeForSwitch() ?: return@tryExclusive false
+            publish()
+            try {
+                // 已进入关闭事务后不因计时协程取消而中断死亡确认；服务端再次检查任务和权限清理。
+                if (embedded.disconnect()) {
+                    check(machine.completeIdleStop())
+                    Log.i(TAG, "Idle embedded service shutdown confirmed")
+                    true
+                } else {
+                    machine.abortSwitch(previous, "SHUTDOWN_UNCONFIRMED", "内置服务停止尚未确认，请刷新后核对")
+                    Log.w(TAG, "Idle embedded service shutdown unconfirmed")
+                    false
+                }
+            } catch (failure: Exception) {
+                machine.abortSwitch(previous, "SHUTDOWN_UNCONFIRMED", "内置服务停止尚未确认，请刷新后核对")
+                Log.w(TAG, "Idle embedded service shutdown failed", failure)
+                false
+            } finally { publish() }
+        } ?: false
+    }
+
     fun refresh() {
         if (!initialized) return
         scope.launch {

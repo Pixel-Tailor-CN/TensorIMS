@@ -24,6 +24,8 @@ class AutoRestoreController(private val context: Context) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val _enabled = MutableStateFlow(repository.enabled)
     val enabled = _enabled.asStateFlow()
+    private val _running = MutableStateFlow(false)
+    val running = _running.asStateFlow()
     private var restoreJob: Job? = null
     private var started = false
     private var permissionPending = false
@@ -75,6 +77,7 @@ class AutoRestoreController(private val context: Context) {
     fun schedule() {
         val epoch = PrivilegeRuntime.status.value.epoch
         if (!_enabled.value || restoreJob?.isActive == true || !PrivilegeRuntime.canAutoRestore(epoch)) return
+        _running.value = true
         restoreJob = scope.launch {
             val results = mutableMapOf<Int, Boolean>()
             try {
@@ -131,9 +134,11 @@ class AutoRestoreController(private val context: Context) {
                 Log.e(TAG, "Automatic restore failed", e)
             } finally {
                 // 一轮有限重试只汇总一次，失败后重试成功的 SIM 不再计入失败。
-                if (results.isNotEmpty()) {
-                    notifier.showResult(results.count { it.value }, results.count { !it.value })
-                }
+                try {
+                    if (results.isNotEmpty()) {
+                        notifier.showResult(results.count { it.value }, results.count { !it.value })
+                    }
+                } finally { _running.value = false }
             }
         }
     }

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="embedded_idle_title">闲置时自动停止内置服务</string>
+    <string name="embedded_idle_on">进入后台且任务结束后，约 %1$d 分钟尝试停止。</string>
+    <string name="embedded_idle_off">不按闲置时间主动停止。应用被系统回收后的安全退出机制仍然有效。</string>
+    <string name="embedded_idle_delay">停止延迟</string>
+    <string name="embedded_idle_minutes">%1$d 分钟</string>
+    <string name="embedded_idle_input_help">默认 2 分钟，可设置 1–30 分钟。返回前台取消计时，后台任务结束后重新计时。</string>
+    <string name="embedded_idle_input_label">延迟时间（分钟）</string>
+    <string name="embedded_idle_input_error">请输入 1–30 之间的整数</string>
+    <string name="embedded_idle_timing_note">非精确定时。TensorIMS 不为计时保活，停止时间受系统调度影响。延迟较长时，应用可能尚未等满就被系统回收；内置服务也会在任务结束且权限清理确认后自动退出，不必等满设定时间。关闭本开关不影响此机制。</string>
+    <string name="embedded_idle_restart_note">已应用配置、原值备份和配对信息不会被清除。下次使用需手动启动服务，无线调试方式可能需要再次操作。</string>
+</resources>

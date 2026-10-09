@@ -69,6 +69,23 @@ CarrierConfig 重置会实际调用删除覆盖接口并读取当前状态，但
 - [ ] CarrierConfig 单卡、全卡、部分失败仅保存成功卡历史
 - [ ] Captive Portal 两键回读一致；不把回读成功宣称成系统实际 probe 已生效
 
+## 内置服务闲置停止（待真机验收）
+
+分别验证 tensor / legacy、无线 ADB / root，不同时启用两包自动恢复操作同一 SIM。
+
+- [ ] 开关默认关闭、延迟默认 2 分钟；仅内置服务就绪时显示卡片。未连接、官方和 UNSET 隐藏，重新连接保留偏好。
+- [ ] 输入 1、2、30 可保存；空值、0、31、负数、小数、非数字及溢出值不可保存；取消不修改原值。检查中英文、360dp、大字体与输入法遮挡。
+- [ ] 前台超过延迟仍不停止；进入后台后满足延迟可停止；倒计时中返回主界面或日志页取消；再次离开重新等待完整时长。
+- [ ] 配对、无线启动、root 启动、手动配置和自动恢复（包括重试等待）期间不停止；流程结束后重新计时，不能刚启动完成即沿用旧计时停止。
+- [ ] 快速任务完成也会重置计时；关闭开关、修改延迟或切换模式不允许旧计时迟到关闭新服务。
+- [ ] 操作超时、结果未知、权限清理失败或日志未完成时拒绝自动停止；确认安全后才能恢复计时。
+- [ ] 停止确认后保持内置模式、服务显示未连接；配置、备份与配对资料不变，官方 Shizuku 与其他应用不受影响；下次不自动启动。
+- [ ] 系统冻结/回收情况下不承诺精确定时；客户端死亡后的既有安全退出独立生效。不得为了测出精确时间增加保活。
+
+2026-10-09：Windows JVM 已验证资格判断、时间输入范围、计时取消/重启、快速任务完成代际与状态机代际；双 flavor 的相关 23 项测试均通过，双 Debug 编译及 Lint 完成（Lint 0 errors，仍有警告）。未连接 ADB 设备，以上项目均未完成真机验收。
+
+本次全量 JVM 测试未全绿：两个 flavor 的既有 `OperationJournalTest.unfinishedWriteSurvivesProcessReconstructionWithoutReplayData` 和 `OperationJournalTest.terminalIsDurableUntilReadbackAllowsExplicitClear` 均在 `OperationJournal.syncDirectory` 通过 Windows `FileChannel` 打开目录时抛出 `AccessDeniedException`。本次未修改该生产代码和测试，也未绕过目录同步安全检查。
+
 ## 通信验收
 Android 13–16 按实际可测设备逐一记录，Android 17/SDK 37 预览单列实验状态。无线 ADB 和 root 各自完成完整矩阵。
 - [ ] IMS 注册

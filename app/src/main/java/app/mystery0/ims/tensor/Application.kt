@@ -12,6 +12,7 @@ class Application : Application() {
     val settings by lazy { AppSettingsRepository(this) }
     private val restoreDelegate = lazy { AutoRestoreController(this) }
     val autoRestore by restoreDelegate
+    private val idleStop by lazy { EmbeddedIdleStopController(settings, autoRestore) }
 
     override fun onCreate() {
         super.onCreate()
@@ -20,6 +21,7 @@ class Application : Application() {
             LogcatRepository.setAutomaticCapture(settings.autoCapture.value)
             PrivilegeRuntime.initialize(this)
             autoRestore.start()
+            idleStop.start(this)
         } else {
             val receiver = object : BroadcastReceiver() {
                 override fun onReceive(context: Context, intent: Intent) {
@@ -28,6 +30,7 @@ class Application : Application() {
                     LogcatRepository.setAutomaticCapture(settings.autoCapture.value)
                     PrivilegeRuntime.initialize(this@Application)
                     autoRestore.start()
+                    idleStop.start(this@Application)
                 }
             }
             registerReceiver(receiver, IntentFilter(Intent.ACTION_USER_UNLOCKED), RECEIVER_NOT_EXPORTED)

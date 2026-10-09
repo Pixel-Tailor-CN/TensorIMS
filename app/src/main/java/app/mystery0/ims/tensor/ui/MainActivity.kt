@@ -147,7 +147,13 @@ class MainActivity : BaseActivity() {
             }
 
             composable(TensorImsRoutes.BACKEND_SETTINGS) {
+                val idleStopEnabled by appSettingsViewModel.idleStopEnabled.collectAsStateWithLifecycle()
+                val idleStopMinutes by appSettingsViewModel.idleStopMinutes.collectAsStateWithLifecycle()
                 BackendSettingsScreen(
+                    idleStopEnabled = idleStopEnabled,
+                    idleStopMinutes = idleStopMinutes,
+                    onIdleStopEnabledChange = appSettingsViewModel::setIdleStopEnabled,
+                    onIdleStopMinutesChange = appSettingsViewModel::setIdleStopMinutes,
                     status = backendStatus,
                     action = backendAction,
                     wirelessState = wirelessAdbState,

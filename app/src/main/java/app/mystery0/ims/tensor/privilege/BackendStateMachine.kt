@@ -42,6 +42,14 @@ class BackendStateMachine(mode: BackendMode = BackendMode.UNSET, unresolved: Boo
         }
     }
 
+    /** 闲置停止不改变用户选定模式，但递增代际使旧队列请求失效。 */
+    @Synchronized fun completeIdleStop(): Boolean {
+        if (status.mode != BackendMode.EMBEDDED || status.connection != ConnectionState.SWITCHING || activeOperationId != null) return false
+        status = BackendStatus(mode = BackendMode.EMBEDDED, connection = ConnectionState.DISCONNECTED,
+            epoch = status.epoch + 1, errorCode = "EMBEDDED_UNAVAILABLE", message = "请主动启动内置服务")
+        return true
+    }
+
     @Synchronized fun beginConnection(): Boolean {
         if (activeOperationId != null || status.mode == BackendMode.UNSET || status.connection in setOf(
                 ConnectionState.BUSY, ConnectionState.RECOVERY_REQUIRED, ConnectionState.SWITCHING, ConnectionState.CONNECTING)) return false

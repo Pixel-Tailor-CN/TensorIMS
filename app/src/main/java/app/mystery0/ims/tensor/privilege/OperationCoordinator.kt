@@ -14,6 +14,8 @@ object OperationCoordinator {
     private val mutex = Mutex()
     private val _busy = MutableStateFlow(false)
     val busy = _busy.asStateFlow()
+    private val _completionVersion = MutableStateFlow(0L)
+    val completionVersion = _completionVersion.asStateFlow()
 
     private class Owner : AbstractCoroutineContextElement(Key) {
         companion object Key : CoroutineContext.Key<Owner>
@@ -36,6 +38,8 @@ object OperationCoordinator {
         return try {
             withContext(NonCancellable + Owner()) { block() }
         } finally {
+            // 快速任务的 busy=true/false 可能被 StateFlow 合并；完成代际确保闲置计时仍能重置。
+            _completionVersion.value += 1
             _busy.value = false
             mutex.unlock()
         }
