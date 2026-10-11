@@ -30,6 +30,7 @@ internal fun EmbeddedConnectionContent(
     onSettings: () -> Unit,
     onCancel: () -> Unit,
     onRoot: () -> Unit,
+    onComputer: () -> Unit,
 ) {
     var showRoot by rememberSaveable { mutableStateOf(false) }
     when {
@@ -82,6 +83,13 @@ internal fun EmbeddedConnectionContent(
                 }
                 Text(stringResource(R.string.wireless_ui_privacy), style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            BackendSection {
+                Text(stringResource(R.string.computer_adb_title), style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.computer_adb_help), style = MaterialTheme.typography.bodyMedium)
+                OutlinedButton(onClick = onComputer, enabled = canStart, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.computer_adb_generate))
+                }
             }
             TextButton(onClick = { showRoot = !showRoot }) {
                 Text(stringResource(if (showRoot) R.string.connection_hide_root else R.string.connection_other_methods))

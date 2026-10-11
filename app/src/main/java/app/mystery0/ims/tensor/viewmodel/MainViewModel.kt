@@ -32,6 +32,7 @@ import app.mystery0.ims.tensor.model.SystemInfo
 import app.mystery0.ims.tensor.privileged.ImsModifier
 import app.mystery0.ims.tensor.privileged.PersistentVolteModifier
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -39,6 +40,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlin.coroutines.coroutineContext
 
 /**
  * 主界面的 ViewModel，负责管理 UI 状态和业务逻辑。
@@ -59,6 +62,9 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
     private val _backendAction = MutableStateFlow(BackendActionState())
     val backendAction = _backendAction.asStateFlow()
     private val launcher = EmbeddedLauncher(application)
+    private val _computerAdbCommand = MutableStateFlow<String?>(null)
+    val computerAdbCommand = _computerAdbCommand.asStateFlow()
+    private var computerAdbJob: Job? = null
     val isOperationInProgress = combine(ConfigurationOperations.busy, backendStatus, backendAction, wirelessAdbState) { busy, status, action, wireless ->
         busy || status.connection in setOf(ConnectionState.BUSY, ConnectionState.SWITCHING, ConnectionState.CONNECTING) || action.inProgress || wireless.active
     }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
@@ -85,6 +91,29 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
 
     fun cancelEmbeddedWireless() = WirelessAdbService.cancel(application)
 
+    fun startEmbeddedComputer() {
+        if (!backendUiActions(backendStatus.value, _backendAction.value.inProgress, backendActionBusy(),
+                recoveryStartAllowed = canStartEmbeddedForRecovery.value).canStartEmbedded) return
+        computerAdbJob = runBackendAction(BackendAction.COMPUTER) {
+            // 协调器保护事务使用 NonCancellable；仅命令等待恢复调用方 Job，取消时仍在锁内撤销挑战。
+            val waitingJob = checkNotNull(coroutineContext[Job])
+            try {
+                PrivilegeRuntime.startEmbedded {
+                    withContext(waitingJob) {
+                        launcher.startComputer { _computerAdbCommand.value = it }
+                    }
+                }
+            } finally {
+                // 不放入 SavedState 或偏好；旋转保留同一任务，进程结束后命令自然失效。
+                _computerAdbCommand.value = null
+            }
+        }
+    }
+
+    fun cancelEmbeddedComputer() {
+        computerAdbJob?.cancel()
+    }
+
     private fun startWirelessAction(pairing: Boolean): Boolean {
         if (!backendUiActions(backendStatus.value, _backendAction.value.inProgress, backendActionBusy(),
                 recoveryStartAllowed = canStartEmbeddedForRecovery.value).canStartEmbedded) return false
@@ -97,21 +126,21 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
     private fun startEmbeddedAction(action: BackendAction, block: suspend () -> String?) {
         if (!backendUiActions(backendStatus.value, _backendAction.value.inProgress, backendActionBusy(),
                 recoveryStartAllowed = canStartEmbeddedForRecovery.value).canStartEmbedded) return
-        // 配对与两种启动都由运行时的同一门禁保护，避免与切换或恢复发生竞态。
+        // 启动动作由运行时的同一门禁保护，避免与切换或恢复发生竞态。
         runBackendAction(action) { PrivilegeRuntime.startEmbedded(block) }
     }
 
-    private fun runBackendAction(action: BackendAction, block: suspend () -> String?) {
-        if (_backendAction.value.inProgress || wirelessAdbState.value.active) return
+    private fun runBackendAction(action: BackendAction, block: suspend () -> String?): Job? {
+        if (_backendAction.value.inProgress || wirelessAdbState.value.active) return null
         _backendAction.value = BackendActionState(action = action)
-        viewModelScope.launch {
+        return viewModelScope.launch {
             try {
                 val error = block()
                 _backendAction.value = BackendActionState(
                     notice = if (error == null) when (action) {
                         BackendAction.RECOVER -> R.string.backend_recovery_success
                         BackendAction.PAIR -> null
-                        BackendAction.ROOT, BackendAction.WIRELESS -> R.string.backend_start_success
+                        BackendAction.ROOT, BackendAction.WIRELESS, BackendAction.COMPUTER -> R.string.backend_start_success
                         BackendAction.CHOOSE_MODE -> null
                     } else null,
                     error = error,

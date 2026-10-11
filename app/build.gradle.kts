@@ -22,6 +22,20 @@ val gitVersionName: String =
         )
     }.standardOutput.asText.get().trim()
 val appVersionName: String = libs.versions.app.version.get()
+val nativeStarterEmulator = providers.gradleProperty("tensorimsNativeStarterEmulator")
+    .map(String::toBoolean).getOrElse(false)
+val requestedNativeBuildTasks = gradle.startParameter.taskNames
+val emulatorSafeNativeBuildTasks = setOf(
+    ":app:assembleTensorDebug",
+    ":app:assembleLegacyDebug",
+)
+if (nativeStarterEmulator &&
+    (requestedNativeBuildTasks.isEmpty() || requestedNativeBuildTasks.any { it !in emulatorSafeNativeBuildTasks })
+) {
+    throw GradleException(
+        "tensorimsNativeStarterEmulator requires explicit :app:assembleTensorDebug and/or :app:assembleLegacyDebug tasks"
+    )
+}
 
 kotlin {
     compilerOptions {
@@ -44,6 +58,20 @@ android {
         versionName = appVersionName
         ndk {
             abiFilters.add("arm64-v8a")
+            if (nativeStarterEmulator) abiFilters.add("x86_64")
+        }
+        externalNativeBuild {
+            cmake {
+                cppFlags += "-std=c++17"
+                arguments += "-DANDROID_STL=c++_static"
+            }
+        }
+    }
+    ndkVersion = libs.versions.android.ndk.get()
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+            version = libs.versions.android.cmake.get()
         }
     }
     // 仅区分安装身份；两个 APK 共用完整的官方/内置双模式实现。
@@ -59,6 +87,9 @@ android {
         }
     }
     packaging {
+        jniLibs {
+            useLegacyPackaging = true
+        }
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
             // Bouncy Castle 多个模块携带同名许可文件，合并保留全部声明。

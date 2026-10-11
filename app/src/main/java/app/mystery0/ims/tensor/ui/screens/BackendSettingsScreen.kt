@@ -45,6 +45,7 @@ import app.mystery0.ims.tensor.ui.backendUiActions
 import app.mystery0.ims.tensor.ui.canConfirmPersistentRecovery
 import app.mystery0.ims.tensor.ui.canConfirmModeChoice
 import app.mystery0.ims.tensor.ui.components.EmbeddedIdleStopCard
+import app.mystery0.ims.tensor.ui.components.ComputerAdbDialog
 import app.mystery0.ims.tensor.ui.components.BackendChoiceDialog
 import app.mystery0.ims.tensor.ui.components.BackendErrorGuidance
 import app.mystery0.ims.tensor.ui.components.backendConnectionLabel
@@ -70,6 +71,9 @@ fun BackendSettingsScreen(
     onStartWireless: () -> Boolean,
     onCancelWireless: () -> Unit,
     onStartRoot: () -> Unit,
+    computerAdbCommand: String?,
+    onStartComputer: () -> Unit,
+    onCancelComputer: () -> Unit,
     onRecoverPersistentVolte: () -> Unit,
     onOpenImsConfig: () -> Unit,
     onHome: () -> Unit,
@@ -159,6 +163,7 @@ fun BackendSettingsScreen(
                         BackendAction.PAIR -> R.string.backend_pairing
                         BackendAction.ROOT -> R.string.backend_starting_root
                         BackendAction.WIRELESS -> R.string.backend_starting_wireless
+                        BackendAction.COMPUTER -> R.string.computer_adb_wait
                         else -> if (status.connection == ConnectionState.SWITCHING) R.string.backend_switching else R.string.connection_working
                     }))
                     Text(stringResource(R.string.backend_action_in_progress), style = MaterialTheme.typography.bodySmall)
@@ -187,6 +192,7 @@ fun BackendSettingsScreen(
                     onSettings = wirelessActions.reopenSettings,
                     onCancel = onCancelWireless,
                     onRoot = onStartRoot,
+                    onComputer = onStartComputer,
                 )
             }
             // 仅内置服务就绪时显示；隐藏组件不修改已保存偏好。
@@ -196,6 +202,7 @@ fun BackendSettingsScreen(
             ScrollEndSpacer(padding)
         }
     }
+    computerAdbCommand?.let { ComputerAdbDialog(it, onCancelComputer) }
     if (confirmRecovery) AlertDialog(
         onDismissRequest = { confirmRecovery = false },
         title = { Text(stringResource(R.string.backend_restore_confirm)) },

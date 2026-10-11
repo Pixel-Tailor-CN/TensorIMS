@@ -6,6 +6,8 @@ app-version = "3.8.0"
 android-compileSdk = "37"
 android-minSdk = "33"
 android-targetSdk = "37"
+android-ndk = "29.0.14206865"
+android-cmake = "3.22.1"
 
 hiddenapibypass = "6.1"
 shizuku = "13.1.5"

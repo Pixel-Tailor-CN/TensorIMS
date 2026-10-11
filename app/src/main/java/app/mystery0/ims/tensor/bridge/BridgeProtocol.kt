@@ -8,6 +8,8 @@ object BridgeProtocol {
     const val PACKAGE = BuildConfig.APPLICATION_ID
     const val AUTHORITY = "$PACKAGE.embedded.bridge"
     const val PROVIDER_METHOD = "deliver"
+    const val COMPUTER_CLAIM_METHOD = "claimComputerBootstrap"
+    const val COMPUTER_DELIVER_METHOD = "deliverComputerBootstrap"
     const val PREFIX = "tensorims.bridge."
     const val PROTOCOL = PREFIX + "protocol"
     const val CHALLENGE = PREFIX + "challenge"
@@ -27,6 +29,8 @@ object BridgeProtocol {
     const val CAPABILITIES = PREFIX + "capabilities"
     const val EXPIRES_AT = PREFIX + "expiresAt"
     const val CLEANUP_CONFIRMED = PREFIX + "cleanupConfirmed"
+    const val COMPUTER_GENERATION = PREFIX + "computerGeneration"
+    const val COMPUTER_IDENTITY = PREFIX + "computerIdentity"
     const val VERIFIED_SUB_IDS = PREFIX + "verifiedSubIds"
     const val OBSERVED_CONFIGS = PREFIX + "observedConfigs"
     const val DIAGNOSTIC_WARNING = PREFIX + "diagnosticWarning"

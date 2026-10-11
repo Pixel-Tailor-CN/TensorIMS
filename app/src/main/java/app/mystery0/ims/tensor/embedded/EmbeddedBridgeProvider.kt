@@ -6,19 +6,50 @@ import android.database.Cursor
 import android.net.Uri
 import android.os.Binder
 import android.os.Bundle
+import android.util.Log
 import app.mystery0.ims.tensor.bridge.BridgeProtocol
 
 /** exported 只为 shell/root 引导；权限依据真实 UID 与单次挑战，不能单靠 signature 权限。 */
 class EmbeddedBridgeProvider : ContentProvider() {
     override fun onCreate() = true
     override fun call(method: String, arg: String?, extras: Bundle?): Bundle {
-        require(method == BridgeProtocol.PROVIDER_METHOD) { "Unknown bridge method" }
         val uid = Binder.getCallingUid()
         require(uid == 0 || uid == 2000) { "AUTH_FAILED: bootstrap UID" }
-        val challenge = requireNotNull(extras?.getString(BridgeProtocol.CHALLENGE))
-        val binder = requireNotNull(extras.getBinder(BridgeProtocol.SERVER))
+        if (method == BridgeProtocol.COMPUTER_CLAIM_METHOD) {
+            return try {
+                EmbeddedConnection.claimComputer(requireNotNull(context), uid)
+            } catch (failure: IllegalStateException) {
+                val reason = when (failure.message) {
+                    "MODE_NOT_EMBEDDED" -> "mode"
+                    "SERVER_ALREADY_CONNECTED" -> "server-active"
+                    "AUTH_FAILED: no computer wait" -> "no-wait"
+                    "AUTH_FAILED: provider package" -> "provider-package"
+                    "AUTH_FAILED: computer installation changed" -> "installation"
+                    "AUTH_FAILED: computer claim unavailable" -> "lease"
+                    else -> "state"
+                }
+                Log.e("TensorIMSBridge", "Computer claim rejected ($reason)")
+                throw failure
+            }
+        }
+        val request = requireNotNull(extras)
+        val challenge = requireNotNull(request.getString(BridgeProtocol.CHALLENGE))
+        val binder = requireNotNull(request.getBinder(BridgeProtocol.SERVER))
         return Bundle().apply {
-            putBoolean("accepted", EmbeddedConnection.accept(requireNotNull(context), uid, challenge, binder))
+            val accepted = when (method) {
+                BridgeProtocol.PROVIDER_METHOD -> EmbeddedConnection.accept(requireNotNull(context), uid, challenge, binder)
+                BridgeProtocol.COMPUTER_DELIVER_METHOD -> EmbeddedConnection.acceptComputer(
+                    requireNotNull(context),
+                    uid,
+                    challenge,
+                    request.getLong(BridgeProtocol.COMPUTER_GENERATION, -1L),
+                    request.getLong(BridgeProtocol.EPOCH, -1L),
+                    requireNotNull(request.getString(BridgeProtocol.COMPUTER_IDENTITY)),
+                    binder,
+                )
+                else -> error("Unknown bridge method")
+            }
+            putBoolean("accepted", accepted)
         }
     }
     override fun query(uri: Uri, projection: Array<out String>?, selection: String?, selectionArgs: Array<out String>?, sortOrder: String?): Cursor? = null

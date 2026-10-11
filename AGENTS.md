@@ -28,7 +28,7 @@ TensorIMS 是一个面向 Google Pixel Tensor 设备的 Android 应用，用于�
 - `targetSdk`：`37`
 - `minSdk`：`33`
 - Java/Kotlin JVM target：`21`
-- ABI：仅 `arm64-v8a`
+- APK ABI：正式与默认 debug 仅 `arm64-v8a`；显式模拟器 debug 构建可增加 `x86_64`。Android 安装目录使用 ISA 名，ARM64 是 `arm64`，不能与 APK ABI 名 `arm64-v8a` 混用。
 - UI：Jetpack Compose + Material 3 + Navigation Compose
 - 版本号：`versionCode` 由 Git commit 数生成，`versionName` 来自 `gradle/libs.versions.toml` 的 `app-version`
 
@@ -218,6 +218,7 @@ adb shell settings get global captive_portal_https_url
 - 结果未知或清理失败保持恢复态；客户端超时不意味着设备端停止。持久化原值备份不是缓存，禁止在切换、禁用或升级时清理。
 - Android 全局 shell 委托冲突应报告 DELEGATION_BUSY，不清理其他客户端权限，不按进程名停止 Shizuku。
 - 内置无线调试使用用户显式启动的短时前台通知，用户保留系统配对对话框并通过 RemoteInput 输入验证码；不要求手填端口，不申请悬浮窗权限。分别发现 `_adb-tls-pairing._tcp` 和 `_adb-tls-connect._tcp`，只接受本机地址且 Socket 保持回环限定。
+- 电脑 ADB 启动入口位于特权模式页，用户主动生成当前安装包的一次性 `adb shell` 命令，电脑通过 USB 或无线 ADB 执行。命令直接调用安装目录中的 `libtensorims_starter.so --user <id>`，仅传入 Android 用户号；应用更新后必须重新获取安装路径。等待约 110 秒并占用统一启动门禁；取消、超时或进程结束后旧命令失效，不支持无应用等待的永久脚本。原生 PIE 清理危险环境变量后以当前 APK 为 classpath 调用固定 Kotlin 入口；Provider 只允许 UID 0/2000 在有效等待内单次 claim，核对安装身份、native library 路径、epoch 与 challenge 后交给现有私有服务握手。等待阶段显式恢复调用方 Job 的取消能力，不改变协调器对业务事务的 NonCancellable 保护。
 - Android 17（target 37）自动 NSD 发现先请求 `ACCESS_LOCAL_NETWORK`，Android 13+ 先确认通知权限与渠道可用；权限拒绝不得在后台反复请求。通知会话、发现、取消及迟到回调按独立 token 隔离，配对码绝不进入持久状态或日志。
 - 无线流程、协议/证书测试与设备验收边界详见 `docs/implementation/WIRELESS_ADB_VALIDATION.md`；云端 JVM TLS 与双包构建不能代替 Android 实际配对/JNI/通知/私有服务握手验收。
 - 配对库的 `moe.shizuku.manager.adb.PairingContext` 是上游二进制 JNI ABI，保留第三方包名及许可。它不是官方管理器的授权/配置入口。

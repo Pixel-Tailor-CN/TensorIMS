@@ -8,7 +8,7 @@
     <string name="backend_mode_official">官方 Shizuku</string>
     <string name="backend_mode_embedded">内置 Shizuku</string>
     <string name="backend_official_description">需要安装并启动外部官方 Shizuku，再向 TensorIMS 授权。</string>
-    <string name="backend_embedded_description">仅服务 TensorIMS 的私有服务。仍需独立无线调试配对，或设备已有 root。</string>
+    <string name="backend_embedded_description">仅服务 TensorIMS 的私有服务。可通过手机无线调试配对、电脑 ADB 或设备已有 root 启动。</string>
     <string name="backend_selected_mode">已选模式：%1$s</string>
     <string name="backend_connection">连接状态：%1$s</string>
     <string name="backend_identity">运行身份：%1$s</string>

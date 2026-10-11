@@ -8,7 +8,7 @@
     <string name="backend_mode_official">Official Shizuku</string>
     <string name="backend_mode_embedded">Embedded Shizuku</string>
     <string name="backend_official_description">Requires the external official Shizuku app, a running service and permission for TensorIMS.</string>
-    <string name="backend_embedded_description">Private service for TensorIMS. Requires independent wireless debugging pairing or existing root access.</string>
+    <string name="backend_embedded_description">Private service for TensorIMS. Start via on-device wireless debugging pairing, computer ADB, or existing root access.</string>
     <string name="backend_selected_mode">Selected mode: %1$s</string>
     <string name="backend_connection">Connection: %1$s</string>
     <string name="backend_identity">Runtime identity: %1$s</string>

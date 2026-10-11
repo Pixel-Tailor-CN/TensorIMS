@@ -147,6 +147,7 @@ class MainActivity : BaseActivity() {
             }
 
             composable(TensorImsRoutes.BACKEND_SETTINGS) {
+                val computerAdbCommand by viewModel.computerAdbCommand.collectAsStateWithLifecycle()
                 val idleStopEnabled by appSettingsViewModel.idleStopEnabled.collectAsStateWithLifecycle()
                 val idleStopMinutes by appSettingsViewModel.idleStopMinutes.collectAsStateWithLifecycle()
                 BackendSettingsScreen(
@@ -169,6 +170,9 @@ class MainActivity : BaseActivity() {
                     onStartWireless = viewModel::startEmbeddedWireless,
                     onCancelWireless = viewModel::cancelEmbeddedWireless,
                     onStartRoot = viewModel::startEmbeddedRoot,
+                    computerAdbCommand = computerAdbCommand,
+                    onStartComputer = viewModel::startEmbeddedComputer,
+                    onCancelComputer = viewModel::cancelEmbeddedComputer,
                     onOpenImsConfig = { navigate(TensorImsRoutes.IMS_CONFIG) },
                     onHome = { navController.popBackStack(TensorImsRoutes.HOME, false) },
                     onBack = onBack,

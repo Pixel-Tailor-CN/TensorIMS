@@ -3,10 +3,13 @@ package app.mystery0.ims.tensor.embedded
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Process
+import android.os.SystemClock
 import android.util.Log
 import app.mystery0.ims.tensor.R
 import app.mystery0.ims.tensor.BuildConfig
 import app.mystery0.ims.tensor.bridge.BridgeProtocol
+import app.mystery0.ims.tensor.bridge.ComputerBootstrapIdentity
+import app.mystery0.ims.tensor.bridge.InstalledIdentity
 import app.mystery0.ims.tensor.embedded.adb.AdbIdentity
 import app.mystery0.ims.tensor.embedded.adb.AdbIdentityUnavailableException
 import app.mystery0.ims.tensor.embedded.adb.AdbPairingClient
@@ -14,11 +17,13 @@ import app.mystery0.ims.tensor.embedded.adb.AdbProtocolException
 import app.mystery0.ims.tensor.embedded.adb.AdbTlsClient
 import app.mystery0.ims.tensor.embedded.adb.AdbServiceRejectedException
 import app.mystery0.ims.tensor.embedded.adb.BootstrapCommand
+import app.mystery0.ims.tensor.embedded.adb.ComputerAdbCommand
 import app.mystery0.ims.tensor.embedded.adb.InvalidPairingCodeException
 import app.mystery0.ims.tensor.embedded.adb.LaunchInput
 import app.mystery0.ims.tensor.embedded.adb.LoopbackConnection
 import app.mystery0.ims.tensor.embedded.adb.PairingStage
 import app.mystery0.ims.tensor.embedded.adb.withAdbNetworkResource
+import app.mystery0.ims.tensor.privilege.PrivilegeRuntime
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -81,7 +86,50 @@ class EmbeddedLauncher(context: Context) {
         }
     }
 
-    private suspend fun start(execute: suspend (String) -> Unit): String? {
+    /** 电脑负责执行短命令；仅当前用户显式开启等待时允许一次领取。 */
+    suspend fun startComputer(onCommand: (String) -> Unit): String? = exclusive("computer-start") {
+        if (EmbeddedConnection.current() != null) return@exclusive context.getString(R.string.launcher_connected)
+        check(context.packageName == BridgeProtocol.PACKAGE)
+        val identity = InstalledIdentity.read(context)
+        check(identity.uid == Process.myUid() && identity.versionCode == BuildConfig.VERSION_CODE.toLong()) {
+            "Current installation identity mismatch"
+        }
+        val libraryDir = File(context.applicationInfo.nativeLibraryDir).canonicalFile
+        val launcher = File(libraryDir, "libtensorims_starter.so").canonicalFile
+        check(launcher.parentFile == libraryDir && launcher.isFile && launcher.canExecute()) {
+            "Installed native starter is unavailable"
+        }
+        val identityDigest = ComputerBootstrapIdentity.digest(identity, libraryDir.path)
+        val challenge = ByteArray(32).also(SecureRandom()::nextBytes).hex()
+        val timeoutMillis = 110_000L
+        val epoch = PrivilegeRuntime.status.value.epoch
+        EmbeddedConnection.expectComputer(challenge, identityDigest, epoch, timeoutMillis)
+        var accepted = false
+        try {
+            coroutineContext.ensureActive()
+            onCommand(ComputerAdbCommand.create(launcher.path, identity.userId))
+            try {
+                withTimeout(timeoutMillis) {
+                    while (EmbeddedConnection.acceptedChallenge() != challenge || EmbeddedConnection.current() == null) {
+                        delay(100)
+                    }
+                }
+            } catch (timeout: TimeoutCancellationException) {
+                coroutineContext.ensureActive()
+                return@exclusive context.getString(R.string.computer_adb_timeout)
+            }
+            accepted = true
+            null
+        } finally {
+            if (!accepted) EmbeddedConnection.clear()
+        }
+    }
+
+    private suspend fun start(
+        waitMillis: Long = 15_000L,
+        handshakeError: Int = R.string.launcher_handshake,
+        execute: suspend (String) -> Unit,
+    ): String? {
         // 已认证实例由运行时负责连接/停止；不生成第二个后台服务。
         if (EmbeddedConnection.current() != null) return context.getString(R.string.launcher_connected)
         val challenge = ByteArray(32).also(SecureRandom()::nextBytes).hex()
@@ -102,12 +150,12 @@ class EmbeddedLauncher(context: Context) {
                 throw failure
             }
             try {
-                withTimeout(15000) {
+                withTimeout(waitMillis) {
                     while (EmbeddedConnection.acceptedChallenge() != challenge || EmbeddedConnection.current() == null) delay(100)
                 }
             } catch (timeout: TimeoutCancellationException) {
                 coroutineContext.ensureActive()
-                return context.getString(R.string.launcher_handshake)
+                return context.getString(handshakeError)
             }
             accepted = true
             return null
