@@ -19,6 +19,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import app.mystery0.ims.tensor.ui.components.pageContentInsets
@@ -109,7 +110,11 @@ fun BackendSettingsScreen(
                 Text(if (!recovering && (wirelessState.active || wirelessActions.pending))
                     stringResource(R.string.connection_progress) else backendConnectionLabel(status.connection),
                     style = MaterialTheme.typography.headlineSmall,
-                    color = if (recovering) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary)
+                    color = when {
+                        recovering -> MaterialTheme.colorScheme.error
+                        ready -> MaterialTheme.colorScheme.primary
+                        else -> MaterialTheme.colorScheme.onSurface
+                    })
                 if (ready) {
                     Text(stringResource(R.string.connection_ready_help), style = MaterialTheme.typography.bodyMedium)
                     Button(onClick = onOpenImsConfig, modifier = Modifier.fillMaxWidth()) {
@@ -120,20 +125,40 @@ fun BackendSettingsScreen(
                     }
                 }
                 if (showDetails) {
-                    val identity = when (status.runtimeUid) {
-                        0 -> "root (UID 0)"
-                        2000 -> "shell (UID 2000)"
-                        null -> stringResource(R.string.backend_unknown)
-                        else -> "UID ${status.runtimeUid}"
+                    Surface(
+                        shape = MaterialTheme.shapes.small,
+                        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            val identity = when (status.runtimeUid) {
+                                0 -> "root (UID 0)"
+                                2000 -> "shell (UID 2000)"
+                                null -> stringResource(R.string.backend_unknown)
+                                else -> "UID ${status.runtimeUid}"
+                            }
+                            Text(
+                                stringResource(R.string.backend_identity, identity),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            val authorization = when {
+                                status.errorCode in setOf("PERMISSION_REQUIRED", "PERMISSION_DENIED") -> R.string.backend_permission_needed
+                                status.connection in setOf(ConnectionState.READY, ConnectionState.BUSY) || canRecoverPersistentVolte -> R.string.backend_authorized
+                                else -> R.string.backend_not_authorized
+                            }
+                            Text(
+                                stringResource(R.string.backend_authorization, stringResource(authorization)),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            Text(
+                                stringResource(R.string.backend_version, status.version ?: stringResource(R.string.backend_unknown)),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
                     }
-                    Text(stringResource(R.string.backend_identity, identity))
-                    val authorization = when {
-                        status.errorCode in setOf("PERMISSION_REQUIRED", "PERMISSION_DENIED") -> R.string.backend_permission_needed
-                        status.connection in setOf(ConnectionState.READY, ConnectionState.BUSY) || canRecoverPersistentVolte -> R.string.backend_authorized
-                        else -> R.string.backend_not_authorized
-                    }
-                    Text(stringResource(R.string.backend_authorization, stringResource(authorization)))
-                    Text(stringResource(R.string.backend_version, status.version ?: stringResource(R.string.backend_unknown)))
                 }
                 if (recovering || (!locked && status.errorCode != null)) BackendErrorGuidance(status)
                 if (canRecoverPersistentVolte && status.connection == ConnectionState.RECOVERY_REQUIRED) {
@@ -142,7 +167,10 @@ fun BackendSettingsScreen(
                         Text(stringResource(R.string.backend_restore_originals))
                     }
                 }
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
                     TextButton(onClick = { showDetails = !showDetails }) {
                         Text(stringResource(if (showDetails) R.string.connection_hide_details else R.string.connection_details))
                     }
@@ -174,11 +202,18 @@ fun BackendSettingsScreen(
             when (status.mode) {
                 BackendMode.UNSET -> Text(stringResource(R.string.backend_choose_description))
                 BackendMode.OFFICIAL -> if (!ready) BackendSection {
-                    Text(stringResource(R.string.backend_official_guidance))
-                    Button(onClick = onRequestPermission, enabled = actions.canRequestOfficialPermission) {
+                    Text(stringResource(R.string.backend_official_guidance), style = MaterialTheme.typography.bodyMedium)
+                    Button(
+                        onClick = onRequestPermission,
+                        enabled = actions.canRequestOfficialPermission,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
                         Text(stringResource(R.string.request_permission))
                     }
-                    TextButton(onClick = { uriHandler.openUri("https://shizuku.rikka.app/guide/setup/") }) {
+                    OutlinedButton(
+                        onClick = { uriHandler.openUri("https://shizuku.rikka.app/guide/setup/") },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
                         Text(stringResource(R.string.backend_official_guide))
                     }
                 }

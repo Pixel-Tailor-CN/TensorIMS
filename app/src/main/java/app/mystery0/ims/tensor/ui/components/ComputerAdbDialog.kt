@@ -10,17 +10,22 @@ import android.os.PersistableBundle
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -37,20 +42,43 @@ fun ComputerAdbDialog(command: String, onCancel: () -> Unit) {
         onDismissRequest = onCancel,
         title = { Text(title) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(stringResource(R.string.computer_adb_steps))
-                SelectionContainer {
-                    Text(command, modifier = Modifier.heightIn(max = 180.dp).verticalScroll(rememberScrollState()),
-                        style = MaterialTheme.typography.bodySmall, fontFamily = FontFamily.Monospace)
+            Column(
+                modifier = Modifier
+                    .heightIn(max = 360.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text(stringResource(R.string.computer_adb_steps), style = MaterialTheme.typography.bodyMedium)
+                Surface(
+                    shape = MaterialTheme.shapes.small,
+                    color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    SelectionContainer {
+                        Text(
+                            text = command,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 180.dp)
+                                .verticalScroll(rememberScrollState())
+                                .padding(12.dp),
+                            style = MaterialTheme.typography.bodySmall,
+                            fontFamily = FontFamily.Monospace,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
-                Text(stringResource(R.string.computer_adb_wait), style = MaterialTheme.typography.bodySmall)
+                Text(
+                    text = stringResource(R.string.computer_adb_wait),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         },
         confirmButton = {
-            FlowRow(
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 TextButton(onClick = {
                     val sendIntent = Intent(Intent.ACTION_SEND).apply {
@@ -65,6 +93,11 @@ fun ComputerAdbDialog(command: String, onCancel: () -> Unit) {
                         Toast.makeText(context, R.string.computer_adb_share_unavailable, Toast.LENGTH_LONG).show()
                     }
                 }) { Text(stringResource(R.string.computer_adb_send)) }
+                Spacer(Modifier.weight(1f))
+                TextButton(onClick = onCancel) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+                Spacer(Modifier.width(8.dp))
                 TextButton(onClick = {
                     val clip = ClipData.newPlainText(title, command)
                     // Android 13+ 隐藏启动命令的剪贴板预览，减少其他可见界面误读命令的机会。
@@ -73,7 +106,6 @@ fun ComputerAdbDialog(command: String, onCancel: () -> Unit) {
                     }
                     context.getSystemService(ClipboardManager::class.java).setPrimaryClip(clip)
                 }) { Text(stringResource(R.string.computer_adb_copy)) }
-                TextButton(onClick = onCancel) { Text(stringResource(android.R.string.cancel)) }
             }
         },
         dismissButton = null,

@@ -48,10 +48,14 @@ internal fun EmbeddedConnectionContent(
             state.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
             Text(stringResource(R.string.wireless_ui_background_help), style = MaterialTheme.typography.bodySmall)
             if (state.phase in setOf(WirelessAdbPhase.SEARCHING_PAIRING, WirelessAdbPhase.WAITING_CODE)) {
-                TextButton(onClick = onSettings) { Text(stringResource(R.string.backend_open_wireless_settings)) }
+                OutlinedButton(onClick = onSettings, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.backend_open_wireless_settings))
+                }
             }
             // 此按钮只存在于活动无线会话，不能用来取消业务写入或模式切换。
-            TextButton(onClick = onCancel) { Text(stringResource(R.string.wireless_ui_cancel)) }
+            OutlinedButton(onClick = onCancel, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.wireless_ui_cancel))
+            }
         }
         locked -> Unit
         recovering && !canStart -> Unit
@@ -72,7 +76,9 @@ internal fun EmbeddedConnectionContent(
                         else -> R.string.connection_connect
                     }))
                 }
-                TextButton(onClick = onSettings) { Text(stringResource(R.string.backend_open_wireless_settings)) }
+                OutlinedButton(onClick = onSettings, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.backend_open_wireless_settings))
+                }
             }
             // 恢复期间优先提供受控重连；只有安全门禁允许时才保留显式配对入口。
             BackendSection {
@@ -91,7 +97,10 @@ internal fun EmbeddedConnectionContent(
                     Text(stringResource(R.string.computer_adb_generate))
                 }
             }
-            TextButton(onClick = { showRoot = !showRoot }) {
+            TextButton(
+                onClick = { showRoot = !showRoot },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
                 Text(stringResource(if (showRoot) R.string.connection_hide_root else R.string.connection_other_methods))
             }
             if (showRoot) BackendSection {

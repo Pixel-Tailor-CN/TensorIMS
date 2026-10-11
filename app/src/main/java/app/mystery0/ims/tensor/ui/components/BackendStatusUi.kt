@@ -59,7 +59,7 @@ fun BackendErrorGuidance(status: BackendStatus) {
         }
     }
     resource?.let { Text(stringResource(it), color = MaterialTheme.colorScheme.error) }
-    status.message?.takeIf { status.errorCode != "MODE_UNSET" }?.let {
+    status.message?.takeIf { status.errorCode !in setOf("MODE_UNSET", "EMBEDDED_UNAVAILABLE") }?.let {
         Text(stringResource(R.string.backend_error_details, it), style = MaterialTheme.typography.bodySmall)
     }
 }
