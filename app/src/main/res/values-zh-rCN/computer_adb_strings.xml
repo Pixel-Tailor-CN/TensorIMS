@@ -6,5 +6,7 @@
     <string name="computer_adb_steps">1. 在电脑安装 Android 平台工具，通过 USB 或无线 ADB 连接本设备并完成授权。\n2. 用 adb devices 确认连接后，在电脑终端执行下面的完整命令。连接多台设备时，在 adb 后加上 -s 设备序列号。\n3. 保持应用运行，等待服务就绪。</string>
     <string name="computer_adb_wait">本轮启动等待约 110 秒后关闭。取消、超时或应用进程结束后，请先在应用中重新开启等待再执行命令。应用更新前可重复使用当前安装路径。</string>
     <string name="computer_adb_copy">复制命令</string>
+    <string name="computer_adb_send">发送</string>
+    <string name="computer_adb_share_unavailable">暂时没有可用于分享此命令的应用。</string>
     <string name="computer_adb_timeout">电脑启动等待已超时，服务未通过认证。请先在应用中重新开启等待，再执行命令。</string>
 </resources>

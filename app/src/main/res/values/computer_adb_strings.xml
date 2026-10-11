@@ -6,5 +6,7 @@
     <string name="computer_adb_steps">1. Install Android platform tools on your computer, connect this device via USB or wireless ADB, and authorize it.\n2. Check adb devices, then run the complete command below in your computer terminal. If multiple devices are connected, add -s DEVICE_SERIAL after adb.\n3. Keep the app running and wait for the service to become ready.</string>
     <string name="computer_adb_wait">This startup wait closes in about 110 seconds. After cancellation, timeout, or app process exit, open a new wait before running the command again. The installed path can be reused until the app is updated.</string>
     <string name="computer_adb_copy">Copy command</string>
+    <string name="computer_adb_send">Send</string>
+    <string name="computer_adb_share_unavailable">No app can share this command right now.</string>
     <string name="computer_adb_timeout">Computer startup wait timed out. No server was accepted. Reopen the wait in this app before running the command again.</string>
 </resources>
