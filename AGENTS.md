@@ -3,7 +3,7 @@
 ## 基本约定
 
 - 与用户沟通时使用中文。
-- 生成或修改的文档、代码注释使用中文；日志打印使用英文。
+- 文档默认使用中文，双语 README 按各自语言维护：`README.md` 正文使用英文，`README_CN.md` 正文使用中文，语言切换链接可保留语言原名。代码注释使用中文；日志打印使用英文。
 - 可保留 Shizuku、Instrumentation、CarrierConfig、IMS、VoLTE、VoWiFi、VoNR、AIDL 等通用英文技术名词。
 - 修改代码前先理解当前实现和设备兼容约束，避免只针对一个 Android 版本做硬编码修复。
 - 本项目不要求添加单元测试。代码变更后至少运行 `.\gradlew.bat :app:assembleTensorDebug :app:assembleLegacyDebug --stacktrace --console=plain` 验证两个 flavor 编译；适合纯 Kotlin 行为的新增逻辑可增加针对性单元测试。
@@ -15,7 +15,7 @@ TensorIMS 是一个面向 Google Pixel Tensor 设备的 Android 应用，用于�
 
 主要适配和维护范围为中国大陆的中国移动、中国联通、中国电信网络下的 Pixel Tensor 设备。其他运营商因缺少相应测试条件，不作为主要适配和维护对象。此约定限定维护范围，不代表需要在代码中按地区或运营商限制使用，也不保证所有机型、系统版本和网络功能均可用。
 
-项目原名为 Mystery00/TurboIMS，现由 Mystery00 以 TensorIMS 名称独立维护，仓库归属 Pixel-Tailor-CN 组织。仓库地址为 `https://github.com/Pixel-Tailor-CN/TensorIMS`，项目主页为 `https://pixel.mystery0.app`。本双模式分支同时构建 `tensor`（`app.mystery0.ims.tensor`）与 `legacy`（`io.github.vvb2060.ims`）两个 flavor，每个 APK 都包含完整官方/私有内置双模式。`tensor` 与旧版独立安装、不自动迁移私有数据；`legacy` 仅在签名与原安装一致且 `versionCode` 更高时可覆盖升级并原地保留数据。历史文档和上游仓库名称保留来源。
+项目原名为 Mystery00/TurboIMS，现由 Mystery00 以 TensorIMS 名称独立维护，仓库归属 Pixel-Tailor-CN 组织。仓库地址为 `https://github.com/Pixel-Tailor-CN/TensorIMS`，项目主页为 `https://pixel.mystery0.app`。项目构建 `tensor` 与 `legacy` 两个安装包，共用业务代码，各自支持官方 Shizuku 和私有内置后端。历史文档和上游仓库名称保留来源。
 
 应用主要面向 Android 13 及以上系统，当前构建目标为 Android SDK 37。设备侧功能验证应优先在已安装并运行 Shizuku 的真实 Pixel 设备上完成。
 
@@ -71,24 +71,14 @@ TensorIMS 是一个面向 Google Pixel Tensor 设备的 Android 应用，用于�
 - `AutoRestoreNotifier.kt`：自动应用一轮结束后汇总结果，先显示文本 Toast，未确认显示时使用通知兜底。
 - `ConfigurationOperations.kt`：复用 `OperationCoordinator` 串行协调手动/自动业务与历史提交，和模式切换共享安全边界。
 
-## 运行架构
+## 后端开发约束
 
-项目采用主应用进程、可选的私有 shell/root 服务进程与受控 Instrumentation：
-
-1. 主进程首次保持 UNSET，用户明确选择 OFFICIAL 或 EMBEDDED 后才连接选定后端。
-2. `PrivilegeRuntime` 管理选定模式、epoch、未完成操作日志与恢复门禁；`OperationCoordinator` 统一串行业务/历史/fallback/切换/关闭。
-3. `OfficialBackend` 封装官方 API 与 `ShizukuBinderWrapper`。断开仅释放客户端引用，不能停止官方服务。
-4. `EmbeddedServerMain` 从当前安装 APK 启动；`EmbeddedBridgeProvider` 检查真实 shell/root UID 与一次性挑战；`EmbeddedServer` 只映射固定 AIDL 操作。
-5. 两后端都把 `IPrivilegeSession` 和操作 ID 显式传入 `SessionInstrumentation`。业务入口不读取全局 Shizuku Binder。
-6. Instrumentation 执行受限 API、回读与权限清理后通过 watcher 返回结果。客户端超时不取消设备端写入，未知结果保持恢复态。
-
-典型数据流：
-
-```text
-UI / ViewModel -> ConfigurationOperations -> PrivilegeRuntime
-  -> OfficialBackend 或 EmbeddedBackend -> 固定 Instrumentation + 显式会话
-  -> CarrierConfig / SettingsProvider / Telephony -> 回读 / 清理 -> 结果 / 历史
-```
+- 未选择模式（UNSET）不执行特权操作；官方拒绝授权不自动切换内置模式，后台恢复不替用户配对、提权或启动服务。
+- 业务与模式切换统一经 `PrivilegeRuntime` / `OperationCoordinator` 协调；fallback 必须保持在同一后端事务中，不削弱业务写入的取消保护。
+- Instrumentation 显式接收操作会话，不读取全局 Shizuku Binder；私有桥接只提供固定操作，保留 shell/root UID、安装身份和一次性挑战校验，不新增通用命令或任意 Binder 转发。
+- 官方断开只释放客户端引用；内置停止仅作用于本包服务。权限委托冲突报告 `DELEGATION_BUSY`，不得清理其他客户端权限或按进程名停止 Shizuku。
+- 客户端超时不代表设备端写入停止；未知结果或权限清理失败保持恢复态，不清理未完成操作日志或持久化原值备份。
+- 详细方案见[双模式设计](docs/plans/2026-10-01-tensorims-dual-mode-design.md)、[双包发布设计](docs/plans/2026-10-02-dual-package-release-design.md)与[原生电脑 ADB 启动器设计](docs/plans/2026-10-11-native-adb-starter-design.md)，不要在本文件重复实现流程。
 
 ## 特权入口
 
@@ -204,23 +194,13 @@ adb shell settings get global captive_portal_https_url
 - 设计文档和实施计划文件名使用 `YYYY-MM-DD-<主题>-design.md` 与 `YYYY-MM-DD-<主题>-plan.md` 格式。
 - 若项目结构、构建版本、兼容策略或开发约定发生变化，应更新本文件。
 - `CLAUDE.md` 仅作为 Claude Code 的兼容入口，不维护重复的项目说明。
+- README 面向用户，只写功能、安装与使用；本文件只保留开发约束，设计细节留在 `docs/plans/`。逐轮实施报告、审查记录和原始测试日志使用批准的临时目录，不放入正式文档。
 
-## 双包名、各自双模式分支补充
+## 安装与启动兼容约束
 
-- `tensor` 的 applicationId 为 `app.mystery0.ims.tensor`，`legacy` 为 `io.github.vvb2060.ims`；namespace、第一方 Kotlin/Java/AIDL 包仍统一为 `app.mystery0.ims.tensor`，不复制业务代码，不按 flavor 删减后端。
-- Provider authority、Instrumentation 目标包、私有握手和启动器安装身份取当前 applicationId；组件类名仍属于统一 namespace。不同安装包不能借对方的私有服务或会话执行操作。
-- 保留现有 SharedPreferences 名称、键、私有 `noBackupFilesDir` 文件名及原值；legacy 原地升级不重命名或清理它们，tensor 私有数据独立且不自动迁移。
-- 双包可以独立安装，但不允许同时启用自动恢复修改同一 SIM；进程内串行调度不提供跨包或 Android 全局 shell 委托的并发保证。
-- 2026-10-02 的[双包发布补充设计](docs/plans/2026-10-02-dual-package-release-design.md)替代原设计的单包限制；其他安全边界保持不变。
-- `privilege/` 管理选定后端、官方适配、串行调度及未确认操作日志；`bridge/` 定义固定 AIDL/认证/会话；`embedded/` 承载仅供本应用的私有进程和显式启动器。
-- 业务层不可直接读取官方 Shizuku 单例。Instrumentation 必须接收本次操作的会话 Binder；内置 Binder 不交给官方 API 静态入口。
-- `UNSET` 不执行特权操作；官方拒绝授权不切内置；所有后台自动恢复仅在已选后端 READY 时触发，绝不代替用户启动 root/ADB。
-- 结果未知或清理失败保持恢复态；客户端超时不意味着设备端停止。持久化原值备份不是缓存，禁止在切换、禁用或升级时清理。
-- Android 全局 shell 委托冲突应报告 DELEGATION_BUSY，不清理其他客户端权限，不按进程名停止 Shizuku。
-- 内置无线调试使用用户显式启动的短时前台通知，用户保留系统配对对话框并通过 RemoteInput 输入验证码；不要求手填端口，不申请悬浮窗权限。分别发现 `_adb-tls-pairing._tcp` 和 `_adb-tls-connect._tcp`，只接受本机地址且 Socket 保持回环限定。
-- 电脑 ADB 启动入口位于特权模式页，用户主动生成当前安装包的一次性 `adb shell` 命令，电脑通过 USB 或无线 ADB 执行。命令直接调用安装目录中的 `libtensorims_starter.so --user <id>`，仅传入 Android 用户号；应用更新后必须重新获取安装路径。等待约 110 秒并占用统一启动门禁；取消、超时或进程结束后旧命令失效，不支持无应用等待的永久脚本。原生 PIE 清理危险环境变量后以当前 APK 为 classpath 调用固定 Kotlin 入口；Provider 只允许 UID 0/2000 在有效等待内单次 claim，核对安装身份、native library 路径、epoch 与 challenge 后交给现有私有服务握手。等待阶段显式恢复调用方 Job 的取消能力，不改变协调器对业务事务的 NonCancellable 保护。
-- Android 17（target 37）自动 NSD 发现先请求 `ACCESS_LOCAL_NETWORK`，Android 13+ 先确认通知权限与渠道可用；权限拒绝不得在后台反复请求。通知会话、发现、取消及迟到回调按独立 token 隔离，配对码绝不进入持久状态或日志。
-- 无线流程、协议/证书测试与设备验收边界详见 `docs/implementation/WIRELESS_ADB_VALIDATION.md`；云端 JVM TLS 与双包构建不能代替 Android 实际配对/JNI/通知/私有服务握手验收。
-- 配对库的 `moe.shizuku.manager.adb.PairingContext` 是上游二进制 JNI ABI，保留第三方包名及许可。它不是官方管理器的授权/配置入口。
-- debug 使用 Android 标准开发签名；release 要求显式完整签名配置。禁止把调试证书用于正式发布。
-- 本地纯逻辑、构建和静态测试不替代真实设备验收，记录详见 `docs/implementation/DEVICE_ACCEPTANCE.md`。
+- `tensor` applicationId 为 `app.mystery0.ims.tensor`，`legacy` 为 `io.github.vvb2060.ims`；namespace 和第一方包名统一，不复制业务代码或按 flavor 删减后端。Provider authority、Instrumentation 目标包和私有会话身份使用当前 applicationId，不能串包。
+- 保留现有配置名称、键及私有原值备份；legacy 原地升级要求签名一致且 `versionCode` 更高，不能重命名或清理数据；tensor 独立保存数据，不自动迁移。两包不能并发或同时自动恢复修改同一 SIM。
+- 无线启动须由用户操作，使用系统配对界面与短时通知，只接受本机地址；不得要求手填端口、申请悬浮窗或记录配对码。Android 17 自动发现需本地网络权限，Android 13+ 需通知权限与可用渠道，拒绝后不在后台反复请求。
+- 电脑 ADB 启动必须有用户主动开启的有限等待；取消、超时或进程结束后须重新开启等待，应用更新后须重新获取命令。保留固定原生入口、危险环境变量清理与一次性 claim 校验，不能扩展成永久脚本或通用 shell 执行器。
+- `moe.shizuku.manager.adb.PairingContext` 属于第三方 JNI ABI，保留包名和许可，不是官方管理器的授权入口。
+- debug 使用开发签名；release 必须显式提供完整正式签名配置，不得回退开发证书。编译、静态检查或模拟器验证不能替代真实设备功能验收。

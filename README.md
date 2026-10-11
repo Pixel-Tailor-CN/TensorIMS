@@ -1,37 +1,11 @@
 # TensorIMS
 
-## 双模式开发分支说明
-
-已知能力边界：当前接口不能独立证明 CarrierConfig 覆盖删除完成。重置会实际请求并回读，但显示「已请求、尚未确认」，保留恢复保护和自动恢复暂停；全卡重置可能在首卡未确认后停止。它不能被当作已完整成功的重置功能。
-
-本分支提供两个 flavor，每个 APK 都完整包含官方 Shizuku 和私有内置两种模式，不按后端拆包：
-
-- `tensor`：`app.mystery0.ims.tensor`，与旧版独立安装，私有数据独立且不自动迁移
-- `legacy`：`io.github.vvb2060.ims`，仅在签名与原安装一致且 `versionCode` 更高时可覆盖升级，保留原有配置、自动恢复数据和私有持久化 VoLTE 原值备份
-
-两个 flavor 共用 `app.mystery0.ims.tensor` namespace 和第一方代码。桌面上旧包显示为“TensorIMS（旧包名）”（英文为“TensorIMS (Legacy)”），日志头包含 applicationId/flavor，便于核对当前版本。首次使用均需显式选择后端；内置通过各自独立无线 ADB 配对或用户批准的已有 root 启动，不管理其他 Shizuku 客户端。模式可在设置页切换；写入或恢复未结束时禁止切换。
-
-本分支尚未通过真实 Pixel 的双包安装/覆盖升级、私有桥接、双服务共存或 IMS 通信验收；下方历史截图及现有 Release 下载不代表本分支已经发布或验证。设备支持清单沿用上游范围，不等于本次已验证。请先阅读 [真机验收与迁移](docs/implementation/DEVICE_ACCEPTANCE.md)。换用 `tensor` 前，先关闭旧版自动恢复并恢复旧版持久化 VoLTE 原值，不要先卸载旧版或清理其数据。两包不可同时启用自动恢复修改同一 SIM；独立安装不代表 Android 全局 shell 委托可并行使用。
-
-本地构建需要 JDK 21、SDK 37：
-
-```sh
-./gradlew :app:testTensorDebugUnitTest :app:testLegacyDebugUnitTest
-./gradlew :app:assembleTensorDebug :app:assembleLegacyDebug
-./gradlew :app:lintTensorDebug :app:lintLegacyDebug
-# release 构建必须完整提供现有四项 SIGN_KEY_* 配置
-./gradlew :app:assembleTensorRelease :app:assembleLegacyRelease
-```
-
-debug 自动使用标准开发签名；release 缺少完整签名配置时明确失败，不能回退到 debug 签名。正式发布和 master 预发布均约定在同一 Release 提供两个同版本 APK 及各自 mapping，沿用既有签名 Secrets；master 仍以提交信息包含 `ci` 为门禁。产物按 `TensorIMS-<applicationId>-<versionName>.apk` 和 `TensorIMS-<applicationId>-<versionName>-mapping.txt` 区分。共用 CI 签名配置不等于已核实旧安装证书，不能据此保证覆盖升级。详见[双包发布补充设计](docs/plans/2026-10-02-dual-package-release-design.md)。
-
-
-> **聚焦中国大陆运营商网络下的 Google Pixel IMS 配置，由 Mystery00 独立维护。**
-> 原 **Mystery00/TurboIMS**，现更名为 **TensorIMS**。仅支持搭载 Google Tensor 芯片的 Pixel 设备，需 Android 13+，并通过明确选择的后端取得特权。
+> **IMS configuration for Google Pixel devices on mainland Chinese carrier networks, independently maintained by Mystery00.**
+> Previously **Mystery00/TurboIMS**, now **TensorIMS**. Requires a Google Tensor-powered Pixel device, Android 13+, and privileged access through the backend you explicitly select.
 >
-> 主要适配和维护范围为中国移动、中国联通、中国电信网络下的使用场景。其他运营商因缺少相应设备、SIM 卡及网络测试条件，不作为主要适配和维护对象；这不表示其他网络一定无法使用，实际兼容性需自行验证。
+> Development and maintenance primarily focus on China Mobile, China Unicom, and China Telecom. Other carriers are outside the primary maintenance scope because suitable devices, SIMs, and network testing are unavailable. This does not mean other networks cannot work; compatibility must be verified on the target device.
 
-[下载最新版](https://github.com/Pixel-Tailor-CN/TensorIMS/releases/latest) · [项目主页](https://pixel.mystery0.app) · [中文使用说明](README_CN.md) · [问题反馈](https://github.com/Pixel-Tailor-CN/TensorIMS/issues)
+[Download latest](https://github.com/Pixel-Tailor-CN/TensorIMS/releases/latest) · [Project website](https://pixel.mystery0.app) · [Chinese guide](README_CN.md) · [Report an issue](https://github.com/Pixel-Tailor-CN/TensorIMS/issues)
 
 <p align="center">
   <img src="app/src/main/ic_launcher-playstore.png" width="200" alt="TensorIMS Logo"/>
@@ -116,8 +90,12 @@ TensorIMS is a tool that allows you to enable or disable IMS features like Voice
 <a href="https://apps.obtainium.imranr.dev/redirect.html?r=obtainium://add/https://github.com/Pixel-Tailor-CN/TensorIMS"><img src="https://raw.githubusercontent.com/ImranR98/Obtainium/refs/heads/main/assets/graphics/badge_obtainium.png" alt="Obtainium" height="96"></a>
 
 1. Choose the APK by application ID on the [Releases](https://github.com/Pixel-Tailor-CN/TensorIMS/releases) page: `app.mystery0.ims.tensor` for a separate installation, or `io.github.vvb2060.ims` to keep the old application identity. Both include official and embedded modes.
-2. Follow the [installation and data-safety checklist](docs/implementation/DEVICE_ACCEPTANCE.md#安装前), including signature and version checks. Do not uninstall the old app just to work around a signature mismatch.
-3. Open the app, explicitly choose a mode and authorize/start that backend; complete read-only device acceptance first.
+2. Check the APK signature and version before installation, and preserve existing app data. Do not uninstall the old app to bypass a signature mismatch.
+3. Open **Privilege mode** from the device card on the home screen. Official mode requires Shizuku to be running and authorized; embedded mode can be started manually through wireless debugging pairing, computer ADB, or existing root access. Once the backend is ready, read the current configuration before making changes.
+
+The new and legacy packages store data separately and do not migrate it automatically. Updating the legacy package requires a matching signature and a higher version code. Before switching packages, disable auto-restore, restore the legacy app's original Persistent VoLTE values, and retain its data. Do not let both packages automatically modify the same SIM at the same time.
+
+Compatibility depends on the device and system version. The device list and historical screenshots do not imply that every feature has passed real-device validation.
 
 ## Usage
 
@@ -128,13 +106,13 @@ TensorIMS is a tool that allows you to enable or disable IMS features like Voice
 5. **System Network**: Open **System network** to manage Captive Portal detection URLs with one-tap presets; changes apply globally across the device.
 6. **Advanced Tools**: Use the advanced page to inspect real-time IMS capability snapshots, restart IMS if needed, or reset CarrierConfig overrides in the Danger Zone.
 
+> Follow the reset status shown in the app. A status indicating that the reset was requested but remains unconfirmed does not mean restoration has been confirmed successful.
+
 ## About this Project
 
 This project originated as a fork of [Turbo1123/TurboIMS](https://github.com/Turbo1123/TurboIMS). However, due to various stability issues encountered during usage, the codebase has undergone a complete refactoring. This includes rewriting the core logic for SIM card reading and carrier configuration, as well as redesigning the UI and icons.
 
-本项目此前以 **Mystery00/TurboIMS** 的名称发布，现以 **TensorIMS** 继续独立维护，后续不计划合并上游代码。更名仅针对本维护版本；GitHub 上保留原有 fork 关系及来源说明。
-
-本双模式分支同时提供新包 `app.mystery0.ims.tensor` 与兼容旧应用身份的 `io.github.vvb2060.ims`，每包均含两个后端。新包不覆盖旧包，也不自动迁移私有数据；旧包 flavor 的覆盖升级仍须满足原安装签名一致且 `versionCode` 更高。请按[真机验收与迁移](docs/implementation/DEVICE_ACCEPTANCE.md)选择安装路径，并核对 Releases/Obtainium 实际下载的 applicationId、版本和证书。
+This project was previously released as **Mystery00/TurboIMS** and continues to be maintained independently as **TensorIMS**, with no plans to merge future upstream changes. The rename applies only to this maintained version; the original fork relationship and attribution remain on GitHub.
 
 ## Credits
 
@@ -151,6 +129,6 @@ This application modifies your device's carrier configuration and, when requeste
 
 This project is licensed under the Apache License 2.0. See the [LICENSE](LICENSE) file for details.
 
-### 应用语言
+### App Language
 
-点击首页右上角齿轮进入“应用设置”，可选择“自动（跟随系统）”、English 或简体中文。默认使用自动，更改立即生效并由 Android 系统保存，与系统应用语言设置同步。新增翻译需添加相应 `values-<语言限定符>/strings.xml` 并更新 `app/src/main/res/xml/locales_config.xml`；选择器自动读取该列表，缺失文案回退到默认英语资源。
+Tap the gear icon at the top right of the home screen to open **App settings**. Choose to follow the system language, use English, or use Simplified Chinese. The default follows the system. Changes take effect immediately, are saved by Android, and stay synchronized with the system's per-app language settings.

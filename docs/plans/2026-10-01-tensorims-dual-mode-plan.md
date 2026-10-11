@@ -89,7 +89,7 @@
 - [x] 首页和自动恢复文案后端中立；迁移提示保护旧版备份；测试绿、Compose 编译通过
 
 ### Task 6: 整合、验收与交付
-**Files:** app/src/main/AndroidManifest.xml、app/proguard-rules.pro、docs/implementation/*、测试、交付产物
+**Files:** app/src/main/AndroidManifest.xml、app/proguard-rules.pro、测试、交付产物
 - [ ] 注册私有 Provider/权限和 main/session R8 keep；开启 AIDL，检查合并 Manifest
 - [ ] 全量 testDebugUnitTest、assembleDebug、lint；修复范围内问题，验证签名与唯一包身份
 - [ ] 独立全分支安全/设计审查：身份、IPC、超时、备份、自动恢复、JNI、许可证与失败恢复；必要修复后重跑
@@ -98,4 +98,4 @@
 
 ## 实施后的验收说明
 
-任务 1–5 已完成代码与各自测试；CarrierConfig 重置的独立成功判定仍受系统接口可观察性限制，明确返回未确认并保留恢复门。静态源码审查对该项为有条件通过，不视为完整重置成功能力。最终整合与真实设备验证见 docs/implementation/VALIDATION.md 及交付验证清单。
+任务 1–5 已完成代码与各自测试；CarrierConfig 重置的独立成功判定仍受系统接口可观察性限制，明确返回未确认并保留恢复门。静态源码审查对该项为有条件通过，不视为完整重置成功能力。历史实施报告与测试日志已清理；此前的离线整合结果不代表真实设备验证通过。

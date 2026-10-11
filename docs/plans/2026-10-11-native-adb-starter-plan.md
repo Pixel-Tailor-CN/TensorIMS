@@ -56,7 +56,7 @@
 - `embedded/EmbeddedLauncher.kt`：生成短命令、准备电脑等待并按本轮撤销。
 - `embedded/adb/ComputerAdbCommand.kt` 与对应测试：替换 Base64 编码为路径与用户参数校验。
 - `viewmodel/MainViewModel.kt`、现有电脑启动 UI / 中英文资源：仅必要文案与状态接线，保留取消任务与剪贴板标记。
-- `AGENTS.md`、`docs/implementation/COMPUTER_ADB_VALIDATION.md`：记录最终架构与真实验证。
+- `AGENTS.md`：维护最终架构与兼容约束；验证结论应区分构建、模拟器及真实设备范围，不再将逐轮验收报告和原始测试日志写入正式文档。
 
 除上述文件外，允许实现目标所必需的同目录小型 helper、针对性测试和构建接线；新增范围由管理员记录，不能顺带修改 IMS 业务。
 
