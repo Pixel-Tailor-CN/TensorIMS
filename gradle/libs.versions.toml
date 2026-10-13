@@ -2,7 +2,7 @@
 agp = "9.4.1"
 kotlin = "2.4.21"
 
-app-version = "4.0.0"
+app-version = "4.0.1"
 android-compileSdk = "37"
 android-minSdk = "33"
 android-targetSdk = "37"
