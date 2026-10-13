@@ -11,5 +11,6 @@
     <string name="nav_restarting">Restarting…</string>
     <string name="nav_reset_configuration">Reset carrier configuration</string>
     <string name="nav_reset_single_sim">Select an individual SIM on Home before resetting its configuration.</string>
-    <string name="nav_reset_failed_snapshot">Reset did not complete. The draft has been retained, but the previous snapshot is no longer valid. Read the configuration again before making further changes.</string>
+    <string name="nav_reset_failed_snapshot">The reset result has not been confirmed. The draft has been retained, but the previous snapshot is no longer valid. Read the configuration again before making further changes.</string>
+    <string name="reset_request_unverified">The reset request completed and the current configuration was read back, but the system cannot independently verify that the overrides were removed. Automatic apply is paused; reload and inspect the configuration.</string>
 </resources>

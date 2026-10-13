@@ -11,5 +11,6 @@
     <string name="nav_restarting">正在重启…</string>
     <string name="nav_reset_configuration">重置运营商配置</string>
     <string name="nav_reset_single_sim">请先在首页选择具体 SIM，再重置该卡配置。</string>
-    <string name="nav_reset_failed_snapshot">重置未完成。草稿已保留，旧快照已失效；请重新读取配置后再操作。</string>
+    <string name="nav_reset_failed_snapshot">重置结果尚未确认。草稿已保留，旧快照已失效；请重新读取配置后再操作。</string>
+    <string name="reset_request_unverified">重置请求已完成，当前配置已回读，但系统无法独立核验覆盖是否已删除。自动应用已暂停；请重新读取并检查配置。</string>
 </resources>

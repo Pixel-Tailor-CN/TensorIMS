@@ -105,6 +105,18 @@ class ConfigurationRepository(private val context: Context) {
         }
     }
 
+    /** 未核验的重置保留历史，但同步保存阻止标记，防止重新启用自动应用撤销重置意图。 */
+    fun blockRestoreAfterResetRequest(subIds: Set<Int>) {
+        require(subIds.isNotEmpty() && subIds.all { it >= 0 })
+        val revision = state.getLong("revision", 0) + 1
+        check(state.edit().putLong("revision", revision).commit()) { "Cannot persist reset revision" }
+        for (subId in subIds) {
+            check(history(subId).edit().putLong(REVISION, revision).putBoolean(RESET, true).commit()) {
+                "Cannot persist reset restoration block"
+            }
+        }
+    }
+
     private fun nextRevision(): Long {
         val revision = state.getLong("revision", 0) + 1
         state.edit { putLong("revision", revision) }

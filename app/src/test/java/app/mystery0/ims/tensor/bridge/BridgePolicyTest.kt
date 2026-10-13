@@ -199,7 +199,33 @@ class BridgePolicyTest {
         }
         val progress = CarrierWriteProgress()
         val result = CarrierBatchRunner({ now }, { now += it }).run(listOf(1), mapOf(1 to "one"), true, adapter, progress)
-        assertNotNull(result.failure); assertTrue(result.verified.isEmpty()); assertTrue(progress.uncertainOnFailure)
+        assertNull(result.failure)
+        assertTrue(result.verified.isEmpty())
+        assertEquals(setOf(1), result.unverifiedResetIds)
+        assertFalse(progress.retryAllowed)
+    }
+
+    @Test fun resetPermissionOrTransportFailureRemainsUnknownAfterEarlierAcceptedCard() {
+        val adapter = object : CarrierBatchAdapter {
+            override fun identity(subId: Int) = "identity-$subId"
+            override fun alreadyMatches(subId: Int) = false
+            override fun write(subId: Int) { if (subId == 2) throw IllegalStateException("Transport lost") }
+            override fun verify(subId: Int, resetting: Boolean) = CarrierVerification.UNPROVABLE
+        }
+        val progress = CarrierWriteProgress()
+        val result = CarrierBatchRunner({ 0L }, {}).run(listOf(1, 2), mapOf(1 to "identity-1", 2 to "identity-2"), true, adapter, progress)
+        assertNotNull(result.failure)
+        assertTrue(progress.uncertainOnFailure)
+    }
+
+    @Test fun onlyCompleteResetWithReadbackMayRemainNonBlocking() {
+        assertTrue(CarrierResetCompletionPolicy.completedWithoutRemovalProof(true, setOf(1), emptySet(), setOf(1), false))
+        assertTrue(CarrierResetCompletionPolicy.completedWithoutRemovalProof(true, setOf(1, 2), setOf(1), setOf(2), false))
+        assertFalse(CarrierResetCompletionPolicy.completedWithoutRemovalProof(false, setOf(1), emptySet(), setOf(1), false))
+        assertFalse(CarrierResetCompletionPolicy.completedWithoutRemovalProof(true, setOf(1, 2), emptySet(), setOf(1), true))
+        assertFalse(CarrierResetCompletionPolicy.completedWithoutRemovalProof(true, setOf(1, 2), emptySet(), setOf(1), false))
+        assertFalse(CarrierResetCompletionPolicy.completedWithoutRemovalProof(true, setOf(1), setOf(1), setOf(1), false))
+        assertFalse(CarrierResetCompletionPolicy.completedWithoutRemovalProof(true, emptySet(), emptySet(), emptySet(), false))
     }
 
     @Test fun finalPersistentReadbackFailureKeepsRecovery() {

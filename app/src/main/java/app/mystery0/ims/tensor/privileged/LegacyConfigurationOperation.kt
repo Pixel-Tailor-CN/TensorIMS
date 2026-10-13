@@ -11,6 +11,8 @@ import app.mystery0.ims.tensor.bridge.CarrierBatchAdapter
 import app.mystery0.ims.tensor.bridge.CarrierBatchRunner
 import app.mystery0.ims.tensor.bridge.CarrierVerification
 import app.mystery0.ims.tensor.bridge.CarrierWriteProgress
+import app.mystery0.ims.tensor.bridge.CarrierResetCompletionPolicy
+import app.mystery0.ims.tensor.R
 import app.mystery0.ims.tensor.model.TargetConfigMapper
 
 /** 主路径与 Broker 共用逐卡写入/回读；旧历史 false 不生成新关闭值。 */
@@ -23,6 +25,8 @@ internal fun SessionInstrumentation.applyLegacyConfiguration(arguments: Bundle) 
     val progress = CarrierWriteProgress()
     val observed = Bundle()
     var verified = emptySet<Int>()
+    var unverifiedResetIds = emptySet<Int>()
+    var completedReset = false
     val failure = runWithShellPermissionDelegation("LegacyConfiguration") {
         val selected = arguments.getInt(ImsModifier.BUNDLE_SELECT_SIM_ID, -1)
         val reset = arguments.getBoolean(ImsModifier.BUNDLE_RESET, false)
@@ -56,11 +60,23 @@ internal fun SessionInstrumentation.applyLegacyConfiguration(arguments: Bundle) 
         val outcome = CarrierBatchRunner(SystemClock::elapsedRealtime, Thread::sleep)
             .run(targets, identities, reset, adapter, progress)
         verified = outcome.verified
+        unverifiedResetIds = outcome.unverifiedResetIds
+        completedReset = CarrierResetCompletionPolicy.completedWithoutRemovalProof(reset, targets.toSet(),
+            verified, unverifiedResetIds, outcome.failure != null)
         outcome.failure?.let { throw it }
     }
-    result.putBoolean(ImsModifier.BUNDLE_RESULT, failure == null)
+    // 已完成请求也不能冒充删除已核验；独立结果码让 Runtime 区分业务提示与安全恢复态。
+    result.putBoolean(ImsModifier.BUNDLE_RESULT, failure == null && !completedReset)
     result.putIntArray(BridgeProtocol.VERIFIED_SUB_IDS, verified.toIntArray())
+    result.putIntArray(BridgeProtocol.UNVERIFIED_RESET_SUB_IDS, unverifiedResetIds.toIntArray())
     result.putBundle(BridgeProtocol.OBSERVED_CONFIGS, observed)
+    if (failure == null && completedReset) {
+        val message = context.getString(R.string.reset_request_unverified)
+        result.putString(ImsModifier.BUNDLE_RESULT_MSG, message)
+        result.putString(BridgeProtocol.MESSAGE, message)
+        result.putString(BridgeProtocol.ERROR_CODE, CarrierResetCompletionPolicy.UNVERIFIED)
+        Log.i("LegacyConfiguration", "Carrier reset request completed without removal proof")
+    }
     if (failure != null) {
         Log.e("LegacyConfiguration", "Carrier configuration result is not successful", failure)
         val message = if (resetRequested && progress.uncertainOnFailure) {

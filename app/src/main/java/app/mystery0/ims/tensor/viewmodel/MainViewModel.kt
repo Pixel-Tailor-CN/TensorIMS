@@ -353,15 +353,16 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
                 toast(application.getString(R.string.config_failed, restored.error), false)
                 return@launchExclusiveOperation
             }
-            val bundle = ImsModifier.buildResetBundle()
-            bundle.putInt(ImsModifier.BUNDLE_SELECT_SIM_ID, selectedSim.subId)
-            val resultMsg = ShizukuProvider.overrideImsConfig(application, bundle)
-            if (resultMsg == null) {
+            val result = ShizukuProvider.resetCarrierConfiguration(application, selectedSim.subId)
+            if (result.verified) {
                 configurations.recordReset(selectedSim.subId)
                 success = true
                 toast(application.getString(R.string.config_success_reset_message))
+            } else if (result.requestCompleted) {
+                // 保留草稿并让配置页使旧快照失效；不再将业务核验提示呈现为后端失败。
+                toast(result.message ?: application.getString(R.string.reset_request_unverified), false)
             } else {
-                toast(application.getString(R.string.config_failed, resultMsg), false)
+                toast(application.getString(R.string.config_failed, result.message ?: "Incomplete reset result"), false)
             }
         }
     }

@@ -32,6 +32,7 @@ object BridgeProtocol {
     const val COMPUTER_GENERATION = PREFIX + "computerGeneration"
     const val COMPUTER_IDENTITY = PREFIX + "computerIdentity"
     const val VERIFIED_SUB_IDS = PREFIX + "verifiedSubIds"
+    const val UNVERIFIED_RESET_SUB_IDS = PREFIX + "unverifiedResetSubIds"
     const val OBSERVED_CONFIGS = PREFIX + "observedConfigs"
     const val DIAGNOSTIC_WARNING = PREFIX + "diagnosticWarning"
     const val BROKER_RETRY_ALLOWED = PREFIX + "brokerRetryAllowed"

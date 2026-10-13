@@ -178,13 +178,14 @@ interface CarrierBatchAdapter {
     fun write(subId: Int)
     fun verify(subId: Int, resetting: Boolean): CarrierVerification
 }
-data class CarrierBatchOutcome(val verified: Set<Int>, val failure: Throwable?)
+data class CarrierBatchOutcome(val verified: Set<Int>, val failure: Throwable?, val unverifiedResetIds: Set<Int> = emptySet())
 
 /** 纯执行器把每卡身份、真实写事务和有界回读串联；部分成功后立即停止，不重放整批。 */
 class CarrierBatchRunner(private val now: () -> Long, private val pause: (Long) -> Unit) {
     fun run(targets: List<Int>, identities: Map<Int, String>, reset: Boolean,
             adapter: CarrierBatchAdapter, progress: CarrierWriteProgress): CarrierBatchOutcome {
         val verified = linkedSetOf<Int>()
+        val unverifiedResetIds = linkedSetOf<Int>()
         return try {
             for (subId in targets) {
                 val expectedIdentity = requireNotNull(identities[subId])
@@ -205,15 +206,18 @@ class CarrierBatchRunner(private val now: () -> Long, private val pause: (Long) 
                     val state = adapter.verify(subId, reset)
                     check(adapter.identity(subId) == expectedIdentity) { "SIM identity changed after verification" }
                     if (state == CarrierVerification.VERIFIED) { verified += subId; break }
-                    check(state != CarrierVerification.UNPROVABLE) {
-                        "Reset request returned and current configuration was read; override removal cannot be independently verified"
+                    if (reset && state == CarrierVerification.UNPROVABLE) {
+                        // 请求和回读已结束，仅缺少删除来源证明，不等价于设备端任务未知。
+                        unverifiedResetIds += subId
+                        break
                     }
+                    check(state != CarrierVerification.UNPROVABLE) { "Carrier write cannot be verified" }
                     check(now() < deadline) { "Carrier configuration read-back did not match" }
                     pause(150)
                 }
             }
-            CarrierBatchOutcome(verified, null)
-        } catch (failure: Throwable) { CarrierBatchOutcome(verified, failure) }
+            CarrierBatchOutcome(verified, null, unverifiedResetIds)
+        } catch (failure: Throwable) { CarrierBatchOutcome(verified, failure, unverifiedResetIds) }
     }
 }
 

@@ -108,6 +108,7 @@ Compatibility depends on the device and system version. The device list and hist
 6. **Advanced Tools**: Use the advanced page to inspect real-time IMS capability snapshots, restart IMS if needed, or reset CarrierConfig overrides in the Danger Zone.
 
 > Follow the reset status shown in the app. A status indicating that the reset was requested but remains unconfirmed does not mean restoration has been confirmed successful.
+> If the reset request and permission cleanup completed but override removal cannot be independently verified, the backend remains usable. Automatic application is paused, and the affected SIM's previous history is excluded from automatic restoration. Reload the configuration to inspect the result.
 
 ## About this Project
 

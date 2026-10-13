@@ -8,6 +8,8 @@ import app.mystery0.ims.tensor.privilege.OperationType
 import app.mystery0.ims.tensor.privilege.PrivilegeRuntime
 import app.mystery0.ims.tensor.privilege.SimReadResult
 import app.mystery0.ims.tensor.bridge.BridgeProtocol
+import app.mystery0.ims.tensor.bridge.CarrierResetCompletionPolicy
+import app.mystery0.ims.tensor.model.CarrierConfigResetResult
 import app.mystery0.ims.tensor.model.CaptivePortalSettings
 import app.mystery0.ims.tensor.model.ImsCapabilityStatus
 import app.mystery0.ims.tensor.model.PersistentVolteState
@@ -219,6 +221,16 @@ class ShizukuProvider : ShizukuProvider() {
                 return result.getString(ImsResetter.BUNDLE_RESULT_MSG) ?: "Incomplete IMS reset result"
             }
             return null
+        }
+
+        suspend fun resetCarrierConfiguration(context: Context, subId: Int): CarrierConfigResetResult {
+            val args = ImsModifier.buildResetBundle().apply { putInt(ImsModifier.BUNDLE_SELECT_SIM_ID, subId) }
+            val result = startInstrumentation(context, ImsModifier::class.java, args, true)
+                ?: return CarrierConfigResetResult(message = "No instrumentation result")
+            val verified = result.getBoolean(ImsModifier.BUNDLE_RESULT)
+            return CarrierConfigResetResult(verified,
+                verified || result.getString(BridgeProtocol.ERROR_CODE) == CarrierResetCompletionPolicy.UNVERIFIED,
+                result.getString(ImsModifier.BUNDLE_RESULT_MSG) ?: result.getString(BridgeProtocol.MESSAGE))
         }
 
         suspend fun readSimInfoList(context: Context): List<SimSelection> = readSimInfoResult(context).sims

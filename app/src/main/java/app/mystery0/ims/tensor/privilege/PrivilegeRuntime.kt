@@ -6,6 +6,8 @@ import android.provider.Settings
 import android.telephony.SubscriptionInfo
 import android.util.Log
 import app.mystery0.ims.tensor.bridge.BridgeProtocol
+import app.mystery0.ims.tensor.bridge.CarrierResetCompletionPolicy
+import app.mystery0.ims.tensor.ConfigurationRepository
 import app.mystery0.ims.tensor.embedded.EmbeddedConnection
 import app.mystery0.ims.tensor.model.TargetConfigProtocol
 import app.mystery0.ims.tensor.privileged.CaptivePortalSettingsModifier
@@ -212,7 +214,7 @@ object PrivilegeRuntime {
     fun canAutoRestore(epoch: Long): Boolean = initialized && status.value.epoch == epoch &&
         status.value.isReady && !preferences().getBoolean("restore_paused", false)
 
-    /** 用户核对后重新启用自动恢复，才允许解除未知结果造成的持久暂停。 */
+    /** 用户核对后重新启用自动恢复，才允许解除未确认结果造成的持久暂停。 */
     fun acknowledgeAutomaticRestore() {
         if (initialized && status.value.isReady) {
             preferences().edit().putBoolean("restore_paused", false).commit()
@@ -393,6 +395,30 @@ object PrivilegeRuntime {
                 RecoveryReason.CLEANUP_UNCONFIRMED else RecoveryReason.OUTCOME_UNKNOWN)
             return errorResult(args, "操作或清理结果尚未确认，请先恢复核对", "OPERATION_INDETERMINATE")
         }
+        if (outcome.result?.getString(BridgeProtocol.ERROR_CODE) == CarrierResetCompletionPolicy.UNVERIFIED) {
+            val expected = pending?.takeIf { it.operationId == record.operationId }?.targetIdentities?.keys.orEmpty()
+            val valid = outcome.result.getBoolean(BridgeProtocol.CLEANUP_CONFIRMED) &&
+                CarrierResetCompletionPolicy.completedWithoutRemovalProof(
+                    record.operation in setOf(OperationType.APPLY_CONFIG.name, OperationType.BROKER_CONFIG.name) &&
+                        args.getBoolean(ImsModifier.BUNDLE_RESET), expected,
+                    outcome.result.getIntArray(BridgeProtocol.VERIFIED_SUB_IDS)?.toSet().orEmpty(),
+                    outcome.result.getIntArray(BridgeProtocol.UNVERIFIED_RESET_SUB_IDS)?.toSet().orEmpty(), false)
+            if (!valid) {
+                markUnknown(record, RecoveryReason.OUTCOME_UNKNOWN)
+                return errorResult(args, "重置终态不完整，请先恢复核对", "OPERATION_INDETERMINATE")
+            }
+            try {
+                // 已知请求与清理完成，可继续使用后端；先可靠保存恢复保护再清除操作日志。
+                check(preferences().edit().putBoolean("restore_paused", true).commit()) {
+                    "Cannot persist automatic restore pause"
+                }
+                ConfigurationRepository(context).blockRestoreAfterResetRequest(expected)
+            } catch (failure: Exception) {
+                Log.e(TAG, "Reset restoration protection could not be persisted", failure)
+                markUnknown(record, RecoveryReason.JOURNAL_IO)
+                return errorResult(args, "无法可靠保存重置恢复保护，请先恢复核对", "JOURNAL_FAILED")
+            }
+        }
         if (outcome.result?.getString(BridgeProtocol.ERROR_CODE) == "OPERATION_INDETERMINATE") {
             if (machine.status.connection != ConnectionState.RECOVERY_REQUIRED) recoveryReason = RecoveryReason.OUTCOME_UNKNOWN
             machine.uncertain(record.operationId, record.epoch)
@@ -428,7 +454,7 @@ object PrivilegeRuntime {
         if (machine.status.mode == BackendMode.UNSET) { publish(); return }
         val connection = backend(machine.status.mode).connect(context, machine.status.epoch)
         machine.updateConnection(if (connection.isReady && preferences().getBoolean("restore_paused", false))
-            connection.copy(message = "自动恢复因上次未知结果暂停；核对配置后，请将开关关闭再开启") else connection)
+            connection.copy(message = "自动应用已安全暂停；核对当前配置后，请将开关关闭再开启") else connection)
         publish()
     }
 
