@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="embedded_auto_start_title">打开应用时自动启动内置服务</string>
+    <string name="embedded_auto_start_description">默认关闭。打开应用时，尝试使用已有无线调试配对连接并启动内置服务。需要无线调试可用及所需权限，不会自动重新配对或使用 root。</string>
+    <string name="embedded_auto_start_independent">启动成功后，是否应用已保存配置由首页的自动应用开关决定。</string>
+    <string name="embedded_auto_start_waiting">下次打开应用时检查启动条件。</string>
+    <string name="embedded_auto_start_checking">正在检查自动启动条件…</string>
+    <string name="embedded_auto_start_ready">内置服务已就绪，无需再次启动。</string>
+    <string name="embedded_auto_start_busy">本轮因其他操作跳过。可使用手动入口，或下次打开应用再尝试。</string>
+    <string name="embedded_auto_start_recovery">当前需要恢复核对，请先完成核对；自启动不会绕过此状态。</string>
+    <string name="embedded_auto_start_notifications">自动启动暂不可用：请允许应用通知，并开启无线启动通知渠道。</string>
+    <string name="embedded_auto_start_local_network">自动启动暂不可用：请允许本地网络访问。</string>
+    <string name="embedded_auto_start_credentials">自动启动暂不可用：未能读取已有配对凭据，请先手动完成无线调试配对。</string>
+    <string name="embedded_auto_start_failed">本轮自动启动失败。请检查无线调试是否可用，或使用手动入口。</string>
+    <string name="embedded_auto_start_cancelled">本轮自动启动已取消，未自动重试。</string>
+    <string name="embedded_auto_start_permissions">管理启动权限</string>
+    <string name="embedded_auto_start_notification">正在自动启动内置服务</string>
+    <string name="embedded_auto_start_blocked">当前状态不允许自动启动，请核对后端状态或使用手动入口。</string>
+</resources>

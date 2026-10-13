@@ -75,6 +75,7 @@ fun BackendStatusBanner(
     onRefresh: () -> Unit,
     onRequestPermission: () -> Unit,
     onOpenSettings: () -> Unit,
+    automaticStartupRunning: Boolean = false,
 ) {
     val actions = backendUiActions(status, businessBusy = busy)
     Surface(
@@ -88,7 +89,10 @@ fun BackendStatusBanner(
                 Text(backendModeLabel(status.mode), style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
                 TextButton(onClick = onOpenSettings) { Text(stringResource(R.string.backend_settings)) }
             }
-            Text(backendConnectionLabel(status.connection), style = MaterialTheme.typography.bodyMedium)
+            Text(if (automaticStartupRunning && status.mode == BackendMode.EMBEDDED &&
+                status.connection in setOf(ConnectionState.DISCONNECTED, ConnectionState.CONNECTING))
+                stringResource(R.string.embedded_auto_start_notification) else backendConnectionLabel(status.connection),
+                style = MaterialTheme.typography.bodyMedium)
             if (status.connection == ConnectionState.RECOVERY_REQUIRED) BackendRecoveryGuidance(status, compact = true)
             if (status.mode == BackendMode.UNSET) Text(stringResource(R.string.backend_choose_description), style = MaterialTheme.typography.bodySmall)
             val label = when (actions.primary) {

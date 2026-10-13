@@ -39,6 +39,7 @@ fun DeviceStatusCard(
     onRefresh: () -> Unit,
     onRequestPermission: () -> Unit,
     onOpenBackendSettings: () -> Unit,
+    automaticStartupRunning: Boolean = false,
 ) {
     var showDetails by remember { mutableStateOf(false) }
 
@@ -87,6 +88,7 @@ fun DeviceStatusCard(
                 onRefresh = onRefresh,
                 onRequestPermission = onRequestPermission,
                 onOpenSettings = onOpenBackendSettings,
+                automaticStartupRunning = automaticStartupRunning,
             )
         }
     }

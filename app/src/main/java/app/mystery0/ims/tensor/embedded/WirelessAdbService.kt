@@ -20,7 +20,9 @@ import app.mystery0.ims.tensor.embedded.adb.AdbDiscoveryAmbiguousException
 import app.mystery0.ims.tensor.embedded.adb.AdbServiceDiscovery
 import app.mystery0.ims.tensor.embedded.adb.AdbServiceKind
 import app.mystery0.ims.tensor.privilege.BackendMode
+import app.mystery0.ims.tensor.privilege.ConnectionState
 import app.mystery0.ims.tensor.privilege.PrivilegeRuntime
+import app.mystery0.ims.tensor.privilege.EmbeddedForegroundTracker
 import app.mystery0.ims.tensor.ui.MainActivity
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -31,6 +33,7 @@ import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -46,6 +49,8 @@ data class WirelessAdbState(
     val error: String? = null,
     // 仅代表本次通知会话完成配对，不持久化，也不推断系统当前是否仍授权。
     val pairedInSession: Boolean = false,
+    val automatic: Boolean = false,
+    val requestId: String? = null,
 )
 
 /** 用户明确启动的短时前台流程；通知直接接收验证码，不打开 Activity 或申请悬浮窗。 */
@@ -59,9 +64,15 @@ class WirelessAdbService : Service() {
     private var replies: Channel<String>? = null
     private var destroyed = false
     private var sessionStartId = 0
+    private var startupRequest: StartupRequest? = null
     private val manager get() = getSystemService(NotificationManager::class.java)
 
     override fun onBind(intent: Intent?): IBinder? = null
+
+    override fun onCreate() {
+        super.onCreate()
+        liveService = this
+    }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
@@ -84,6 +95,8 @@ class WirelessAdbService : Service() {
     private fun begin(pair: Boolean, token: String, startId: Int) {
         if (destroyed || !sessionGuard.owns(token)) return
         session = token
+        startupRequest = requestFor(token)
+        if (startupRequest == null) { cancelSession(token); return }
         sessionStartId = startId
         epoch = PrivilegeRuntime.status.value.epoch
         val expectedEpoch = epoch
@@ -93,10 +106,16 @@ class WirelessAdbService : Service() {
             fail(token, getString(R.string.wireless_service_permissions))
             return
         }
+        startupRequest?.permit?.let { permit ->
+            if (!permit.canContinue() || !PrivilegeRuntime.canAutomaticallyStartEmbedded(permit.epoch)) {
+                fail(token, getString(R.string.embedded_auto_start_blocked))
+                return
+            }
+        }
         try {
             createChannel(this)
             val phase = if (pair) WirelessAdbPhase.SEARCHING_PAIRING else WirelessAdbPhase.SEARCHING_CONNECT
-            val initial = WirelessAdbState(active = true, phase = phase)
+            val initial = sessionState(active = true, phase = phase)
             if (Build.VERSION.SDK_INT >= 34) {
                 startForeground(NOTIFICATION_ID, notification(initial), ServiceInfo.FOREGROUND_SERVICE_TYPE_SHORT_SERVICE)
             } else {
@@ -123,18 +142,33 @@ class WirelessAdbService : Service() {
                     update(token, WirelessAdbPhase.SEARCHING_CONNECT)
                     val port = AdbServiceDiscovery(this@WirelessAdbService).findPort(AdbServiceKind.CONNECT, 20_000)
                     ensureSession(token)
+                    startupRequest?.permit?.let { permit ->
+                        // Activity 交接期间等待可见界面，不能在真实后台开始引导。
+                        withTimeout(EmbeddedForegroundTracker.BACKGROUND_DELAY_MS) {
+                            while (!permit.tryBeginBootstrap()) { ensureSession(token); delay(30) }
+                        }
+                    }
                     update(token, WirelessAdbPhase.STARTING)
-                    val error = PrivilegeRuntime.startEmbedded {
+                    val permit = startupRequest?.permit
+                    val error = PrivilegeRuntime.startEmbedded(automaticEpoch = permit?.epoch, canStart = { permitted(token) }) {
                         ensureSession(token)
-                        EmbeddedLauncher(this@WirelessAdbService).startWireless(port)
+                        EmbeddedLauncher(this@WirelessAdbService).startWireless(port,
+                            canContinue = { permitted(token) }, automatic = permit != null,
+                            commitDelivery = permit?.let { it::commitDelivery })
                     }
                     ensureSession(token)
-                    if (error == null) finish(token, WirelessAdbPhase.SUCCESS)
+                    val confirmed = permit == null || PrivilegeRuntime.status.value.let {
+                        it.mode == BackendMode.EMBEDDED && it.epoch == permit.epoch &&
+                            it.connection in setOf(ConnectionState.READY, ConnectionState.BUSY)
+                    }
+                    if (error == null && confirmed) finish(token, WirelessAdbPhase.SUCCESS)
+                    else if (error == null) fail(token, getString(R.string.embedded_auto_start_blocked))
                     else fail(token, error)
                 }
             } catch (_: TimeoutCancellationException) {
                 fail(token, getString(R.string.wireless_service_timeout))
             } catch (cancelled: CancellationException) {
+                if (owns(token)) cancelSession(token)
                 throw cancelled
             } catch (failure: Exception) {
                 Log.w(TAG, "Wireless discovery failed (${failure.javaClass.simpleName})")
@@ -188,10 +222,15 @@ class WirelessAdbService : Service() {
     }
 
     private fun owns(token: String?) = !destroyed && token != null && token == session && sessionGuard.owns(token)
+    private fun permitted(token: String): Boolean = owns(token) && startupRequest?.permit?.canContinue() != false
+
+    private fun sessionState(active: Boolean = false, phase: WirelessAdbPhase, error: String? = null) = WirelessAdbState(
+        active, phase, error, paired, startupRequest?.permit != null, startupRequest?.permit?.requestId,
+    )
 
     private suspend fun ensureSession(token: String) {
         coroutineContext.ensureActive()
-        if (!owns(token) || PrivilegeRuntime.status.value.mode != BackendMode.EMBEDDED ||
+        if (!permitted(token) || PrivilegeRuntime.status.value.mode != BackendMode.EMBEDDED ||
             PrivilegeRuntime.status.value.epoch != epoch) throw CancellationException("Wireless session ended")
     }
 
@@ -200,7 +239,7 @@ class WirelessAdbService : Service() {
         // 首次找到配对服务时允许再次提醒；后续进度和输入重试仍只更新原通知。
         val alert = _state.value.phase == WirelessAdbPhase.SEARCHING_PAIRING &&
             phase == WirelessAdbPhase.WAITING_CODE
-        val next = WirelessAdbState(active = true, phase = phase, error = error, pairedInSession = paired)
+        val next = sessionState(active = true, phase = phase, error = error)
         _state.value = next
         manager.notify(NOTIFICATION_ID, notification(next, alert))
     }
@@ -213,22 +252,23 @@ class WirelessAdbService : Service() {
 
     private fun finish(token: String, phase: WirelessAdbPhase, error: String? = null) {
         if (!owns(token)) return
-        val next = WirelessAdbState(phase = phase, error = error, pairedInSession = paired)
+        val next = sessionState(phase = phase, error = error)
         _state.value = next
         replies?.close(); replies = null
         modeWatch?.cancel(); modeWatch = null
         // 完成通知仍可回看，已移除输入动作与敏感 RemoteInput 数据。
         stopForeground(STOP_FOREGROUND_REMOVE)
         if (notificationAvailable(this)) manager.notify(NOTIFICATION_ID, notification(next))
-        sessionGuard.end(token)
+        releaseRequest(token)
         session = null
         stopSelf()
     }
 
     private fun cancelSession(token: String) {
         if (!owns(token)) return
-        sessionGuard.end(token)
-        _state.value = WirelessAdbState()
+        startupRequest?.permit?.revoke()
+        releaseRequest(token)
+        _state.value = sessionState(phase = WirelessAdbPhase.IDLE)
         session = null
         discardLocalWork()
         stopForeground(STOP_FOREGROUND_REMOVE)
@@ -249,13 +289,14 @@ class WirelessAdbService : Service() {
         val wasOwner = owns(token)
         // 先撤销归属再取消协程；旧超时异常可能在 NonCancellable 清理结束后才抛出。
         destroyed = true
-        sessionGuard.end(token)
+        releaseRequest(token)
         session = null
         scope.cancel()
         replies?.close(); replies = null
-        if (wasOwner && _state.value.active) _state.value = WirelessAdbState(
+        if (wasOwner && _state.value.active) _state.value = sessionState(
             phase = WirelessAdbPhase.FAILED, error = getString(R.string.wireless_service_interrupted),
-            pairedInSession = paired)
+        )
+        if (liveService === this) liveService = null
         super.onDestroy()
     }
 
@@ -277,8 +318,11 @@ class WirelessAdbService : Service() {
         })
         val builder = Notification.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_wireless_adb)
-            .setContentTitle(getString(if (current.phase == WirelessAdbPhase.WAITING_CODE)
-                R.string.wireless_service_code_ready_title else R.string.wireless_service_title))
+            .setContentTitle(getString(when {
+                current.automatic -> R.string.embedded_auto_start_notification
+                current.phase == WirelessAdbPhase.WAITING_CODE -> R.string.wireless_service_code_ready_title
+                else -> R.string.wireless_service_title
+            }))
             .setCategory(Notification.CATEGORY_SERVICE)
             .setVisibility(Notification.VISIBILITY_SECRET)
             .setOnlyAlertOnce(!alert)
@@ -322,37 +366,69 @@ class WirelessAdbService : Service() {
         private const val INPUT_CODE = "pairing_code"
         private val _state = MutableStateFlow(WirelessAdbState())
         private val sessionGuard = WirelessSessionGuard()
+        private data class StartupRequest(val token: String, val permit: EmbeddedAutoStartPermit?)
+        @Volatile private var currentRequest: StartupRequest? = null
+        private var liveService: WirelessAdbService? = null
         val state = _state.asStateFlow()
 
         fun startPairing(context: Context) = start(context, ACTION_PAIR)
         fun startConnect(context: Context) = start(context, ACTION_CONNECT)
 
-        private fun start(context: Context, action: String) {
-            if (_state.value.active) return
+        internal fun startAutomaticConnect(context: Context, permit: EmbeddedAutoStartPermit): Boolean = start(context, ACTION_CONNECT, permit)
+
+        @Synchronized private fun requestFor(token: String): StartupRequest? = currentRequest?.takeIf { it.token == token && sessionGuard.owns(token) }
+        @Synchronized private fun releaseRequest(token: String?) {
+            // 会话结束同样撤销交付许可；先释放许可同步边界，再撤销 token 归属。
+            currentRequest?.takeIf { it.token == token }?.permit?.revoke()
+            sessionGuard.end(token)
+            if (currentRequest?.token == token) currentRequest = null
+        }
+
+        @Synchronized private fun start(context: Context, action: String, permit: EmbeddedAutoStartPermit? = null): Boolean {
+            if (_state.value.active || sessionGuard.current != null) return false
+            if (permit != null && (!permit.canContinue() || !PrivilegeRuntime.canAutomaticallyStartEmbedded(permit.epoch))) return false
             if (!permissionsGranted(context)) {
                 _state.value = WirelessAdbState(phase = WirelessAdbPhase.FAILED,
-                    error = context.getString(R.string.wireless_service_permissions))
-                return
+                    error = context.getString(R.string.wireless_service_permissions), automatic = permit != null, requestId = permit?.requestId)
+                return false
             }
             val token = "tensorims-adb://session/${UUID.randomUUID()}"
-            sessionGuard.begin(token)
-            _state.value = WirelessAdbState(active = true)
+            if (!sessionGuard.tryBegin(token, permit?.requestId)) return false
+            currentRequest = StartupRequest(token, permit)
+            _state.value = WirelessAdbState(active = true, automatic = permit != null, requestId = permit?.requestId)
             try {
                 context.startForegroundService(Intent(context, WirelessAdbService::class.java)
                     .setAction(action).setData(Uri.parse(token)))
             } catch (failure: Exception) {
                 Log.w(TAG, "Wireless service request failed (${failure.javaClass.simpleName})")
-                if (sessionGuard.end(token)) {
+                if (sessionGuard.owns(token)) {
+                    releaseRequest(token)
                     _state.value = WirelessAdbState(phase = WirelessAdbPhase.FAILED,
-                        error = context.getString(R.string.wireless_service_unavailable))
+                        error = context.getString(R.string.wireless_service_unavailable), automatic = permit != null, requestId = permit?.requestId)
                 }
+                return false
             }
+            return true
         }
 
-        fun cancel(context: Context) {
-            sessionGuard.end(sessionGuard.current)
-            context.stopService(Intent(context, WirelessAdbService::class.java))
-            _state.value = WirelessAdbState()
+        @Synchronized fun cancel(@Suppress("UNUSED_PARAMETER") context: Context) {
+            cancelCurrent()
+        }
+
+        @Synchronized internal fun cancelAutomatic(@Suppress("UNUSED_PARAMETER") context: Context, requestId: String) {
+            if (sessionGuard.ownsAutomatic(requestId)) cancelCurrent()
+        }
+
+        private fun cancelCurrent() {
+            val request = currentRequest ?: return
+            request.permit?.revoke()
+            val running = liveService
+            if (running?.owns(request.token) == true) running.cancelSession(request.token)
+            else {
+                // Intent 尚未送达时只撤销本次归属；迟到 Service 会自行退出，不能 stopService 伤及后续请求。
+                releaseRequest(request.token)
+                _state.value = WirelessAdbState(automatic = request.permit != null, requestId = request.permit?.requestId)
+            }
         }
 
         fun notificationAvailable(context: Context): Boolean {
@@ -362,7 +438,7 @@ class WirelessAdbService : Service() {
                 manager.getNotificationChannel(CHANNEL_ID)?.importance != NotificationManager.IMPORTANCE_NONE
         }
 
-        private fun permissionsGranted(context: Context): Boolean = notificationAvailable(context) &&
+        internal fun permissionsGranted(context: Context): Boolean = notificationAvailable(context) &&
             (Build.VERSION.SDK_INT < 37 || context.checkSelfPermission(Manifest.permission.ACCESS_LOCAL_NETWORK) == PackageManager.PERMISSION_GRANTED)
 
         private fun createChannel(context: Context) {

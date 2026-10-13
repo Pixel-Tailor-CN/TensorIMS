@@ -55,10 +55,11 @@ class EmbeddedLauncher(context: Context) {
         }
     }
 
-    suspend fun startWireless(port: Int): String? {
+    suspend fun startWireless(port: Int, canContinue: () -> Boolean = { true }, automatic: Boolean = false,
+        commitDelivery: ((() -> Boolean) -> Boolean)? = null): String? {
         if (!LaunchInput.validPort(port)) return context.getString(R.string.launcher_connect_port)
         return exclusive("wireless-start") {
-            start { command ->
+            start(canContinue = canContinue, preserveAccepted = automatic, commitDelivery = commitDelivery) { command ->
                 network(port) { connection ->
                     AdbTlsClient(connection, AdbIdentity.load(context, pairing = false)).bootstrap(command)
                 }
@@ -128,6 +129,9 @@ class EmbeddedLauncher(context: Context) {
     private suspend fun start(
         waitMillis: Long = 15_000L,
         handshakeError: Int = R.string.launcher_handshake,
+        canContinue: () -> Boolean = { true },
+        preserveAccepted: Boolean = false,
+        commitDelivery: ((() -> Boolean) -> Boolean)? = null,
         execute: suspend (String) -> Unit,
     ): String? {
         // 已认证实例由运行时负责连接/停止；不生成第二个后台服务。
@@ -135,10 +139,12 @@ class EmbeddedLauncher(context: Context) {
         val challenge = ByteArray(32).also(SecureRandom()::nextBytes).hex()
         val command = withContext(Dispatchers.IO) { installedCommand(challenge) }
         coroutineContext.ensureActive()
-        EmbeddedConnection.expect(challenge)
+        if (!canContinue()) throw CancellationException("Embedded startup permission revoked")
+        EmbeddedConnection.expect(challenge, canContinue, commitDelivery)
         var accepted = false
         try {
             try {
+                if (!canContinue()) throw CancellationException("Embedded startup permission revoked")
                 execute(command)
             } catch (failure: Exception) {
                 coroutineContext.ensureActive()
@@ -151,7 +157,10 @@ class EmbeddedLauncher(context: Context) {
             }
             try {
                 withTimeout(waitMillis) {
-                    while (EmbeddedConnection.acceptedChallenge() != challenge || EmbeddedConnection.current() == null) delay(100)
+                    while (EmbeddedConnection.acceptedChallenge() != challenge || EmbeddedConnection.current() == null) {
+                        if (!canContinue()) throw CancellationException("Embedded startup permission revoked")
+                        delay(100)
+                    }
                 }
             } catch (timeout: TimeoutCancellationException) {
                 coroutineContext.ensureActive()
@@ -161,7 +170,9 @@ class EmbeddedLauncher(context: Context) {
             return null
         } finally {
             // 超时与取消均撤销挑战，迟到交付不能被下一次启动误认成功。
-            if (!accepted) EmbeddedConnection.clear()
+            // 自动开关撤销不停止在撤销前已完成认证的服务；手动取消仍保留既有语义。
+            val alreadyAccepted = preserveAccepted && EmbeddedConnection.acceptedChallenge() == challenge && EmbeddedConnection.current() != null
+            if (!accepted && !alreadyAccepted) EmbeddedConnection.clear()
         }
     }
 

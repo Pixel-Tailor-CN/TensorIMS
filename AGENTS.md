@@ -68,6 +68,7 @@ TensorIMS 是一个面向 Google Pixel Tensor 设备的 Android 应用，用于�
 - `LogcatRepository.kt`：应用日志采集和导出相关逻辑。
 - `ConfigurationRepository.kt`：共用配置历史、应用参数构造、自动恢复操作顺序和开机进度。
 - `AutoRestoreController.kt`：按用户开关监听 Shizuku 连接与授权结果，执行有限重试的自动恢复。
+- `EmbeddedAutoStartController.kt`：按独立开关处理有效前台进入、既有无线凭据预检查及有限 CONNECT；不配对、提权或修改自动恢复授权。
 - `AutoRestoreNotifier.kt`：自动应用一轮结束后汇总结果，先显示文本 Toast，未确认显示时使用通知兜底。
 - `ConfigurationOperations.kt`：复用 `OperationCoordinator` 串行协调手动/自动业务与历史提交，和模式切换共享安全边界。
 
@@ -129,7 +130,10 @@ TensorIMS 是一个面向 Google Pixel Tensor 设备的 Android 应用，用于�
 - 修改运营商配置时优先走 `ImsModifier`，必要时由当前后端在同一操作事务内触发 `BrokerInstrumentation` fallback，不能跨模式。
 - UI 不直接执行业务写入逻辑，业务动作应放在 ViewModel 或特权入口中。
 
-## 内置服务闲置停止
+## 内置服务自动启动与闲置停止
+
+- “打开应用时自动启动内置服务”默认关闭，按包保存在 `app_settings / embedded_auto_start`；仅内置模式显示，未就绪也可管理。主界面有效前台进入或明确重新启用时最多尝试一轮既有无线 CONNECT；配置重建和应用内 Activity 交接不重复，后台初始化不启动。权限或凭据缺失不自动弹窗，恢复态及在途任务不自动重连，手动动作消费当前轮次。
+- 自动来源携带可撤销的进程内许可，服务接纳、Runtime 锁内与 Binder 交付均复核；取消仅作用于自身请求，不影响后来创建的手动会话或已就绪服务。闲置停止后不在后台拉起，下次用户有效打开应用才可再尝试。开关不修改 `restore_paused`，不自动配对、创建身份、请求 root、开启无线调试或创建电脑等待。
 
 - “闲置时自动停止内置服务”默认关闭，延迟默认 2 分钟、可设整数 1–30 分钟，保存在各安装包独立的 `app_settings` 中。卡片仅在特权模式页内置服务就绪时显示，隐藏不重置偏好。
 - `EmbeddedIdleStopController` 观察整个应用的前后台状态（包括日志页）、无线启动、自动恢复和统一操作协调器；返回前台取消等待，后台任务结束后重新等待完整延迟。协调器完成代际防止快速任务的 busy 状态被合并后漏掉计时重置。
@@ -202,7 +206,7 @@ adb shell settings get global captive_portal_https_url
 
 - `tensor` applicationId 为 `app.mystery0.ims.tensor`，`legacy` 为 `io.github.vvb2060.ims`；namespace 和第一方包名统一，不复制业务代码或按 flavor 删减后端。Provider authority、Instrumentation 目标包和私有会话身份使用当前 applicationId，不能串包。
 - 保留现有配置名称、键及私有原值备份；legacy 原地升级要求签名一致且 `versionCode` 更高，不能重命名或清理数据；tensor 独立保存数据，不自动迁移。两包不能并发或同时自动恢复修改同一 SIM。
-- 无线启动须由用户操作，使用系统配对界面与短时通知，只接受本机地址；不得要求手填端口、申请悬浮窗或记录配对码。Android 17 自动发现需本地网络权限，Android 13+ 需通知权限与可用渠道，拒绝后不在后台反复请求。
+- 无线启动须由用户操作，或由用户明确开启自启动开关后在有效前台有限执行已有凭据 CONNECT；配对仍须用户操作。使用系统配对界面与短时通知，只接受本机地址；不得要求手填端口、申请悬浮窗或记录配对码。Android 17 自动发现需本地网络权限，Android 13+ 需通知权限与可用渠道，拒绝后不在后台反复请求。
 - 电脑 ADB 启动必须有用户主动开启的有限等待；取消、超时或进程结束后须重新开启等待，应用更新后须重新获取命令。保留固定原生入口、危险环境变量清理与一次性 claim 校验，不能扩展成永久脚本或通用 shell 执行器。
 - `moe.shizuku.manager.adb.PairingContext` 属于第三方 JNI ABI，保留包名和许可，不是外置管理器的授权入口。
 - debug 使用开发签名；release 必须显式提供完整正式签名配置，不得回退开发证书。编译、静态检查或模拟器验证不能替代真实设备功能验收。

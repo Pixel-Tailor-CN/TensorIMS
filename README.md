@@ -48,6 +48,7 @@ TensorIMS is a tool that allows you to enable or disable IMS features like Voice
     - **China LTE**: Pure 4G mode with 5G NR & VoNR explicitly disabled for stable cellular connectivity, battery saving, and thermal reduction.
     - **Enable all**: Enables all available toggleable features at once.
 - **Automation & Persistence**:
+    - **Start the embedded service when opening the app**: An optional, default-off setting reuses existing wireless ADB pairing credentials for one connection attempt when the app enters the foreground. Wireless debugging and the required permissions must already be available; failures can be handled with the existing manual controls. This does not start the app in the background after a reboot.
     - **Apply configs when the backend is ready**: Automatically restores saved configurations when the device reboots and the selected backend is ready and authorized.
     - **Persistent VoLTE (Experimental)**: Leverages system-level VoIMS opt-in to keep VoLTE active across device reboots without needing Shizuku on every restart.
     - **Configuration Persistence**: Automatically saves configuration history per SIM card or for all SIMs.

@@ -31,9 +31,11 @@ object EmbeddedConnection {
     private var metadata: Bundle? = null
     private val clientToken = Binder()
     private var death: IBinder.DeathRecipient? = null
+    private var deliveryAllowed: (() -> Boolean)? = null
+    private var deliveryCommit: ((() -> Boolean) -> Boolean)? = null
     fun current(): IEmbeddedServer? = synchronized(lock) { server?.takeIf { it.asBinder().isBinderAlive } }
     fun acceptedChallenge(): String? = synchronized(lock) { lifecycle.acceptedChallenge }
-    fun expect(challenge: String) = synchronized(lock) {
+    fun expect(challenge: String, canDeliver: () -> Boolean = { true }, commitDelivery: ((() -> Boolean) -> Boolean)? = null) = synchronized(lock) {
         require(challenge.matches(Regex("[a-f0-9]{64}")))
         revokeComputerLease()
         lifecycle.expect(challenge, server?.asBinder()?.isBinderAlive == true)
@@ -41,6 +43,8 @@ object EmbeddedConnection {
         death?.let { runCatching { server?.asBinder()?.unlinkToDeath(it, 0) } }
         server = null; death = null; metadata = null
         expectedUntil = SystemClock.elapsedRealtime() + BridgeProtocol.REQUEST_MS
+        deliveryAllowed = canDeliver
+        deliveryCommit = commitDelivery
     }
     fun expectComputer(challenge: String, identityDigest: String, epoch: Long, timeoutMs: Long): Long = synchronized(lock) {
         require(challenge.matches(Regex("[a-f0-9]{64}")) && identityDigest.matches(Regex("[a-f0-9]{64}")))
@@ -48,6 +52,8 @@ object EmbeddedConnection {
         check(status.mode == BackendMode.EMBEDDED && status.epoch == epoch) { "MODE_NOT_EMBEDDED" }
         check(server?.asBinder()?.isBinderAlive != true) { "SERVER_ALREADY_CONNECTED" }
         revokeComputerLease()
+        deliveryAllowed = null
+        deliveryCommit = null
         val generation = lifecycle.expect(challenge, false)
         val deadline = SystemClock.elapsedRealtime() + timeoutMs
         expectedUntil = deadline
@@ -82,6 +88,8 @@ object EmbeddedConnection {
     }
     fun clear() = synchronized(lock) {
         lifecycle.cancelPending()
+        deliveryAllowed = null
+        deliveryCommit = null
         revokeComputerLease()
         val existing = server
         if (existing != null && existing.asBinder().isBinderAlive) {
@@ -136,6 +144,7 @@ object EmbeddedConnection {
         require(callerUid == 0 || callerUid == 2000) { "AUTH_FAILED: bootstrap caller" }
         check(PrivilegeRuntime.status.value.mode == BackendMode.EMBEDDED) { "MODE_NOT_EMBEDDED" }
         check(SystemClock.elapsedRealtime() <= expectedUntil && server == null) { "AUTH_FAILED: unexpected bootstrap" }
+        check(deliveryAllowed?.invoke() != false) { "AUTH_FAILED: startup permission revoked" }
         // 挑战先消费，失败也不允许同一启动消息重放。
         val generation = lifecycle.consume(challenge) ?: error("AUTH_FAILED: unexpected bootstrap")
         val candidate = IEmbeddedServer.Stub.asInterface(binder)
@@ -154,9 +163,23 @@ object EmbeddedConnection {
         }
         binder.linkToDeath(recipient, 0)
         check(binder.isBinderAlive) { "Private server died during handshake" }
-        check(lifecycle.accept(generation, challenge)) { "AUTH_FAILED: stale attempt" }
-        server = candidate; death = recipient; metadata = Bundle(reply)
-        mutableChanges.value++
+        // 自动来源的撤销与最终接纳必须原子决定，远端握手已在此同步边界之外完成。
+        val commit = {
+            // 会话超时或销毁仍可先撤销归属，不能因使用原子许可而跳过最终来源检查。
+            if (deliveryAllowed?.invoke() == false) false else {
+                check(lifecycle.accept(generation, challenge)) { "AUTH_FAILED: stale attempt" }
+                server = candidate; death = recipient; metadata = Bundle(reply)
+                mutableChanges.value++
+                true
+            }
+        }
+        val committed = deliveryCommit?.invoke(commit) ?: commit()
+        if (!committed) {
+            runCatching { binder.unlinkToDeath(recipient, 0) }
+            error("AUTH_FAILED: startup permission revoked during handshake")
+        }
+        deliveryAllowed = null
+        deliveryCommit = null
         return true
     }
 

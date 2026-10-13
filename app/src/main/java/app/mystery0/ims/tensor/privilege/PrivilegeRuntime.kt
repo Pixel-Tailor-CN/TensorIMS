@@ -58,6 +58,10 @@ object PrivilegeRuntime {
     private var recoveryReadbackFailed = false
     private var recoveryReason = RecoveryReason.INTERRUPTED
     private var corruptCheckpointAvailable = false
+    private val refreshGuard = Any()
+    private var refreshRequests = 0
+    private val _connectionRefreshInProgress = MutableStateFlow(false)
+    val connectionRefreshInProgress = _connectionRefreshInProgress.asStateFlow()
 
     @Synchronized fun initialize(context: Context) {
         if (initialized) return
@@ -160,6 +164,7 @@ object PrivilegeRuntime {
 
     fun refresh() {
         if (!initialized) return
+        synchronized(refreshGuard) { refreshRequests++; _connectionRefreshInProgress.value = true }
         scope.launch {
             try {
                 OperationCoordinator.tryExclusive {
@@ -171,9 +176,18 @@ object PrivilegeRuntime {
             } catch (failure: Exception) {
                 Log.e(TAG, "Backend refresh remains blocked", failure)
                 publish()
+            } finally {
+                synchronized(refreshGuard) { refreshRequests--; _connectionRefreshInProgress.value = refreshRequests > 0 }
             }
         }
     }
+
+    /** 自动入口只接受普通未连接状态，不能继承用户恢复重连的特殊许可。 */
+    fun canAutomaticallyStartEmbedded(epoch: Long): Boolean = !OperationCoordinator.busy.value && automaticStartStateSafe(epoch)
+
+    private fun automaticStartStateSafe(epoch: Long): Boolean = initialized && machine.status.epoch == epoch &&
+        machine.status.mode == BackendMode.EMBEDDED && machine.status.connection == ConnectionState.DISCONNECTED &&
+        machine.activeOperationId == null && pending == null && !corruptJournal && !recoveryInFlight
 
     fun requestOfficialPermission() {
         if (!initialized) return
@@ -206,11 +220,14 @@ object PrivilegeRuntime {
         }
     }
 
-    suspend fun startEmbedded(action: suspend () -> String?): String? {
+    suspend fun startEmbedded(automaticEpoch: Long? = null, canStart: () -> Boolean = { true }, action: suspend () -> String?): String? {
         if (!initialized) return "后端尚未初始化"
         var entered = false
         val result = OperationCoordinator.tryExclusive {
             entered = true
+            if (!canStart() || (automaticEpoch != null && !automaticStartStateSafe(automaticEpoch))) {
+                return@tryExclusive "自动启动请求已失效或当前操作不允许启动"
+            }
             if (machine.status.mode != BackendMode.EMBEDDED) return@tryExclusive "请先选择内置模式"
             val recovering = machine.status.connection == ConnectionState.RECOVERY_REQUIRED
             if (machine.activeOperationId != null || (recovering && !_canStartEmbeddedForRecovery.value)) {
@@ -219,6 +236,7 @@ object PrivilegeRuntime {
             if (!recovering && !machine.beginConnection()) return@tryExclusive "当前操作尚未完成，请稍后再启动"
             publish()
             val error = try {
+                if (!canStart()) throw CancellationException("Embedded startup request revoked")
                 action()
             } catch (cancelled: CancellationException) {
                 // 用户停止通知配对或超时后必须取消传输；不能吞掉取消并继续启动。

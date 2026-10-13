@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="embedded_auto_start_title">Automatically start embedded service when opening the app</string>
+    <string name="embedded_auto_start_description">Off by default. When opening the app, try to connect and start the embedded service using existing wireless debugging pairing. Requires available wireless debugging and the necessary permissions. Does not automatically pair again or use root.</string>
+    <string name="embedded_auto_start_independent">After startup, the automatic application switch on the home screen controls whether saved configurations are applied.</string>
+    <string name="embedded_auto_start_waiting">Startup conditions will be checked when you next open the app.</string>
+    <string name="embedded_auto_start_checking">Checking automatic startup conditions…</string>
+    <string name="embedded_auto_start_ready">The embedded service is ready. No further startup is needed.</string>
+    <string name="embedded_auto_start_busy">Skipped this attempt because another operation was active. Use a manual option or reopen the app to try again.</string>
+    <string name="embedded_auto_start_recovery">Operation verification is required. Complete it first; automatic startup cannot bypass this state.</string>
+    <string name="embedded_auto_start_notifications">Automatic startup is unavailable: allow app notifications and enable the wireless startup notification channel.</string>
+    <string name="embedded_auto_start_local_network">Automatic startup is unavailable: allow local network access.</string>
+    <string name="embedded_auto_start_credentials">Automatic startup is unavailable: existing pairing credentials could not be read. Complete wireless debugging pairing manually first.</string>
+    <string name="embedded_auto_start_failed">Automatic startup failed this time. Check wireless debugging availability or use a manual option.</string>
+    <string name="embedded_auto_start_cancelled">Automatic startup was cancelled. No automatic retry was made.</string>
+    <string name="embedded_auto_start_permissions">Manage startup permissions</string>
+    <string name="embedded_auto_start_notification">Automatically starting embedded service</string>
+    <string name="embedded_auto_start_blocked">Automatic startup is unavailable in the current state. Check backend status or use a manual option.</string>
+</resources>

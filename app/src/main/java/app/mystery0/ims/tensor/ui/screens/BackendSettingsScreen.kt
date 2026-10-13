@@ -47,6 +47,8 @@ import app.mystery0.ims.tensor.ui.backendUiActions
 import app.mystery0.ims.tensor.ui.canConfirmPersistentRecovery
 import app.mystery0.ims.tensor.ui.canConfirmModeChoice
 import app.mystery0.ims.tensor.ui.components.EmbeddedIdleStopCard
+import app.mystery0.ims.tensor.ui.components.EmbeddedAutoStartCard
+import app.mystery0.ims.tensor.EmbeddedAutoStartState
 import app.mystery0.ims.tensor.ui.components.ComputerAdbDialog
 import app.mystery0.ims.tensor.ui.components.BackendChoiceDialog
 import app.mystery0.ims.tensor.ui.components.BackendErrorGuidance
@@ -61,6 +63,9 @@ fun BackendSettingsScreen(
     busy: Boolean,
     idleStopEnabled: Boolean,
     idleStopMinutes: Int,
+    autoStartEnabled: Boolean,
+    autoStartState: EmbeddedAutoStartState,
+    onAutoStartEnabledChange: (Boolean) -> Unit,
     onIdleStopEnabledChange: (Boolean) -> Unit,
     onIdleStopMinutesChange: (Int) -> Unit,
     canRecoverPersistentVolte: Boolean,
@@ -111,7 +116,8 @@ fun BackendSettingsScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)) {
             BackendSection {
                 Text(stringResource(R.string.backend_selected_mode, backendModeLabel(status.mode)), style = MaterialTheme.typography.titleMedium)
-                Text(if (!recovering && (wirelessState.active || wirelessActions.pending))
+                Text(if (!recovering && wirelessState.active && wirelessState.automatic)
+                    stringResource(R.string.embedded_auto_start_notification) else if (!recovering && (wirelessState.active || wirelessActions.pending))
                     stringResource(R.string.connection_progress) else backendConnectionLabel(status.connection),
                     style = MaterialTheme.typography.headlineSmall,
                     color = when {
@@ -242,7 +248,10 @@ fun BackendSettingsScreen(
                     onComputer = onStartComputer,
                 )
             }
-            // 仅内置服务就绪时显示；隐藏组件不修改已保存偏好。
+            // 启动偏好在内置模式始终可管理；闲置停止仍只在服务就绪时显示。
+            if (status.mode == BackendMode.EMBEDDED) {
+                EmbeddedAutoStartCard(autoStartEnabled, autoStartState, status, onAutoStartEnabledChange)
+            }
             if (status.mode == BackendMode.EMBEDDED && ready) {
                 EmbeddedIdleStopCard(idleStopEnabled, idleStopMinutes, onIdleStopEnabledChange, onIdleStopMinutesChange)
             }

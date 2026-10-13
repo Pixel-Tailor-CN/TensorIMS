@@ -75,6 +75,7 @@ fun HomeScreen(
     onAutoRestoreEnabledChange: (Boolean) -> Unit,
     onLoadImsStatus: suspend (Int) -> ImsCapabilityStatus?,
     onRestartIms: (SimSelection, (Boolean) -> Unit) -> Unit,
+    automaticStartupRunning: Boolean = false,
 ) {
     var showImsStatus by remember { mutableStateOf(false) }
     if (showImsStatus) {
@@ -132,6 +133,7 @@ fun HomeScreen(
                 onRefresh = onRefresh,
                 onRequestPermission = onRequestPermission,
                 onOpenBackendSettings = onOpenBackendSettings,
+                automaticStartupRunning = automaticStartupRunning,
             )
             SimSelectionCard(
                 backendStatus = backendStatus,

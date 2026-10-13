@@ -13,6 +13,8 @@ class Application : Application() {
     private val restoreDelegate = lazy { AutoRestoreController(this) }
     val autoRestore by restoreDelegate
     private val idleStop by lazy { EmbeddedIdleStopController(settings, autoRestore) }
+    private val autoStartDelegate = lazy { EmbeddedAutoStartController(this, settings) }
+    val embeddedAutoStart by autoStartDelegate
 
     override fun onCreate() {
         super.onCreate()
@@ -20,6 +22,7 @@ class Application : Application() {
         if (getSystemService(UserManager::class.java).isUserUnlocked) {
             LogcatRepository.setAutomaticCapture(settings.autoCapture.value)
             PrivilegeRuntime.initialize(this)
+            embeddedAutoStart.start(this)
             autoRestore.start()
             idleStop.start(this)
         } else {
@@ -29,6 +32,7 @@ class Application : Application() {
                     unregisterReceiver(this)
                     LogcatRepository.setAutomaticCapture(settings.autoCapture.value)
                     PrivilegeRuntime.initialize(this@Application)
+                    embeddedAutoStart.start(this@Application)
                     autoRestore.start()
                     idleStop.start(this@Application)
                 }
@@ -40,6 +44,7 @@ class Application : Application() {
     override fun onTerminate() {
         super.onTerminate()
         if (restoreDelegate.isInitialized()) autoRestore.close()
+        if (autoStartDelegate.isInitialized()) embeddedAutoStart.close()
         LogcatRepository.stopAndClear()
     }
 }

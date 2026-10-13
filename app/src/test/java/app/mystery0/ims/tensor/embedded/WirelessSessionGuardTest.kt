@@ -4,6 +4,23 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class WirelessSessionGuardTest {
+    @Test fun automaticCancellationCannotOwnLaterManualSession() {
+        val guard = WirelessSessionGuard()
+        guard.begin("automatic", "request-1")
+        assertTrue(guard.ownsAutomatic("request-1"))
+        guard.begin("manual")
+        assertFalse(guard.ownsAutomatic("request-1"))
+        assertTrue(guard.owns("manual"))
+    }
+
+    @Test fun secondStartupCannotReplaceAnAdmittedSession() {
+        val guard = WirelessSessionGuard()
+        assertTrue(guard.tryBegin("first", "request-1"))
+        assertFalse(guard.tryBegin("second", "request-2"))
+        assertFalse(guard.ownsAutomatic("request-2"))
+        assertEquals("first", guard.current)
+    }
+
     @Test fun noSessionAndNullTokenNeverOwnCallbacks() {
         val guard = WirelessSessionGuard()
         assertFalse(guard.owns(null))

@@ -54,6 +54,7 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
 
     private val autoRestore = (application as app.mystery0.ims.tensor.Application).autoRestore
     private val configurations = autoRestore.repository
+    private val embeddedAutoStart = (application as app.mystery0.ims.tensor.Application).embeddedAutoStart
     val autoRestoreEnabled = autoRestore.enabled
     val backendStatus = PrivilegeRuntime.status
     val wirelessAdbState = WirelessAdbService.state
@@ -101,6 +102,7 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
     fun startEmbeddedComputer() {
         if (!backendUiActions(backendStatus.value, _backendAction.value.inProgress, backendActionBusy(),
                 recoveryStartAllowed = canStartEmbeddedForRecovery.value).canStartEmbedded) return
+        embeddedAutoStart.manualStart()
         computerAdbJob = runBackendAction(BackendAction.COMPUTER) {
             // 协调器保护事务使用 NonCancellable；仅命令等待恢复调用方 Job，取消时仍在锁内撤销挑战。
             val waitingJob = checkNotNull(coroutineContext[Job])
@@ -124,6 +126,7 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
     private fun startWirelessAction(pairing: Boolean): Boolean {
         if (!backendUiActions(backendStatus.value, _backendAction.value.inProgress, backendActionBusy(),
                 recoveryStartAllowed = canStartEmbeddedForRecovery.value).canStartEmbedded) return false
+        embeddedAutoStart.manualStart()
         _backendAction.value = BackendActionState()
         // 服务同步占用无线动作状态，再由前台服务持有配对流程；旋转或离开页面不会重复启动。
         if (pairing) WirelessAdbService.startPairing(application) else WirelessAdbService.startConnect(application)
@@ -133,8 +136,9 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
     private fun startEmbeddedAction(action: BackendAction, block: suspend () -> String?) {
         if (!backendUiActions(backendStatus.value, _backendAction.value.inProgress, backendActionBusy(),
                 recoveryStartAllowed = canStartEmbeddedForRecovery.value).canStartEmbedded) return
+        embeddedAutoStart.manualStart()
         // 启动动作由运行时的同一门禁保护，避免与切换或恢复发生竞态。
-        runBackendAction(action) { PrivilegeRuntime.startEmbedded(block) }
+        runBackendAction(action) { PrivilegeRuntime.startEmbedded(action = block) }
     }
 
     private fun runBackendAction(action: BackendAction, block: suspend () -> String?): Job? {

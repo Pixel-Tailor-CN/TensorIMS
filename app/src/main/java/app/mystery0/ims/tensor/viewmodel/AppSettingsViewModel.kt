@@ -15,6 +15,10 @@ class AppSettingsViewModel(application: Application) : AndroidViewModel(applicat
     val autoCapture = settings.autoCapture
     val idleStopEnabled = settings.idleStopEnabled
     val idleStopMinutes = settings.idleStopMinutes
+    private val autoStart = (application as app.mystery0.ims.tensor.Application).embeddedAutoStart
+    val autoStartEnabled = settings.autoStartEnabled
+    val autoStartState = autoStart.state
+    fun setAutoStartEnabled(enabled: Boolean) = autoStart.setEnabled(enabled)
 
     fun setIdleStopEnabled(enabled: Boolean) = settings.setIdleStopEnabled(enabled)
     fun setIdleStopMinutes(minutes: Int) = settings.setIdleStopMinutes(minutes)

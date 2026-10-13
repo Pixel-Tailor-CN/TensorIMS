@@ -15,6 +15,13 @@ class AppSettingsRepository(context: Context) {
     val theme = _theme.asStateFlow()
     private val _autoCapture = MutableStateFlow(preferences.getBoolean("auto_capture", false))
     val autoCapture = _autoCapture.asStateFlow()
+    private val _autoStartEnabled = MutableStateFlow(preferences.getBoolean("embedded_auto_start", false))
+    val autoStartEnabled = _autoStartEnabled.asStateFlow()
+
+    fun setAutoStartEnabled(enabled: Boolean) {
+        preferences.edit().putBoolean("embedded_auto_start", enabled).apply()
+        _autoStartEnabled.value = enabled
+    }
 
     private val _idleStopEnabled = MutableStateFlow(preferences.getBoolean("embedded_idle_stop", false))
     val idleStopEnabled = _idleStopEnabled.asStateFlow()

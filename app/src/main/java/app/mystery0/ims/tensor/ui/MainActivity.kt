@@ -109,6 +109,7 @@ class MainActivity : BaseActivity() {
                     simReadCompleted = simReadCompleted,
                     selectedSim = selectedSim,
                     autoRestoreEnabled = autoRestoreEnabled,
+                    automaticStartupRunning = wirelessAdbState.active && wirelessAdbState.automatic,
                     onSelectSim = { selectedSubId = it.subId },
                     onRefresh = viewModel::refreshBackendStatus,
                     onRequestPermission = viewModel::requestOfficialPermission,
@@ -152,7 +153,12 @@ class MainActivity : BaseActivity() {
                 val computerAdbCommand by viewModel.computerAdbCommand.collectAsStateWithLifecycle()
                 val idleStopEnabled by appSettingsViewModel.idleStopEnabled.collectAsStateWithLifecycle()
                 val idleStopMinutes by appSettingsViewModel.idleStopMinutes.collectAsStateWithLifecycle()
+                val autoStartEnabled by appSettingsViewModel.autoStartEnabled.collectAsStateWithLifecycle()
+                val autoStartState by appSettingsViewModel.autoStartState.collectAsStateWithLifecycle()
                 BackendSettingsScreen(
+                    autoStartEnabled = autoStartEnabled,
+                    autoStartState = autoStartState,
+                    onAutoStartEnabledChange = appSettingsViewModel::setAutoStartEnabled,
                     idleStopEnabled = idleStopEnabled,
                     idleStopMinutes = idleStopMinutes,
                     onIdleStopEnabledChange = appSettingsViewModel::setIdleStopEnabled,
