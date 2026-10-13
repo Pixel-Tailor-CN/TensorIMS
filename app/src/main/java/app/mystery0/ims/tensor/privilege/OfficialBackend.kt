@@ -15,7 +15,7 @@ import kotlinx.coroutines.CompletableDeferred
 import rikka.shizuku.Shizuku
 import rikka.shizuku.ShizukuBinderWrapper
 
-/** 官方 Binder 只在此适配器和显式官方会话内使用，绝不停止官方服务。 */
+/** 外置 Binder 只在此适配器和显式外置会话内使用，绝不停止外置服务。 */
 class OfficialBackend : PrivilegeBackend {
     override val mode = BackendMode.OFFICIAL
     @Volatile private var permissionPending = false
@@ -40,26 +40,26 @@ class OfficialBackend : PrivilegeBackend {
     override suspend fun connect(context: Context, epoch: Long): BackendStatus = try {
         when {
             !Shizuku.pingBinder() -> BackendStatus(mode, ConnectionState.DISCONNECTED, epoch,
-                errorCode = "NOT_RUNNING", message = "请先启动官方 Shizuku")
+                errorCode = "NOT_RUNNING", message = "请先启动外置 Shizuku")
             Shizuku.isPreV11() -> BackendStatus(mode, ConnectionState.BLOCKED, epoch,
-                errorCode = "VERSION_MISMATCH", message = "请更新官方 Shizuku")
+                errorCode = "VERSION_MISMATCH", message = "请更新外置 Shizuku")
             Shizuku.checkSelfPermission() != PackageManager.PERMISSION_GRANTED ->
                 BackendStatus(mode, ConnectionState.BLOCKED, epoch, errorCode = "PERMISSION_REQUIRED",
-                    message = "请授予官方 Shizuku 权限")
+                    message = "请允许 TensorIMS 使用外置 Shizuku")
             else -> BackendStatus(mode, ConnectionState.READY, epoch, runtimeUid = Shizuku.getUid(),
                 version = Shizuku.getVersion().toString())
         }
     } catch (failure: Throwable) {
-        Log.w(TAG, "Official connection check failed", failure)
+        Log.w(TAG, "External connection check failed", failure)
         BackendStatus(mode, ConnectionState.DISCONNECTED, epoch, errorCode = "NOT_RUNNING",
-            message = "无法连接官方 Shizuku，请检查服务状态")
+            message = "无法连接外置 Shizuku，请检查服务状态")
     }
 
     override suspend fun execute(
         context: Context, operation: OperationType, arguments: Bundle, operationId: String, epoch: Long,
     ): Bundle? {
         val current = connect(context, epoch)
-        if (!current.isReady) throw OperationNotStartedException(current.message ?: "Official backend is not ready")
+        if (!current.isReady) throw OperationNotStartedException(current.message ?: "External backend is not ready")
         val activityManager = try {
             val binder = ServiceManager.getService(Context.ACTIVITY_SERVICE)
                 ?: throw IllegalStateException("Activity service unavailable")
@@ -112,7 +112,7 @@ class OfficialBackend : PrivilegeBackend {
     }
 
     override suspend fun disconnect(): Boolean {
-        // 不调用 Shizuku.exit、stopService、kill 或任何官方服务关闭接口。
+        // 不调用 Shizuku.exit、stopService、kill 或任何外置服务关闭接口。
         return synchronized(retained) { retained.isEmpty() }
     }
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="computer_adb_title">通过电脑 ADB 启动</string>
-    <string name="computer_adb_help">开启 USB 调试或无线调试，让电脑通过 ADB 连接设备，并在本应用的短时启动等待开启时执行命令。应用更新后安装路径可能改变。无需安装官方 Shizuku。</string>
+    <string name="computer_adb_help">开启 USB 调试或无线调试，让电脑通过 ADB 连接设备，并在本应用的短时启动等待开启时执行命令。应用更新后安装路径可能改变。无需安装外置 Shizuku。</string>
     <string name="computer_adb_generate">生成启动命令</string>
     <string name="computer_adb_steps">1. 在电脑安装 Android 平台工具，通过 USB 或无线 ADB 连接本设备并完成授权。\n2. 用 adb devices 确认连接后，在电脑终端执行下面的完整命令。连接多台设备时，在 adb 后加上 -s 设备序列号。\n3. 保持应用运行，等待服务就绪。</string>
     <string name="computer_adb_wait">本轮启动等待约 110 秒后关闭。取消、超时或应用进程结束后，请先在应用中重新开启等待再执行命令。应用更新前可重复使用当前安装路径。</string>

@@ -11,11 +11,11 @@
 
 ## 项目概览
 
-TensorIMS 是一个面向 Google Pixel Tensor 设备的 Android 应用，用于读取和修改 IMS/运营商相关配置，开启或关闭 VoLTE、VoWiFi、VT、VoNR、Cross-SIM Calling、UT、5G NR 等功能，并提供少量与 Pixel 网络使用相关的设备级系统设置。项目通过显式选择的官方 Shizuku 或内置私有后端执行特权操作；无线 ADB 路径不要求 root。
+TensorIMS 是一个面向 Google Pixel Tensor 设备的 Android 应用，用于读取和修改 IMS/运营商相关配置，开启或关闭 VoLTE、VoWiFi、VT、VoNR、Cross-SIM Calling、UT、5G NR 等功能，并提供少量与 Pixel 网络使用相关的设备级系统设置。项目通过显式选择的外置 Shizuku 或内置私有后端执行特权操作；无线 ADB 路径不要求 root。
 
 主要适配和维护范围为中国大陆的中国移动、中国联通、中国电信网络下的 Pixel Tensor 设备。其他运营商因缺少相应测试条件，不作为主要适配和维护对象。此约定限定维护范围，不代表需要在代码中按地区或运营商限制使用，也不保证所有机型、系统版本和网络功能均可用。
 
-项目原名为 Mystery00/TurboIMS，现由 Mystery00 以 TensorIMS 名称独立维护，仓库归属 Pixel-Tailor-CN 组织。仓库地址为 `https://github.com/Pixel-Tailor-CN/TensorIMS`，项目主页为 `https://pixel.mystery0.app`。项目构建 `tensor` 与 `legacy` 两个安装包，共用业务代码，各自支持官方 Shizuku 和私有内置后端。历史文档和上游仓库名称保留来源。
+项目原名为 Mystery00/TurboIMS，现由 Mystery00 以 TensorIMS 名称独立维护，仓库归属 Pixel-Tailor-CN 组织。仓库地址为 `https://github.com/Pixel-Tailor-CN/TensorIMS`，项目主页为 `https://pixel.mystery0.app`。项目构建 `tensor` 与 `legacy` 两个安装包，共用业务代码，各自支持外置 Shizuku 和私有内置后端。历史文档和上游仓库名称保留来源。
 
 应用主要面向 Android 13 及以上系统，当前构建目标为 Android SDK 37。设备侧功能验证应优先在已安装并运行 Shizuku 的真实 Pixel 设备上完成。
 
@@ -64,7 +64,7 @@ TensorIMS 是一个面向 Google Pixel Tensor 设备的 Android 应用，用于�
 - `app.mystery0.ims.tensor.ui.screens`：首页、IMS 配置、系统网络、Captive Portal 和高级工具页面。
 - `app.mystery0.ims.tensor.ui.components`：跨页面复用的 Compose 组件。
 - `app.mystery0.ims.tensor.privileged`：通过 Instrumentation 执行的特权逻辑。
-- `ShizukuProvider.kt`：保留官方客户端 Provider 与业务 facade，固定操作交由 `PrivilegeRuntime` 路由。
+- `ShizukuProvider.kt`：保留 Shizuku 客户端 Provider 与业务 facade，固定操作交由 `PrivilegeRuntime` 路由。
 - `LogcatRepository.kt`：应用日志采集和导出相关逻辑。
 - `ConfigurationRepository.kt`：共用配置历史、应用参数构造、自动恢复操作顺序和开机进度。
 - `AutoRestoreController.kt`：按用户开关监听 Shizuku 连接与授权结果，执行有限重试的自动恢复。
@@ -73,10 +73,11 @@ TensorIMS 是一个面向 Google Pixel Tensor 设备的 Android 应用，用于�
 
 ## 后端开发约束
 
-- 未选择模式（UNSET）不执行特权操作；官方拒绝授权不自动切换内置模式，后台恢复不替用户配对、提权或启动服务。
+- 外置模式面向独立安装的 Shizuku 及兼容其 API 的 fork；界面使用“外置 Shizuku”，内部保留 `BackendMode.OFFICIAL` 和既有偏好值以兼容升级。
+- 未选择模式（UNSET）不执行特权操作；外置模式拒绝授权不自动切换内置模式，后台恢复不替用户配对、提权或启动服务。
 - 业务与模式切换统一经 `PrivilegeRuntime` / `OperationCoordinator` 协调；fallback 必须保持在同一后端事务中，不削弱业务写入的取消保护。
 - Instrumentation 显式接收操作会话，不读取全局 Shizuku Binder；私有桥接只提供固定操作，保留 shell/root UID、安装身份和一次性挑战校验，不新增通用命令或任意 Binder 转发。
-- 官方断开只释放客户端引用；内置停止仅作用于本包服务。权限委托冲突报告 `DELEGATION_BUSY`，不得清理其他客户端权限或按进程名停止 Shizuku。
+- 外置后端断开只释放客户端引用；内置停止仅作用于本包服务。权限委托冲突报告 `DELEGATION_BUSY`，不得清理其他客户端权限或按进程名停止 Shizuku。
 - 客户端超时不代表设备端写入停止；未知结果或权限清理失败保持恢复态，不清理未完成操作日志或持久化原值备份。
 - 恢复态应显示具体原因、待核对操作和下一步；SIM 读取受阻不能表示为无 SIM，自动应用的安全暂停必须在界面可见。操作记录无法读取时，使用与原记录指纹绑定的独立重启证明；仅在用户确认、所选后端验证及当前状态只读核对和权限清理确认后归档原记录，保留所有原值备份并继续暂停自动应用，不宣称原操作成功或原目标已恢复。
 - 详细方案见[双模式设计](docs/plans/2026-10-01-tensorims-dual-mode-design.md)、[双包发布设计](docs/plans/2026-10-02-dual-package-release-design.md)与[原生电脑 ADB 启动器设计](docs/plans/2026-10-11-native-adb-starter-design.md)，不要在本文件重复实现流程。
@@ -114,7 +115,7 @@ TensorIMS 是一个面向 Google Pixel Tensor 设备的 Android 应用，用于�
 
 - SIM 配置按 `subId` 持久化到 `SharedPreferences`，名称形如 `sim_config_<subId>`。
 - `subId = -1` 表示应用到所有 SIM。
-- 自动恢复默认关闭；由用户在主界面主动启用。仅当前选定后端 READY 时恢复历史，官方模式缺少权限时每次开机最多自动请求一次，用户拒绝后不循环弹窗。自动恢复不会配对、提权或启动任何服务。
+- 自动恢复默认关闭；由用户在主界面主动启用。仅当前选定后端 READY 时恢复历史，外置模式缺少权限时每次开机最多自动请求一次，用户拒绝后不循环弹窗。自动恢复不会配对、提权或启动任何服务。
 - 自动恢复仅作用于当前活动 SIM；按最后成功操作的序号选择全卡或单卡配置。旧历史无序号时单卡优先。重置成功保留界面历史并写入恢复阻止标记，避免重启后撤销重置。持久化 VoLTE 不参与自动恢复。
 - 自动恢复元数据和开关保存在 `auto_restore` SharedPreferences，历史中的 `_restore_revision` / `_restore_reset` 不属于 Feature。以系统开机计数去重，同一次开机已成功恢复的相同配置不重复应用；用户重新启用开关可重新尝试。
 - 界面明确表述为“后端就绪后自动应用配置”，仅重启设备不会直接应用，必须先启动当前选定后端并获得授权。自动应用按一轮重试汇总实际写入结果，重复跳过的历史不提示；优先 Toast，5 秒未收到显示回调时尝试通知。通知需要 `POST_NOTIFICATIONS` 授权及结果渠道开启；启用开关时申请通知权限，拒绝通知不阻止自动应用。后台不主动弹通知权限窗口。
@@ -203,5 +204,5 @@ adb shell settings get global captive_portal_https_url
 - 保留现有配置名称、键及私有原值备份；legacy 原地升级要求签名一致且 `versionCode` 更高，不能重命名或清理数据；tensor 独立保存数据，不自动迁移。两包不能并发或同时自动恢复修改同一 SIM。
 - 无线启动须由用户操作，使用系统配对界面与短时通知，只接受本机地址；不得要求手填端口、申请悬浮窗或记录配对码。Android 17 自动发现需本地网络权限，Android 13+ 需通知权限与可用渠道，拒绝后不在后台反复请求。
 - 电脑 ADB 启动必须有用户主动开启的有限等待；取消、超时或进程结束后须重新开启等待，应用更新后须重新获取命令。保留固定原生入口、危险环境变量清理与一次性 claim 校验，不能扩展成永久脚本或通用 shell 执行器。
-- `moe.shizuku.manager.adb.PairingContext` 属于第三方 JNI ABI，保留包名和许可，不是官方管理器的授权入口。
+- `moe.shizuku.manager.adb.PairingContext` 属于第三方 JNI ABI，保留包名和许可，不是外置管理器的授权入口。
 - debug 使用开发签名；release 必须显式提供完整正式签名配置，不得回退开发证书。编译、静态检查或模拟器验证不能替代真实设备功能验收。

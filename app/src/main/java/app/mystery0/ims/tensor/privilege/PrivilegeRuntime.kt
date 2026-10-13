@@ -184,7 +184,7 @@ object PrivilegeRuntime {
                         ConnectionState.BUSY, ConnectionState.SWITCHING,
                     ) || (value.connection == ConnectionState.RECOVERY_REQUIRED && !_canRequestOfficialPermissionForRecovery.value)) return@tryExclusive
                 try { official.requestPermission() } catch (failure: Throwable) {
-                    Log.w(TAG, "Official permission request failed", failure)
+                    Log.w(TAG, "External permission request failed", failure)
                     connectLocked()
                 }
             }

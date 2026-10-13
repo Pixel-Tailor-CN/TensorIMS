@@ -9,7 +9,7 @@ import app.mystery0.ims.tensor.bridge.BridgeProtocol
 import app.mystery0.ims.tensor.bridge.InstalledIdentity
 import org.lsposed.hiddenapibypass.LSPass
 
-/** 由当前安装 APK 的 app_process 加载，不依赖官方管理器或授权数据库。 */
+/** 由当前安装 APK 的 app_process 加载，不依赖外置管理器或授权数据库。 */
 object EmbeddedServerMain {
     @Suppress("DEPRECATION")
     @JvmStatic fun main(args: Array<String>) {

@@ -69,7 +69,7 @@ class AutoRestoreController(private val context: Context) {
         if (!_enabled.value || permissionPending || !repository.hasRestorableHistory()) return
         val boot = repository.bootCount()
         if (boot >= 0 && PrivilegeRuntime.canRequestOfficialPermissionAutomatically() && repository.claimPermissionRequest(boot)) {
-            Log.i(TAG, "Requesting selected official backend permission for automatic restore")
+            Log.i(TAG, "Requesting selected external backend permission for automatic restore")
             requestPermission(PERMISSION_REQUEST_CODE)
         }
     }

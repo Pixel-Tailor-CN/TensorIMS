@@ -33,7 +33,7 @@
 
 ## 关于
 
-TensorIMS 是一个允许您在 Google Pixel 手机上启用或禁用 VoLTE（高清语音通话）、VoWiFi（Wi-Fi 通话）、VT（视频通话）和 VoNR（5G 语音）等 IMS 功能的工具。官方模式需要 [Shizuku](https://shizuku.rikka.app/zh-CN/)；内置模式需要独立无线 ADB 配对或已有 root。选择模式本身不代表已经获得权限。
+TensorIMS 是一个允许您在 Google Pixel 手机上启用或禁用 VoLTE（高清语音通话）、VoWiFi（Wi-Fi 通话）、VT（视频通话）和 VoNR（5G 语音）等 IMS 功能的工具。外置模式需要 [Shizuku](https://shizuku.rikka.app/zh-CN/) 或兼容其 API 的 fork 版本；内置模式需要独立无线 ADB 配对或已有 root。选择模式本身不代表已经获得权限。
 
 ## 功能
 
@@ -84,15 +84,15 @@ TensorIMS 是一个允许您在 Google Pixel 手机上启用或禁用 VoLTE（�
     - Pixel Fold, Pixel Tablet
     - **注意：** 搭载 Qualcomm Snapdragon 芯片的设备（Pixel 5 及更早机型）**不支持**。
 - Android 13 或更高版本
-- 官方模式：已安装并运行 [Shizuku](https://shizuku.rikka.app/zh-CN/) 并授权；内置模式：由用户手动开启无线调试并独立配对，或批准已有 root
+- 外置模式：已安装并运行 [Shizuku](https://shizuku.rikka.app/zh-CN/) 并授权；内置模式：由用户手动开启无线调试并独立配对，或批准已有 root
 
 ## 安装
 
 <a href="https://apps.obtainium.imranr.dev/redirect.html?r=obtainium://add/https://github.com/Pixel-Tailor-CN/TensorIMS"><img src="https://raw.githubusercontent.com/ImranR98/Obtainium/refs/heads/main/assets/graphics/badge_obtainium.png" alt="Obtainium" height="96"></a>
 
-1. 从 [Releases](https://github.com/Pixel-Tailor-CN/TensorIMS/releases) 选择包名对应的 APK：新装独立应用选 `app.mystery0.ims.tensor`；保留旧应用身份选 `io.github.vvb2060.ims`。两包功能相同，均可选择官方或内置模式。
+1. 从 [Releases](https://github.com/Pixel-Tailor-CN/TensorIMS/releases) 选择包名对应的 APK：新装独立应用选 `app.mystery0.ims.tensor`；保留旧应用身份选 `io.github.vvb2060.ims`。两包功能相同，均可选择外置或内置模式。
 2. 安装前核对签名、版本并保护原有数据；不要为解决签名不匹配而先卸载旧版。
-3. 从首页设备卡进入“特权模式”：官方模式需要运行 Shizuku 并授权；内置模式可通过无线调试配对、电脑 ADB 或已有 root 手动启动。后端就绪后，先读取当前配置再决定是否修改。
+3. 从首页设备卡进入“特权模式”：外置模式需要运行 Shizuku 并授权；内置模式可通过无线调试配对、电脑 ADB 或已有 root 手动启动。后端就绪后，先读取当前配置再决定是否修改。
 
 新包与旧包数据独立，不自动迁移；旧包覆盖升级要求签名一致且版本号更高。更换安装包前关闭自动恢复，恢复旧包的持久化 VoLTE 原值并保留其数据。不要同时让两个安装包自动修改同一 SIM。
 

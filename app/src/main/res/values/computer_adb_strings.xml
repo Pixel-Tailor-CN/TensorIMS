@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="computer_adb_title">Start via computer ADB</string>
-    <string name="computer_adb_help">Enable USB or wireless debugging, connect your computer via ADB, then execute the command from this app while its short startup wait is open. The installed path may change after an app update. Official Shizuku is not required.</string>
+    <string name="computer_adb_help">Enable USB or wireless debugging, connect your computer via ADB, then execute the command from this app while its short startup wait is open. The installed path may change after an app update. External Shizuku is not required.</string>
     <string name="computer_adb_generate">Generate start command</string>
     <string name="computer_adb_steps">1. Install Android platform tools on your computer, connect this device via USB or wireless ADB, and authorize it.\n2. Check adb devices, then run the complete command below in your computer terminal. If multiple devices are connected, add -s DEVICE_SERIAL after adb.\n3. Keep the app running and wait for the service to become ready.</string>
     <string name="computer_adb_wait">This startup wait closes in about 110 seconds. After cancellation, timeout, or app process exit, open a new wait before running the command again. The installed path can be reused until the app is updated.</string>

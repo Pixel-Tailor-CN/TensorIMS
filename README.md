@@ -33,7 +33,7 @@
 
 ## About
 
-TensorIMS is a tool that allows you to enable or disable IMS features like Voice over LTE (VoLTE), Wi-Fi Calling (VoWiFi), Video Calling (VT), and 5G Voice (VoNR) on Google Pixel phones. Official mode uses [Shizuku](https://shizuku.rikka.app/); embedded mode requires independent wireless ADB pairing or existing root approval.
+TensorIMS is a tool that allows you to enable or disable IMS features like Voice over LTE (VoLTE), Wi-Fi Calling (VoWiFi), Video Calling (VT), and 5G Voice (VoNR) on Google Pixel phones. External mode uses [Shizuku](https://shizuku.rikka.app/) or a fork with a compatible API; embedded mode requires independent wireless ADB pairing or existing root approval.
 
 ## Features
 
@@ -83,15 +83,15 @@ TensorIMS is a tool that allows you to enable or disable IMS features like Voice
     - Pixel Fold, Pixel Tablet
     - **Note:** Devices with Qualcomm Snapdragons (Pixel 5 and older) are NOT supported.
 - Android 13 or higher
-- Official mode: [Shizuku](https://shizuku.rikka.app/) installed, running and authorized; embedded mode: explicit wireless ADB pairing or existing root approval
+- External mode: [Shizuku](https://shizuku.rikka.app/) installed, running and authorized; embedded mode: explicit wireless ADB pairing or existing root approval
 
 ## Installation
 
 <a href="https://apps.obtainium.imranr.dev/redirect.html?r=obtainium://add/https://github.com/Pixel-Tailor-CN/TensorIMS"><img src="https://raw.githubusercontent.com/ImranR98/Obtainium/refs/heads/main/assets/graphics/badge_obtainium.png" alt="Obtainium" height="96"></a>
 
-1. Choose the APK by application ID on the [Releases](https://github.com/Pixel-Tailor-CN/TensorIMS/releases) page: `app.mystery0.ims.tensor` for a separate installation, or `io.github.vvb2060.ims` to keep the old application identity. Both include official and embedded modes.
+1. Choose the APK by application ID on the [Releases](https://github.com/Pixel-Tailor-CN/TensorIMS/releases) page: `app.mystery0.ims.tensor` for a separate installation, or `io.github.vvb2060.ims` to keep the old application identity. Both include external and embedded modes.
 2. Check the APK signature and version before installation, and preserve existing app data. Do not uninstall the old app to bypass a signature mismatch.
-3. Open **Privilege mode** from the device card on the home screen. Official mode requires Shizuku to be running and authorized; embedded mode can be started manually through wireless debugging pairing, computer ADB, or existing root access. Once the backend is ready, read the current configuration before making changes.
+3. Open **Privilege mode** from the device card on the home screen. External mode requires Shizuku to be running and authorized; embedded mode can be started manually through wireless debugging pairing, computer ADB, or existing root access. Once the backend is ready, read the current configuration before making changes.
 
 The new and legacy packages store data separately and do not migrate it automatically. Updating the legacy package requires a matching signature and a higher version code. Before switching packages, disable auto-restore, restore the legacy app's original Persistent VoLTE values, and retain its data. Do not let both packages automatically modify the same SIM at the same time.
 

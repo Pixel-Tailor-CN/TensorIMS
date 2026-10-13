@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-/** 只保存本次显式启动挑战认证过的私有 Binder，与官方静态 Binder 完全隔离。 */
+/** 只保存本次显式启动挑战认证过的私有 Binder，与外置静态 Binder 完全隔离。 */
 object EmbeddedConnection {
     private val lock = Any()
     private val mutableChanges = MutableStateFlow(0L)
