@@ -40,6 +40,7 @@ import app.mystery0.ims.tensor.ui.rememberWirelessAdbUiActions
 import app.mystery0.ims.tensor.privilege.BackendMode
 import app.mystery0.ims.tensor.privilege.BackendStatus
 import app.mystery0.ims.tensor.privilege.ConnectionState
+import app.mystery0.ims.tensor.privilege.RecoveryStep
 import app.mystery0.ims.tensor.ui.BackendAction
 import app.mystery0.ims.tensor.ui.BackendActionState
 import app.mystery0.ims.tensor.ui.backendUiActions
@@ -76,12 +77,14 @@ fun BackendSettingsScreen(
     onStartComputer: () -> Unit,
     onCancelComputer: () -> Unit,
     onRecoverPersistentVolte: () -> Unit,
+    onRecoverCorruptJournal: () -> Unit,
     onOpenImsConfig: () -> Unit,
     onHome: () -> Unit,
     onBack: () -> Unit,
 ) {
     val uriHandler = LocalUriHandler.current
     var confirmRecovery by rememberSaveable { mutableStateOf(false) }
+    var confirmJournalRecovery by rememberSaveable { mutableStateOf(false) }
     var showChoices by rememberSaveable { mutableStateOf(false) }
     var pendingMode by rememberSaveable { mutableStateOf<String?>(null) }
     var showDetails by rememberSaveable { mutableStateOf(false) }
@@ -94,6 +97,7 @@ fun BackendSettingsScreen(
     val locked = operationBusy || action.inProgress || wirelessActions.pending || status.connection in
         setOf(ConnectionState.BUSY, ConnectionState.SWITCHING, ConnectionState.CONNECTING)
     val ready = status.isReady && !locked && !recovering
+    val canRecoverJournal = status.recovery?.step == RecoveryStep.CONFIRM_JOURNAL && !locked
 
     Scaffold(contentWindowInsets = pageContentInsets, topBar = {
         CenterAlignedTopAppBar(
@@ -117,6 +121,8 @@ fun BackendSettingsScreen(
                     })
                 if (ready) {
                     Text(stringResource(R.string.connection_ready_help), style = MaterialTheme.typography.bodyMedium)
+                    if (status.automaticRestorePaused) Text(stringResource(R.string.recovery_auto_paused_ready),
+                        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
                     Button(onClick = onOpenImsConfig, modifier = Modifier.fillMaxWidth()) {
                         Text(stringResource(R.string.connection_open_ims))
                     }
@@ -167,6 +173,11 @@ fun BackendSettingsScreen(
                         Text(stringResource(R.string.backend_restore_originals))
                     }
                 }
+                if (status.recovery?.step == RecoveryStep.CONFIRM_JOURNAL) Button(
+                    onClick = { confirmJournalRecovery = true },
+                    enabled = canRecoverJournal,
+                    modifier = Modifier.fillMaxWidth(),
+                ) { Text(stringResource(R.string.recovery_journal_action)) }
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -188,6 +199,7 @@ fun BackendSettingsScreen(
                     CircularProgressIndicator()
                     Text(stringResource(when (action.action) {
                         BackendAction.RECOVER -> R.string.backend_restoring
+                        BackendAction.RECOVER_JOURNAL -> R.string.recovery_step_verifying
                         BackendAction.PAIR -> R.string.backend_pairing
                         BackendAction.ROOT -> R.string.backend_starting_root
                         BackendAction.WIRELESS -> R.string.backend_starting_wireless
@@ -197,7 +209,7 @@ fun BackendSettingsScreen(
                     Text(stringResource(R.string.backend_action_in_progress), style = MaterialTheme.typography.bodySmall)
                 }
             }
-            if (!ready) action.notice?.let { Text(stringResource(it), color = MaterialTheme.colorScheme.primary) }
+            if (!ready || status.automaticRestorePaused) action.notice?.let { Text(stringResource(it), color = MaterialTheme.colorScheme.primary) }
             if (!ready) action.error?.let { Text(stringResource(R.string.backend_action_failed, it), color = MaterialTheme.colorScheme.error) }
             when (status.mode) {
                 BackendMode.UNSET -> Text(stringResource(R.string.backend_choose_description))
@@ -238,6 +250,16 @@ fun BackendSettingsScreen(
         }
     }
     computerAdbCommand?.let { ComputerAdbDialog(it, onCancelComputer) }
+    if (confirmJournalRecovery) AlertDialog(
+        onDismissRequest = { confirmJournalRecovery = false },
+        title = { Text(stringResource(R.string.recovery_journal_confirm)) },
+        text = { Text(stringResource(R.string.recovery_journal_description)) },
+        confirmButton = { TextButton(onClick = {
+            confirmJournalRecovery = false
+            onRecoverCorruptJournal()
+        }, enabled = canRecoverJournal) { Text(stringResource(R.string.recovery_journal_action)) } },
+        dismissButton = { TextButton(onClick = { confirmJournalRecovery = false }) { Text(stringResource(android.R.string.cancel)) } },
+    )
     if (confirmRecovery) AlertDialog(
         onDismissRequest = { confirmRecovery = false },
         title = { Text(stringResource(R.string.backend_restore_confirm)) },

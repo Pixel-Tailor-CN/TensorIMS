@@ -5,6 +5,15 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class OperationJournalTest {
+    @Test fun recoveryCauseSurvivesProcessReconstruction() {
+        val dir = Files.createTempDirectory("tensorims-journal-cause").toFile()
+        try {
+            OperationJournal(dir).write(OperationRecord("timed-out-read", BackendMode.OFFICIAL, "READ_SIMS", 1, 20, -1,
+                phase = OperationPhase.UNKNOWN, recoveryReason = RecoveryReason.TIMEOUT))
+            assertEquals(RecoveryReason.TIMEOUT, OperationJournal(dir).read()!!.recoveryReason)
+        } finally { dir.deleteRecursively() }
+    }
+
     @Test fun unfinishedWriteSurvivesProcessReconstructionWithoutReplayData() {
         val dir = Files.createTempDirectory("tensorims-journal").toFile()
         try {

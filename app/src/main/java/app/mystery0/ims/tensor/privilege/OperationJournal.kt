@@ -22,6 +22,7 @@ data class OperationRecord(
     val cleanupConfirmed: Boolean = false,
     val targetIdentities: Map<Int, String> = emptyMap(),
     val dispatched: Boolean = false,
+    val recoveryReason: RecoveryReason? = null,
 )
 
 /** 每次只允许一笔未完成事务；损坏日志必须按需要恢复处理。 */
@@ -48,6 +49,7 @@ class OperationJournal(private val directory: File) {
                 phase = OperationPhase.valueOf(value("phase")),
                 cleanupConfirmed = value("cleanup").toBooleanStrict(),
                 dispatched = values.getProperty("dispatched", "true").toBooleanStrict(),
+                recoveryReason = values.getProperty("reason")?.let(RecoveryReason::valueOf),
                 targetIdentities = values.stringPropertyNames().filter { it.startsWith("sim.") }
                     .associate { it.removePrefix("sim.").toInt() to value(it) },
             ).also(::validate)
@@ -70,6 +72,7 @@ class OperationJournal(private val directory: File) {
             setProperty("phase", record.phase.name)
             setProperty("cleanup", record.cleanupConfirmed.toString())
             setProperty("dispatched", record.dispatched.toString())
+            record.recoveryReason?.let { setProperty("reason", it.name) }
             record.identityDigest?.let { setProperty("identity", it) }
             record.recoveryReference?.let { setProperty("recovery", it) }
             record.targetIdentities.forEach { (id, digest) -> setProperty("sim.$id", digest) }

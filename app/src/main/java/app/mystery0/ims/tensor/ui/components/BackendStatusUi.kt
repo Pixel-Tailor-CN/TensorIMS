@@ -45,6 +45,10 @@ fun backendConnectionLabel(connection: ConnectionState): String = stringResource
 
 @Composable
 fun BackendErrorGuidance(status: BackendStatus) {
+    if (status.connection == ConnectionState.RECOVERY_REQUIRED) {
+        BackendRecoveryGuidance(status)
+        return
+    }
     val resource = when {
         status.connection == ConnectionState.RECOVERY_REQUIRED -> R.string.backend_recovery_guidance
         else -> when (status.errorCode) {
@@ -85,6 +89,7 @@ fun BackendStatusBanner(
                 TextButton(onClick = onOpenSettings) { Text(stringResource(R.string.backend_settings)) }
             }
             Text(backendConnectionLabel(status.connection), style = MaterialTheme.typography.bodyMedium)
+            if (status.connection == ConnectionState.RECOVERY_REQUIRED) BackendRecoveryGuidance(status, compact = true)
             if (status.mode == BackendMode.UNSET) Text(stringResource(R.string.backend_choose_description), style = MaterialTheme.typography.bodySmall)
             val label = when (actions.primary) {
                 BackendPrimaryAction.CHOOSE_MODE -> R.string.backend_choose_title

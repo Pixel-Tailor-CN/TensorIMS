@@ -60,7 +60,7 @@ class EmbeddedBackend : PrivilegeBackend {
             }
             // 超时由 Runtime 向 UI 报告；此等待不取消设备端任务，也不释放协调器安全门。
             val finished = result.await()
-            if (!finished.getBoolean(BridgeProtocol.CLEANUP_CONFIRMED)) throw OperationUncertainException("CLEANUP_FAILED")
+            if (!finished.getBoolean(BridgeProtocol.CLEANUP_CONFIRMED)) throw OperationUncertainException("CLEANUP_FAILED", cleanupUnconfirmed = true)
             finished
         } finally { runCatching { server.asBinder().unlinkToDeath(death, 0) } }
     }

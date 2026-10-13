@@ -38,6 +38,7 @@ object PrivilegeRuntime {
     private val embedded = EmbeddedBackend()
     private lateinit var context: Context
     private lateinit var journal: OperationJournal
+    private lateinit var corruptRecovery: CorruptJournalRecovery
     private var machine = BackendStateMachine()
     private val _status = MutableStateFlow(machine.status)
     val status: StateFlow<BackendStatus> = _status.asStateFlow()
@@ -53,11 +54,16 @@ object PrivilegeRuntime {
     @Volatile private var pending: OperationRecord? = null
     @Volatile private var corruptJournal = false
     @Volatile private var initialized = false
+    private var recoveryConnection: BackendStatus? = null
+    private var recoveryReadbackFailed = false
+    private var recoveryReason = RecoveryReason.INTERRUPTED
+    private var corruptCheckpointAvailable = false
 
     @Synchronized fun initialize(context: Context) {
         if (initialized) return
         this.context = context.applicationContext
         journal = OperationJournal(File(this.context.noBackupFilesDir, "privilege_operations"))
+        corruptRecovery = CorruptJournalRecovery(File(this.context.noBackupFilesDir, "privilege_operations"))
         val preferences = preferences()
         val mode = runCatching { BackendMode.valueOf(preferences.getString("chosen_mode", "UNSET")!!) }
             .getOrDefault(BackendMode.UNSET)
@@ -67,6 +73,9 @@ object PrivilegeRuntime {
             null
         }
         machine = BackendStateMachine(mode, pending != null || corruptJournal)
+        recoveryReason = if (corruptJournal) RecoveryReason.JOURNAL_CORRUPT
+            else pending?.recoveryReason ?: RecoveryReason.INTERRUPTED
+        if (corruptJournal) recordCorruptDetection()
         if (pending != null || corruptJournal) preferences.edit().putBoolean("restore_paused", true).commit()
         initialized = true
         publish()
@@ -154,7 +163,9 @@ object PrivilegeRuntime {
         scope.launch {
             try {
                 OperationCoordinator.tryExclusive {
-                    if (machine.status.connection == ConnectionState.RECOVERY_REQUIRED) reconcileLocked()
+                    if (machine.status.connection == ConnectionState.RECOVERY_REQUIRED) {
+                        if (corruptJournal) refreshCorruptLocked() else reconcileLocked()
+                    }
                     else if (machine.activeOperationId == null) connectLocked()
                 }
             } catch (failure: Exception) {
@@ -189,8 +200,9 @@ object PrivilegeRuntime {
 
     /** 用户核对后重新启用自动恢复，才允许解除未知结果造成的持久暂停。 */
     fun acknowledgeAutomaticRestore() {
-        if (initialized && status.value.connection != ConnectionState.RECOVERY_REQUIRED) {
+        if (initialized && status.value.isReady) {
             preferences().edit().putBoolean("restore_paused", false).commit()
+            publish()
         }
     }
 
@@ -217,7 +229,9 @@ object PrivilegeRuntime {
                 Log.w(TAG, "Embedded start failed (${failure.javaClass.simpleName})")
                 "内置服务启动失败，请检查启动方式"
             }
-            if (recovering) reconcileLocked() else connectLocked()
+            if (recovering) {
+                if (corruptJournal) refreshCorruptLocked() else reconcileLocked()
+            } else connectLocked()
             error
         }
         return if (entered) result else "当前操作尚未完成，请稍后再启动"
@@ -250,8 +264,10 @@ object PrivilegeRuntime {
             try { savePending(record) } catch (failure: Exception) {
                 // 已知尚未派发，保留可核对的内存记录；不重置 epoch，也不把磁盘故障当成执行成功。
                 machine.uncertain(id, epoch)
+                recoveryReason = RecoveryReason.JOURNAL_IO
                 machine.finish(id, epoch, true)
-                synchronized(journalGuard) { pending = record.copy(phase = OperationPhase.TERMINAL, cleanupConfirmed = true) }
+                synchronized(journalGuard) { pending = record.copy(phase = OperationPhase.TERMINAL, cleanupConfirmed = true,
+                    recoveryReason = recoveryReason) }
                 preferences().edit().putBoolean("restore_paused", true).commit()
                 publish()
                 return@serialized errorResult(arguments, "无法可靠保存操作记录，已阻止执行", "JOURNAL_FAILED")
@@ -266,12 +282,12 @@ object PrivilegeRuntime {
                 val outcome = withTimeoutOrNull(TIMEOUT_MS) { task.await() }
                 if (outcome != null) finishLocked(record, outcome, arguments)
                 else {
-                    markUnknown(record)
+                    markUnknown(record, RecoveryReason.TIMEOUT)
                     awaitLate(task, record, arguments)
                     errorResult(arguments, "操作结果尚未确认；不会自动重试，请稍后刷新核对", "OPERATION_INDETERMINATE")
                 }
             } catch (cancelled: CancellationException) {
-                markUnknown(record)
+                markUnknown(record, RecoveryReason.CANCELLED)
                 awaitLate(task, record, arguments)
                 throw cancelled
             }
@@ -355,20 +371,23 @@ object PrivilegeRuntime {
         val failure = outcome.failure
         if (failure != null && failure !is OperationNotStartedException) {
             Log.e(TAG, "Operation outcome is unconfirmed", failure)
-            markUnknown(record)
+            markUnknown(record, if (failure is OperationUncertainException && failure.cleanupUnconfirmed)
+                RecoveryReason.CLEANUP_UNCONFIRMED else RecoveryReason.OUTCOME_UNKNOWN)
             return errorResult(args, "操作或清理结果尚未确认，请先恢复核对", "OPERATION_INDETERMINATE")
         }
         if (outcome.result?.getString(BridgeProtocol.ERROR_CODE) == "OPERATION_INDETERMINATE") {
+            if (machine.status.connection != ConnectionState.RECOVERY_REQUIRED) recoveryReason = RecoveryReason.OUTCOME_UNKNOWN
             machine.uncertain(record.operationId, record.epoch)
             preferences().edit().putBoolean("restore_paused", true).commit()
         }
         val wasUnknown = machine.status.connection == ConnectionState.RECOVERY_REQUIRED
         try {
-            updatePending { it.copy(phase = OperationPhase.TERMINAL, cleanupConfirmed = true) }
+            updatePending { it.copy(phase = OperationPhase.TERMINAL, cleanupConfirmed = true,
+                recoveryReason = if (wasUnknown) recoveryReason else it.recoveryReason) }
             if (!wasUnknown) { journal.clear(); pending = null }
         } catch (journalFailure: Exception) {
             Log.e(TAG, "Operation journal completion failed", journalFailure)
-            markUnknown(record)
+            markUnknown(record, RecoveryReason.JOURNAL_IO)
             return errorResult(args, "操作记录尚未完成，请刷新核对", "JOURNAL_FAILED")
         }
         machine.finish(record.operationId, record.epoch, true)
@@ -376,10 +395,13 @@ object PrivilegeRuntime {
         return if (failure != null) errorResult(args, failure.message ?: "操作未启动", "NOT_STARTED") else outcome.result
     }
 
-    private fun markUnknown(record: OperationRecord) {
+    private fun markUnknown(record: OperationRecord, reason: RecoveryReason) {
         machine.uncertain(record.operationId, record.epoch)
+        recoveryReason = reason
+        recoveryConnection = null
+        recoveryReadbackFailed = false
         preferences().edit().putBoolean("restore_paused", true).commit()
-        try { updatePending { it.copy(phase = OperationPhase.UNKNOWN, cleanupConfirmed = false) } }
+        try { updatePending { it.copy(phase = OperationPhase.UNKNOWN, cleanupConfirmed = false, recoveryReason = reason) } }
         catch (failure: Exception) { Log.e(TAG, "Could not update unknown operation journal", failure) }
         publish()
     }
@@ -397,10 +419,12 @@ object PrivilegeRuntime {
         if (corruptJournal || recoveryInFlight || !oldOperationEnded(record)) return
         val selected = backend(machine.status.mode)
         val connection = selected.connect(context, machine.status.epoch)
+        recoveryConnection = connection
         if (!connection.isReady || record.mode != machine.status.mode) { publish(); return }
         // 核对也会建立权限委托；先持久化其未知阶段，超时后不能启动第二次核对。
         updatePending { it.copy(phase = OperationPhase.UNKNOWN, cleanupConfirmed = false, bootCount = bootCount()) }
         recoveryInFlight = true
+        recoveryReadbackFailed = false
         recoveryBackupPresent = false
         publish()
         val task = scope.async {
@@ -421,6 +445,7 @@ object PrivilegeRuntime {
 
     private fun finishReadback(verified: Boolean?, connection: BackendStatus) {
         recoveryInFlight = false
+        recoveryReadbackFailed = verified != true
         if (verified != null) updatePending { it.copy(phase = OperationPhase.TERMINAL, cleanupConfirmed = true) }
         if (verified == true) {
             check(preferences().edit().putBoolean("restore_paused", true).commit()) { "Cannot persist automatic restore pause" }
@@ -564,10 +589,116 @@ object PrivilegeRuntime {
     private fun oldOperationEnded(record: OperationRecord): Boolean =
         RecoveryPolicy.oldOperationEnded(record, bootCount())
 
+    private fun recordCorruptDetection() {
+        try {
+            corruptRecovery.recordDetection(bootCount())
+            corruptCheckpointAvailable = true
+        } catch (failure: Exception) {
+            corruptCheckpointAvailable = false
+            Log.e(TAG, "Cannot persist corrupt journal recovery checkpoint", failure)
+        }
+    }
+
+    /** 损坏记录无法核对原目标；刷新只开放重启后的连接入口，不自动归档或解除保护。 */
+    private suspend fun refreshCorruptLocked() {
+        recordCorruptDetection()
+        if (!recoveryInFlight && machine.activeOperationId == null &&
+            corruptRecovery.mayReconnect(bootCount()) && machine.status.mode != BackendMode.UNSET) {
+            recoveryConnection = backend(machine.status.mode).connect(context, machine.status.epoch)
+        }
+        publish()
+    }
+
+    suspend fun recoverCorruptJournal(): String? = try {
+        var entered = false
+        val error = OperationCoordinator.tryExclusive {
+            entered = true
+            if (!corruptJournal || recoveryInFlight || machine.activeOperationId != null ||
+                machine.status.mode == BackendMode.UNSET || !corruptRecovery.mayReconnect(bootCount())) {
+                return@tryExclusive "请先重启设备，再连接所选后端并刷新状态"
+            }
+            val selected = backend(machine.status.mode)
+            val connection = selected.connect(context, machine.status.epoch)
+            recoveryConnection = connection
+            if (!connection.isReady) { publish(); return@tryExclusive "请先连接所选后端并完成授权" }
+            check(preferences().edit().putBoolean("restore_paused", true).commit()) { "Cannot persist automatic restore pause" }
+            val fingerprint = corruptRecovery.beginVerification(bootCount())
+            recoveryInFlight = true
+            publish()
+            // 由运行时持有任务；超时或离开页面不取消设备端核对，不提前归档证据。
+            val task = scope.async {
+                try { CorruptRecoveryReadback.verify(context, selected, machine.status.epoch) }
+                catch (failure: Throwable) {
+                    Log.w(TAG, "Corrupt journal recovery readback is unconfirmed", failure)
+                    false
+                }
+            }
+            val observed = withTimeoutOrNull(TIMEOUT_MS) { task.await() }
+            if (observed != null) {
+                finishCorruptReadback(observed, fingerprint, connection)
+                if (observed && !corruptJournal) null else "核对未通过，记录与备份已保留；请重启设备后重试"
+            } else {
+                scope.launch {
+                    val verified = task.await()
+                    OperationCoordinator.serialized { finishCorruptReadback(verified, fingerprint, connection) }
+                }
+                "核对仍在进行，记录与备份已保留；请稍后刷新状态"
+            }
+        }
+        if (entered) error else "当前操作尚未完成，请稍后再核对"
+    } catch (cancelled: CancellationException) {
+        throw cancelled
+    } catch (failure: Exception) {
+        Log.e(TAG, "Corrupt journal recovery remains blocked", failure)
+        publish()
+        "无法完成核对，记录与备份已保留；请刷新状态"
+    }
+
+    private fun finishCorruptReadback(verified: Boolean, fingerprint: String, connection: BackendStatus) {
+        try {
+            if (verified) {
+                corruptRecovery.archiveVerified(fingerprint)
+                corruptJournal = false
+                check(machine.reconcile(true, true, true))
+                machine.updateConnection(connection.copy(message = "已核对当前状态并保留损坏记录；无法确认上次操作结果。请检查 IMS 配置、系统网络与 VoLTE 原值备份；自动应用仍暂停"))
+                Log.i(TAG, "Corrupt operation journal archived after explicit recovery readback")
+            }
+        } catch (failure: Exception) {
+            Log.e(TAG, "Corrupt journal archive could not be confirmed", failure)
+        } finally {
+            recoveryInFlight = false
+            publish()
+        }
+    }
+
     private fun publish() {
-        _status.value = machine.status
-        val recoveryConnectionSafe = !corruptJournal && machine.status.connection == ConnectionState.RECOVERY_REQUIRED &&
-            RecoveryPolicy.mayReconnect(pending, machine.status.mode, bootCount(), recoveryInFlight || machine.activeOperationId != null)
+        val recovering = machine.status.connection == ConnectionState.RECOVERY_REQUIRED
+        val taskActive = recoveryInFlight || machine.activeOperationId != null
+        val corruptReady = corruptJournal && runCatching { corruptRecovery.mayReconnect(bootCount()) }.getOrDefault(false)
+        val recoveryConnectionSafe = recovering && machine.status.mode != BackendMode.UNSET && !taskActive &&
+            (if (corruptJournal) corruptReady else RecoveryPolicy.mayReconnect(pending, machine.status.mode, bootCount(), false))
+        val step = when {
+            recoveryInFlight -> RecoveryStep.VERIFYING
+            corruptJournal && !corruptCheckpointAvailable -> RecoveryStep.CHECKPOINT_FAILED
+            corruptJournal && bootCount() < 0 -> RecoveryStep.REBOOT_UNVERIFIABLE
+            corruptJournal && !corruptReady -> RecoveryStep.RESTART_DEVICE
+            corruptJournal && recoveryConnection?.isReady == true -> RecoveryStep.CONFIRM_JOURNAL
+            corruptJournal -> RecoveryStep.CONNECT_BACKEND
+            machine.activeOperationId != null -> RecoveryStep.WAIT_TASK
+            pending?.let(::oldOperationEnded) != true && (bootCount() < 0 || pending?.bootCount == -1) -> RecoveryStep.REBOOT_UNVERIFIABLE
+            pending?.let(::oldOperationEnded) != true -> RecoveryStep.RESTART_DEVICE
+            recoveryConnection == null -> RecoveryStep.READBACK_REQUIRED
+            recoveryConnection?.isReady != true -> RecoveryStep.CONNECT_BACKEND
+            recoveryBackupPresent -> RecoveryStep.RESTORE_VOLTE
+            recoveryReadbackFailed -> RecoveryStep.READBACK_FAILED
+            else -> RecoveryStep.READBACK_REQUIRED
+        }
+        _status.value = machine.status.copy(
+            recovery = if (recovering) BackendRecovery(recoveryReason,
+                pending?.operation?.let { name -> OperationType.entries.firstOrNull { it.name == name } }, step,
+                recoveryConnection?.errorCode) else null,
+            automaticRestorePaused = preferences().getBoolean("restore_paused", false),
+        )
         _canStartEmbeddedForRecovery.value = recoveryConnectionSafe && machine.status.mode == BackendMode.EMBEDDED
         _canRequestOfficialPermissionForRecovery.value = recoveryConnectionSafe && machine.status.mode == BackendMode.OFFICIAL
         _canRecoverPersistentVolte.value = recoveryConnectionSafe && recoveryBackupPresent
@@ -591,7 +722,7 @@ object PrivilegeRuntime {
     }
     private fun requireClean(result: Bundle?) {
         if (result != null && !result.getBoolean(BridgeProtocol.CLEANUP_CONFIRMED)) {
-            throw OperationUncertainException("Backend did not confirm permission cleanup")
+            throw OperationUncertainException("Backend did not confirm permission cleanup", cleanupUnconfirmed = true)
         }
     }
     private fun shouldFallback(result: Bundle?): Boolean = BrokerRetryPolicy.allowed(

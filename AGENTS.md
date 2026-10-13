@@ -78,6 +78,7 @@ TensorIMS 是一个面向 Google Pixel Tensor 设备的 Android 应用，用于�
 - Instrumentation 显式接收操作会话，不读取全局 Shizuku Binder；私有桥接只提供固定操作，保留 shell/root UID、安装身份和一次性挑战校验，不新增通用命令或任意 Binder 转发。
 - 官方断开只释放客户端引用；内置停止仅作用于本包服务。权限委托冲突报告 `DELEGATION_BUSY`，不得清理其他客户端权限或按进程名停止 Shizuku。
 - 客户端超时不代表设备端写入停止；未知结果或权限清理失败保持恢复态，不清理未完成操作日志或持久化原值备份。
+- 恢复态应显示具体原因、待核对操作和下一步；SIM 读取受阻不能表示为无 SIM，自动应用的安全暂停必须在界面可见。操作记录无法读取时，使用与原记录指纹绑定的独立重启证明；仅在用户确认、所选后端验证及当前状态只读核对和权限清理确认后归档原记录，保留所有原值备份并继续暂停自动应用，不宣称原操作成功或原目标已恢复。
 - 详细方案见[双模式设计](docs/plans/2026-10-01-tensorims-dual-mode-design.md)、[双包发布设计](docs/plans/2026-10-02-dual-package-release-design.md)与[原生电脑 ADB 启动器设计](docs/plans/2026-10-11-native-adb-starter-design.md)，不要在本文件重复实现流程。
 
 ## 特权入口

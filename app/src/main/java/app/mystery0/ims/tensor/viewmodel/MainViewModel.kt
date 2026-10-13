@@ -17,6 +17,7 @@ import app.mystery0.ims.tensor.embedded.WirelessAdbService
 import app.mystery0.ims.tensor.privilege.BackendMode
 import app.mystery0.ims.tensor.privilege.ConnectionState
 import app.mystery0.ims.tensor.privilege.PrivilegeRuntime
+import app.mystery0.ims.tensor.privilege.RecoveryStep
 import app.mystery0.ims.tensor.ui.SimListUiState
 import app.mystery0.ims.tensor.ui.completeSimListRead
 import app.mystery0.ims.tensor.privilege.SimReadResult
@@ -83,6 +84,12 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
         runBackendAction(BackendAction.RECOVER) { PrivilegeRuntime.recoverPersistentVolte() }
     }
 
+    fun recoverCorruptJournal() {
+        if (backendStatus.value.recovery?.step != RecoveryStep.CONFIRM_JOURNAL ||
+            _backendAction.value.inProgress || backendActionBusy()) return
+        runBackendAction(BackendAction.RECOVER_JOURNAL) { PrivilegeRuntime.recoverCorruptJournal() }
+    }
+
     fun startEmbeddedRoot() = startEmbeddedAction(BackendAction.ROOT) { launcher.startRoot() }
 
     fun startEmbeddedPairing(): Boolean = startWirelessAction(pairing = true)
@@ -139,6 +146,7 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
                 _backendAction.value = BackendActionState(
                     notice = if (error == null) when (action) {
                         BackendAction.RECOVER -> R.string.backend_recovery_success
+                        BackendAction.RECOVER_JOURNAL -> R.string.recovery_journal_success
                         BackendAction.PAIR -> null
                         BackendAction.ROOT, BackendAction.WIRELESS, BackendAction.COMPUTER -> R.string.backend_start_success
                         BackendAction.CHOOSE_MODE -> null
@@ -219,6 +227,8 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
     val allSimList: StateFlow<List<SimSelection>> = _allSimList.asStateFlow()
     private val _simReadError = MutableStateFlow<String?>(null)
     val simReadError = _simReadError.asStateFlow()
+    private val _simReadCompleted = MutableStateFlow(false)
+    val simReadCompleted = _simReadCompleted.asStateFlow()
 
     private var loadedEpoch: Long? = null
     private var readingSims = false
@@ -239,8 +249,11 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
             backendStatus.collect { status ->
                 // BUSY 仍保留已认证的页面快照，避免每次读取都丢失草稿；动作另受忙碌门禁保护。
                 _shizukuStatus.value = status.asLegacyUiStatus()
+                if (status.connection !in setOf(ConnectionState.READY, ConnectionState.BUSY)) {
+                    loadedEpoch = null
+                    _simReadCompleted.value = false
+                }
                 if (status.isReady && loadedEpoch != status.epoch) {
-                    loadedEpoch = status.epoch
                     loadSimList()
                 }
                 if (status.isReady) drainPendingPersistentRefresh()
@@ -270,6 +283,8 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
         val status = backendStatus.value
         if (!status.isReady || readingSims) return
         readingSims = true
+        _simReadCompleted.value = false
+        loadedEpoch = status.epoch
         viewModelScope.launch {
             try {
                 val result = ShizukuProvider.readSimInfoResult(application)
@@ -280,7 +295,7 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
                 publishSimRead(SimReadResult(emptyList(), application.getString(R.string.backend_sim_read_error)), status.epoch)
             } finally {
                 readingSims = false
-                if (backendStatus.value.epoch != status.epoch && backendStatus.value.isReady) loadSimList()
+                if (backendStatus.value.isReady && loadedEpoch != backendStatus.value.epoch) loadSimList()
             }
         }
     }
@@ -292,6 +307,7 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
         // 失败保留最后成功列表，只有成功的空结果才清理失效选择。
         _allSimList.value = next.items
         _simReadError.value = next.error
+        _simReadCompleted.value = result.error == null && requestedEpoch == backendStatus.value.epoch && backendStatus.value.isReady
     }
 
     /**

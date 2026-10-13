@@ -81,7 +81,7 @@ class OfficialBackend : PrivilegeBackend {
                 if (clean) {
                     result?.putBoolean(BridgeProtocol.CLEANUP_CONFIRMED, true)
                     deferred.complete(result)
-                } else deferred.completeExceptionally(OperationUncertainException("Permission delegation cleanup is unconfirmed"))
+                } else deferred.completeExceptionally(OperationUncertainException("Permission delegation cleanup is unconfirmed", cleanupUnconfirmed = true))
             }
         }
         synchronized(retained) { retained[operationId] = watcher }
@@ -95,7 +95,7 @@ class OfficialBackend : PrivilegeBackend {
             if (!started) {
                 synchronized(retained) { retained.remove(operationId) }
                 if (!session.finishAndConfirmCleanup()) {
-                    throw OperationUncertainException("Rejected instrumentation cleanup is unconfirmed")
+                    throw OperationUncertainException("Rejected instrumentation cleanup is unconfirmed", cleanupUnconfirmed = true)
                 }
                 throw OperationNotStartedException("Instrumentation start rejected")
             }

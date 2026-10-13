@@ -36,7 +36,7 @@ import app.mystery0.ims.tensor.R
 
 /** 通知权限只影响结果兜底提示，不作为自动应用配置的前置授权。 */
 @Composable
-fun AutoRestoreCard(enabled: Boolean, onEnabledChange: (Boolean) -> Unit) {
+fun AutoRestoreCard(enabled: Boolean, paused: Boolean, backendReady: Boolean, onEnabledChange: (Boolean) -> Unit) {
     val context = LocalContext.current
     var notificationsEnabled by remember { mutableStateOf(AutoRestoreNotifier.notificationsEnabled(context)) }
     var enableAfterPermission by rememberSaveable { mutableStateOf(false) }
@@ -79,6 +79,11 @@ fun AutoRestoreCard(enabled: Boolean, onEnabledChange: (Boolean) -> Unit) {
                     stringResource(R.string.backend_auto_restore_description),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                if (enabled && paused) Text(
+                    stringResource(if (backendReady) R.string.recovery_auto_paused_ready else R.string.recovery_auto_paused),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
                 )
             }
             Switch(checked = enabled, onCheckedChange = null)

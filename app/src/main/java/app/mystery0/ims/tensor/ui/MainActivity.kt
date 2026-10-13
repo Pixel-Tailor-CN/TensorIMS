@@ -51,6 +51,7 @@ class MainActivity : BaseActivity() {
         var firstChoiceDismissed by rememberSaveable { mutableStateOf(false) }
         val shizukuStatus by viewModel.shizukuStatus.collectAsStateWithLifecycle()
         val simReadError by viewModel.simReadError.collectAsStateWithLifecycle()
+        val simReadCompleted by viewModel.simReadCompleted.collectAsStateWithLifecycle()
         val allSimList by viewModel.allSimList.collectAsStateWithLifecycle()
         val isOperationInProgress by viewModel.isOperationInProgress.collectAsStateWithLifecycle()
         val persistentVolteState by viewModel.persistentVolteState.collectAsStateWithLifecycle()
@@ -105,6 +106,7 @@ class MainActivity : BaseActivity() {
                     busy = isOperationInProgress,
                     allSimList = allSimList,
                     simReadError = simReadError,
+                    simReadCompleted = simReadCompleted,
                     selectedSim = selectedSim,
                     autoRestoreEnabled = autoRestoreEnabled,
                     onSelectSim = { selectedSubId = it.subId },
@@ -163,6 +165,7 @@ class MainActivity : BaseActivity() {
                     canStartEmbeddedForRecovery = canStartEmbeddedForRecovery,
                     canRequestOfficialPermissionForRecovery = canRequestOfficialPermissionForRecovery,
                     onRecoverPersistentVolte = viewModel::recoverPersistentVolte,
+                    onRecoverCorruptJournal = viewModel::recoverCorruptJournal,
                     onChooseMode = viewModel::chooseBackend,
                     onRequestPermission = viewModel::requestOfficialPermission,
                     onRefresh = viewModel::refreshBackendStatus,

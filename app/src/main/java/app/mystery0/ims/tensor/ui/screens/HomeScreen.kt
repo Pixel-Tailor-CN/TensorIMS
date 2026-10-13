@@ -45,6 +45,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.mystery0.ims.tensor.R
 import app.mystery0.ims.tensor.privilege.BackendStatus
+import app.mystery0.ims.tensor.privilege.ConnectionState
 import androidx.compose.material.icons.rounded.Settings
 import app.mystery0.ims.tensor.model.SimSelection
 import app.mystery0.ims.tensor.model.SystemInfo
@@ -60,6 +61,7 @@ fun HomeScreen(
     busy: Boolean,
     allSimList: List<SimSelection>,
     simReadError: String?,
+    simReadCompleted: Boolean,
     selectedSim: SimSelection?,
     autoRestoreEnabled: Boolean,
     onSelectSim: (SimSelection) -> Unit,
@@ -132,9 +134,11 @@ fun HomeScreen(
                 onOpenBackendSettings = onOpenBackendSettings,
             )
             SimSelectionCard(
+                backendStatus = backendStatus,
                 selectedSim = selectedSim,
                 allSimList = allSimList,
                 simReadError = simReadError,
+                simReadCompleted = simReadCompleted,
                 onSelectSim = onSelectSim,
                 onRefresh = onRefresh,
             )
@@ -174,6 +178,8 @@ fun HomeScreen(
             }
             AutoRestoreCard(
                 enabled = autoRestoreEnabled,
+                paused = backendStatus.automaticRestorePaused,
+                backendReady = backendStatus.isReady,
                 onEnabledChange = onAutoRestoreEnabledChange,
             )
             // 留白随正文滚动，仅滚到底时将最后一张卡片托出导航栏，不制造固定底部色块。
@@ -184,9 +190,11 @@ fun HomeScreen(
 
 @Composable
 private fun SimSelectionCard(
+    backendStatus: BackendStatus,
     selectedSim: SimSelection?,
     allSimList: List<SimSelection>,
     simReadError: String?,
+    simReadCompleted: Boolean,
     onSelectSim: (SimSelection) -> Unit,
     onRefresh: () -> Unit,
 ) {
@@ -218,20 +226,27 @@ private fun SimSelectionCard(
                     Text(stringResource(R.string.refresh))
                 }
             }
-            if (simReadError != null) {
+            val recovering = backendStatus.connection == ConnectionState.RECOVERY_REQUIRED
+            if (recovering) Text(
+                text = stringResource(R.string.recovery_sim_blocked),
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+            )
+            if (simReadError != null && !recovering) {
                 Text(
                     text = stringResource(R.string.backend_sim_read_failed, simReadError),
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.error,
                 )
-                if (allSimList.isNotEmpty()) Text(
-                    text = stringResource(R.string.backend_sim_last_good),
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
             }
+            if (allSimList.isNotEmpty() && (simReadError != null || recovering)) Text(
+                text = stringResource(R.string.backend_sim_last_good),
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             val actualSims = allSimList.filter { it.subId >= 0 }
             val displaySims = if (actualSims.size == 1) actualSims else allSimList
             Column(Modifier.selectableGroup()) {
@@ -275,9 +290,13 @@ private fun SimSelectionCard(
                     }
                 }
             }
-            if (allSimList.isEmpty() && simReadError == null) {
+            if (allSimList.isEmpty() && simReadError == null && !recovering) {
                 Text(
-                    text = stringResource(R.string.backend_no_sim_available),
+                    text = stringResource(when {
+                        simReadCompleted -> R.string.backend_no_active_sim
+                        backendStatus.connection in setOf(ConnectionState.READY, ConnectionState.BUSY) -> R.string.backend_sim_loading
+                        else -> R.string.backend_no_sim_available
+                    }),
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 12.dp),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
