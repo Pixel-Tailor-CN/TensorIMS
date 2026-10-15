@@ -75,5 +75,3 @@ jobs:
           files: |
             ${{ steps.apk.outputs.tensorApk }}
             ${{ steps.apk.outputs.legacyApk }}
-            ${{ steps.apk.outputs.tensorMapping }}
-            ${{ steps.apk.outputs.legacyMapping }}

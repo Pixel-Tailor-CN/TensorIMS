@@ -46,7 +46,7 @@ TensorIMS 是一个面向 Google Pixel Tensor 设备的 Android 应用，用于�
 
 依赖版本统一维护在 `gradle/libs.versions.toml`，不要在 Gradle 脚本中硬编码依赖版本。
 
-`master` 的自动预发布由 `.github/workflows/android_master.yml` 管理，保持提交信息包含 `ci` 时触发。正式发布与预发布均在同一 Release 中提供 `tensorRelease`、`legacyRelease` 两个 APK 及各自的 mapping；两包使用相同 `versionCode`/`versionName` 和既有签名 Secrets，启用混淆和资源压缩。文件名为 `TensorIMS-<applicationId>-<versionName>.apk` 及 `TensorIMS-<applicationId>-<versionName>-mapping.txt`，避免相互覆盖；预发布仍使用 `pre-` 标签并标记为 prerelease。CI 共用签名配置不等于已经核实它与用户已安装旧包的证书一致，覆盖升级前必须单独核对。
+`master` 的自动预发布由 `.github/workflows/android_master.yml` 管理，保持提交信息包含 `ci` 时触发。正式发布与预发布均在同一 Release 中仅提供 `tensorRelease`、`legacyRelease` 两个 APK，不上传 mapping 文件，以免误导用户；两包使用相同 `versionCode`/`versionName` 和既有签名 Secrets，启用混淆和资源压缩。APK 文件名为 `TensorIMS-<applicationId>-<versionName>.apk`，避免相互覆盖；mapping 仍在构建时生成并校验；预发布仍使用 `pre-` 标签并标记为 prerelease。CI 共用签名配置不等于已经核实它与用户已安装旧包的证书一致，覆盖升级前必须单独核对。
 
 ## 模块结构
 
