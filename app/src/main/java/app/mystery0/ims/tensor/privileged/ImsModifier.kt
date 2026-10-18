@@ -113,8 +113,7 @@ class ImsModifier : SessionInstrumentation() {
                 bundle.putBoolean(CarrierConfigManager.KEY_EDITABLE_WFC_ROAMING_MODE_BOOL, true)
                 // KEY_SHOW_WIFI_CALLING_ICON_IN_STATUS_BAR_BOOL
                 bundle.putBoolean("show_wifi_calling_icon_in_status_bar_bool", true)
-                // KEY_WFC_SPN_FORMAT_IDX_INT
-                bundle.putInt("wfc_spn_format_idx_int", 6)
+                // 名称格式由独立选项控制，恢复旧 VoWiFi 历史时也不再强制修改。
             }
 
             // 漫游 VoWiFi 可能产生额外费用，关闭时不写入，避免覆盖运营商默认值。

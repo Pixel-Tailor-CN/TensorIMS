@@ -13,12 +13,15 @@ object TargetConfigProtocol {
     const val SUB_ID = "_target_sub_id"
     const val COMPLETE = "_target_complete"
     const val RECOVERY = "_target_recovery"
+    const val WFC_NAME_FORMAT_CONSISTENT = "_target_wfc_name_format_consistent"
 
     fun encode(values: Map<Feature, FeatureValue>): Bundle = Bundle().apply {
         values.forEach { (feature, value) ->
+            require(CarrierConfigChoices.isWellTyped(feature, value)) { "Invalid configuration type: ${feature.name}" }
             when (value.valueType) {
                 FeatureValueType.BOOLEAN -> putBoolean(feature.name, value.data as Boolean)
                 FeatureValueType.STRING -> putString(feature.name, value.data as String)
+                FeatureValueType.INTEGER -> putInt(feature.name, value.data as Int)
             }
         }
     }
@@ -26,10 +29,11 @@ object TargetConfigProtocol {
     @Suppress("DEPRECATION")
     fun decode(bundle: Bundle): Map<Feature, FeatureValue> = buildMap {
         Feature.entries.forEach { feature ->
-            val value = bundle.get(feature.name)
-            if ((feature.valueType == FeatureValueType.BOOLEAN && value is Boolean) ||
-                (feature.valueType == FeatureValueType.STRING && value is String)) {
-                put(feature, FeatureValue(requireNotNull(value), feature.valueType))
+            val raw = bundle.get(feature.name) ?: return@forEach
+            val value = FeatureValue(raw, feature.valueType)
+            // 快照保留未识别的实际整数值；可选范围只在编辑和写入入口检查。
+            if (CarrierConfigChoices.isWellTyped(feature, value)) {
+                put(feature, value)
             }
         }
     }
@@ -43,7 +47,7 @@ object TargetConfigProtocol {
             Feature.entries.mapNotNull { feature ->
                 val name = result.getBundle(RECOVERY)?.getString(feature.name)
                 ConfigRecovery.entries.firstOrNull { it.name == name }?.let { feature to it }
-            }.toMap())
+            }.toMap(), wfcNameFormatConsistent = result.getBoolean(WFC_NAME_FORMAT_CONSISTENT, false))
         return if (snapshot.error == null && (snapshot.identity.isBlank() || snapshot.values.isEmpty() ||
                     !snapshot.recovery.keys.containsAll(snapshot.values.keys))) {
             snapshot.copy(error = "Incomplete configuration snapshot")

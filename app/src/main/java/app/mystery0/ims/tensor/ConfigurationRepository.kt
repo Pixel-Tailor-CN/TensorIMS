@@ -40,13 +40,13 @@ class ConfigurationRepository(private val context: Context) {
 
     fun load(subId: Int): Map<Feature, FeatureValue>? {
         val prefs = history(subId)
-        if (Feature.entries.none { prefs.contains(it.name) }) return null
-        val features = if (prefs.getInt(VERSION, 1) >= 2) Feature.entries.filter { prefs.contains(it.name) }
-            else Feature.entries
+        val features = historyFeatures(prefs.getInt(VERSION, 1), prefs.all.keys)
+        if (features.isEmpty()) return null
         return features.associateWith { feature ->
             val data = when (feature.valueType) {
                 FeatureValueType.BOOLEAN -> prefs.getBoolean(feature.name, feature.defaultValue as Boolean)
                 FeatureValueType.STRING -> prefs.getString(feature.name, feature.defaultValue as String) ?: ""
+                FeatureValueType.INTEGER -> prefs.getInt(feature.name, feature.defaultValue as Int)
             }
             FeatureValue(data, feature.valueType)
         }
@@ -88,6 +88,7 @@ class ConfigurationRepository(private val context: Context) {
                 when (value.valueType) {
                     FeatureValueType.BOOLEAN -> putBoolean(feature.name, value.data as Boolean)
                     FeatureValueType.STRING -> putString(feature.name, value.data as String)
+                    FeatureValueType.INTEGER -> putInt(feature.name, value.data as Int)
                 }
             }
             putLong(REVISION, revision)
@@ -177,6 +178,19 @@ class ConfigurationRepository(private val context: Context) {
         private const val VERSION = "_config_version"
         private const val IDENTITY = "_target_identity"
 
+        // v1 会补齐当时界面的默认值；固定旧项目集合，升级不能凭空增加恢复目标。
+        private val LEGACY_FEATURES = listOf(
+            Feature.CARRIER_NAME, Feature.IMS_USER_AGENT, Feature.VOLTE, Feature.VOWIFI,
+            Feature.VOWIFI_ROAMING, Feature.VT, Feature.VONR, Feature.CROSS_SIM, Feature.UT,
+            Feature.FIVE_G_NR, Feature.FIVE_G_THRESHOLDS, Feature.FIVE_G_PLUS_ICON,
+            Feature.ENHANCED_4G_LTE, Feature.HIDE_LTE_PLUS_DATA_ICON, Feature.SHOW_4G_FOR_LTE,
+        )
+
+        internal fun historyFeatures(version: Int, savedKeys: Set<String>): List<Feature> =
+            if (version >= 2) Feature.entries.filter { it.name in savedKeys }
+            else LEGACY_FEATURES.takeIf { features -> features.any { it.name in savedKeys } }.orEmpty()
+
+        // 仅保留 v1 原有构造语义；新增选项通过 v2 的明确目标写入，不能补默认值。
         fun buildBundle(subId: Int, config: Map<Feature, FeatureValue>): Bundle {
             fun boolean(feature: Feature) = (config[feature]?.data ?: feature.defaultValue) as Boolean
             fun string(feature: Feature) = config[feature]?.data as? String

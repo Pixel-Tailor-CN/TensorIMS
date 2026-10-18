@@ -109,6 +109,12 @@
     <string name="vowifi_desc">在弱信号或室内环境下通过 Wi-Fi 进行语音通话</string>
     <string name="vowifi_roaming">漫游 VoWiFi</string>
     <string name="vowifi_roaming_desc">漫游时默认允许使用 Wi-Fi 通话（资费与可用性以运营商为准）</string>
+    <string name="vowifi_name_format">Wi-Fi 通话名称格式</string>
+    <string name="vowifi_name_format_desc">选择 Wi-Fi 通话时的运营商名称格式，实际文字由系统语言和 ROM 决定</string>
+    <string name="vowifi_format_carrier_only">仅运营商名称</string>
+    <string name="vowifi_format_wifi_calling">运营商 + Wi-Fi 通话</string>
+    <string name="vowifi_format_wifi">运营商 + Wi-Fi</string>
+    <string name="vowifi_format_vowifi">运营商 + VoWifi</string>
     <string name="vt">VT（运营商视频通话）</string>
     <string name="vt_desc">启用系统拨号盘原生的运营商视频通话功能</string>
     <string name="vonr">VoNR（5G 高清通话）</string>
@@ -117,6 +123,17 @@
     <string name="cross_sim_desc">主卡无信号时，允许借用副卡数据流量进行主卡 VoWiFi 通话</string>
     <string name="ut">UT 补充业务</string>
     <string name="ut_desc">通过数据网络查询和设置呼叫转移、呼叫等待等业务，避免回落</string>
+    <string name="ussd_method">USSD 连接方式</string>
+    <string name="ussd_method_desc">选择 USSD 请求使用 CS 还是 IMS，需要设备和运营商支持</string>
+    <string name="ussd_method_hint">CS 使用传统蜂窝通话网络，IMS 使用 IMS 服务。此项不修改首选网络类型，也不会强制 LTE only。</string>
+    <string name="ussd_cs_preferred">CS 优先</string>
+    <string name="ussd_cs_preferred_desc">CS 无服务时可尝试 IMS</string>
+    <string name="ussd_ims_preferred">IMS 优先</string>
+    <string name="ussd_ims_preferred_desc">允许在需要时回退到 CS</string>
+    <string name="ussd_cs_only">仅 CS</string>
+    <string name="ussd_cs_only_desc">仅通过 CS 发送请求</string>
+    <string name="ussd_ims_only">仅 IMS</string>
+    <string name="ussd_ims_only_desc">通过 IMS 发送请求，不回退到 CS</string>
     <string name="_5g_nr">5G NR（NSA/SA）</string>
     <string name="_5g_nr_desc">启用 5G 移动网络支持（包含非独立与独立组网）</string>
     <string name="_5g_thresholds">5G 信号格数阈值优化</string>
@@ -129,6 +146,8 @@
     <string name="hide_lte_plus_data_icon_desc">即使处于载波聚合状态，也仅显示常规 4G/LTE 图标，不显示 + 号</string>
     <string name="show_4g_for_lte">显示 4G 图标代替 LTE</string>
     <string name="show_4g_for_lte_desc">将状态栏数据网络图标由原生“LTE”替换为国内常用的“4G”</string>
+    <string name="always_show_data_rat_icon">始终显示蜂窝网络类型</string>
+    <string name="always_show_data_rat_icon_desc">连接 Wi-Fi 或关闭移动数据时仍显示 2G/3G/4G/5G。实际显示由系统决定，部分系统使用默认数据 SIM 的设置。</string>
 
     <!-- Button -->
     <string name="apply_config">应用配置</string>
@@ -214,6 +233,10 @@
     <string name="ims_reset_required">这些项目没有可直接关闭的开关，或无法读取完整默认参数。如需恢复，请使用下方“重置运营商配置”。重置会清除所选 SIM 的全部 CarrierConfig 覆盖，并恢复已备份的持久化 VoLTE 原设置。</string>
     <string name="ims_open_reset">重置运营商配置</string>
     <string name="ims_string_reset_hint">输入非空自定义值。恢复请使用当前 IMS 配置页下方的“重置运营商配置”；清空文本不会恢复。</string>
+    <string name="ims_choice_current">当前：%1$s</string>
+    <string name="ims_choice_other">其他系统值（%1$d）</string>
+    <string name="ims_choice_unknown_hint">当前系统值不在这些选项中，选择其他值前会保留原值。</string>
+    <string name="ims_choice_apply_reset_hint">确认选择后仍需点击“应用更改”。恢复运营商默认需选择单张 SIM，并使用本页下方的“重置运营商配置”；这会清除此卡的全部运营商配置覆盖。</string>
     <string name="ims_system_default_hint">关闭后恢复系统提供的默认参数，不等同于运营商默认配置。</string>
     <string name="ims_unknown">不支持或无法读取</string>
     <string name="ims_mixed">各卡不同</string>

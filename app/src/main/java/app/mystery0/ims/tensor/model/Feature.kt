@@ -39,6 +39,12 @@ enum class Feature(
         R.string.vowifi_roaming_desc,
         false,
     ),
+    VOWIFI_NAME_FORMAT(
+        FeatureValueType.INTEGER,
+        R.string.vowifi_name_format,
+        R.string.vowifi_name_format_desc,
+        0,
+    ),
     VT(
         FeatureValueType.BOOLEAN,
         R.string.vt,
@@ -62,6 +68,12 @@ enum class Feature(
         R.string.ut,
         R.string.ut_desc,
         true,
+    ),
+    USSD_METHOD(
+        FeatureValueType.INTEGER,
+        R.string.ussd_method,
+        R.string.ussd_method_desc,
+        0,
     ),
     FIVE_G_NR(
         FeatureValueType.BOOLEAN,
@@ -98,11 +110,17 @@ enum class Feature(
         R.string.show_4g_for_lte,
         R.string.show_4g_for_lte_desc,
         false,
-    )
+    ),
+    ALWAYS_SHOW_DATA_RAT_ICON(
+        FeatureValueType.BOOLEAN,
+        R.string.always_show_data_rat_icon,
+        R.string.always_show_data_rat_icon_desc,
+        false,
+    ),
 }
 
 enum class FeatureValueType {
-    BOOLEAN, STRING,
+    BOOLEAN, STRING, INTEGER,
 }
 
 @Immutable

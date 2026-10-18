@@ -64,6 +64,7 @@ import app.mystery0.ims.tensor.model.ImsEditorState
 import app.mystery0.ims.tensor.model.ShizukuStatus
 import app.mystery0.ims.tensor.model.SimSelection
 import app.mystery0.ims.tensor.model.imsConfigPreset
+import app.mystery0.ims.tensor.ui.components.CarrierConfigChoiceDialog
 import app.mystery0.ims.tensor.ui.components.TargetFeatureSection
 
 @Composable
@@ -82,7 +83,7 @@ fun ImsConfigScreen(
     onReset: (SimSelection) -> Unit,
     onBack: () -> Unit,
 ) {
-    var editingFeature by remember(selectedSim?.subId) { mutableStateOf<Feature?>(null) }
+    var editingFeature by remember(selectedSim?.subId, backendEpoch, shizukuStatus) { mutableStateOf<Feature?>(null) }
     var showMenu by remember { mutableStateOf(false) }
     var confirmRefresh by remember { mutableStateOf(false) }
     var explainReset by remember(selectedSim?.subId, backendEpoch, shizukuStatus) { mutableStateOf(false) }
@@ -172,9 +173,10 @@ fun ImsConfigScreen(
             val resetOnly = state.supported.filter { state.recovery(it) == ConfigRecovery.RESET_REQUIRED }.toSet()
             val groups = listOf(
                 R.string.feature_group_calling to listOf(Feature.VOLTE, Feature.VOWIFI, Feature.VOWIFI_ROAMING,
-                    Feature.VONR, Feature.VT, Feature.CROSS_SIM, Feature.UT),
+                    Feature.VONR, Feature.VT, Feature.CROSS_SIM, Feature.UT, Feature.USSD_METHOD),
                 R.string.feature_group_network to listOf(Feature.FIVE_G_NR, Feature.FIVE_G_THRESHOLDS),
-                R.string.feature_group_display to listOf(Feature.FIVE_G_PLUS_ICON, Feature.ENHANCED_4G_LTE,
+                R.string.feature_group_display to listOf(Feature.VOWIFI_NAME_FORMAT, Feature.ALWAYS_SHOW_DATA_RAT_ICON,
+                    Feature.FIVE_G_PLUS_ICON, Feature.ENHANCED_4G_LTE,
                     Feature.HIDE_LTE_PLUS_DATA_ICON, Feature.SHOW_4G_FOR_LTE),
             )
             groups.forEach { (title, features) ->
@@ -215,7 +217,19 @@ fun ImsConfigScreen(
         }) { Text(stringResource(R.string.nav_reset_configuration), color = MaterialTheme.colorScheme.error) } },
         dismissButton = { TextButton(onClick = { explainReset = false }) { Text(stringResource(android.R.string.cancel)) } })
 
-    editingFeature?.takeIf { canEdit }?.let { feature ->
+    editingFeature?.takeIf { canEdit && it in state.supported && it.valueType == FeatureValueType.INTEGER }?.let { feature ->
+        CarrierConfigChoiceDialog(
+            feature = feature,
+            current = state.values[feature]?.data as? Int,
+            onDismiss = { editingFeature = null },
+            onConfirm = { value ->
+                onEdit(feature, FeatureValue(value, FeatureValueType.INTEGER))
+                editingFeature = null
+            },
+        )
+    }
+
+    editingFeature?.takeIf { canEdit && it in state.supported && it.valueType == FeatureValueType.STRING }?.let { feature ->
         var text by remember(feature) { mutableStateOf(state.values[feature]?.data as? String ?: "") }
         AlertDialog(onDismissRequest = { editingFeature = null },
             title = { Text(stringResource(feature.showTitleRes)) },
