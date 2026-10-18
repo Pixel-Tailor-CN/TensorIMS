@@ -124,10 +124,12 @@ TensorIMS 是一个面向 Google Pixel Tensor 设备的 Android 应用，用于�
 - 持久化 VoLTE 是独立的即时操作，不属于 `Feature` 配置草稿。原始订阅值（含 -1）保存在 `noBackupFilesDir/persistent_volte_<subId>.json`，以 SIM 标识摘要校验；失败回退失败时保留记录供恢复。重置配置先恢复所选活动 SIM 的原始值，再清除 CarrierConfig；未激活 SIM 的备份保留至重新激活后恢复。
 - Captive Portal 属于设备级系统网络设置，不属于 `Feature`，不写入 `sim_config_<subId>`，不参与自动恢复，也不受当前 SIM 选择影响。
 - Captive Portal 首版只管理 `captive_portal_http_url` 和 `captive_portal_https_url`；“系统默认”通过删除这两个 SettingsProvider 覆盖值实现，不硬编码第三方默认地址。
-- `Feature` 和 `FeatureConfigMapper` 是 IMS 功能开关到运营商配置键的主要映射入口。
+- `Feature` 定义 IMS 配置类型，`TargetConfigMapper` 集中映射运营商配置键；`FeatureConfigMapper` 委托同一读取逻辑，不为缺键补默认值。
 - IMS 配置页从系统实时读取，缺键／权限失败不能补成 Feature 默认值。普通开关关闭显式写入 false（5G NR 写空可用性数组），仅下发用户明确修改或预设指定的项目。所有 SIM 的不同值显示“各卡不同”，不得自动补成关闭。
+- `FeatureValueType.INTEGER` 用于名称格式和 USSD 方式，以 `ConfigRecovery.CHOICE` 表示明确选择，不把 0 解释为恢复运营商默认。VoWiFi 名称格式支持 0/1/4/6，同步写入语音与数据格式并让飞行模式沿用语音格式；开启 VoWiFi 本身及旧历史恢复均不再强制写入格式 6。USSD 支持 0/1/2/3，不联动首选网络类型。推荐与国内预设保留这些选项及 RAT 显示设置，“全部开启”只选择布尔项。
 - 参数类只有在 `CarrierConfigManager.getDefaultConfig()` 提供完整、类型匹配的默认参数时支持单项恢复；界面必须说明它是系统默认参数、不是运营商默认。字符串和无完整默认参数的覆盖项独立分组，恢复引导至高级工具重置，不能用空字符串或省略键假装恢复；不引入原值备份，不为单项恢复清空全卡覆盖。
 - 新历史以 `_config_version=2` 保存稀疏、明确的目标及 SIM 身份摘要 `_target_identity`，逐卡回读成功才保存；自动恢复新历史同样检查身份并回读。旧历史保留只写开启项的语义，旧 false 不迁移为禁用。批量部分失败保留待应用目标，只保存成功卡历史；持久化 VoLTE 与 Captive Portal 不参与此协议。
+- 历史沿用版本 2 保存整数选项；v1 默认补齐范围固定为旧版 15 个 Feature，不从新增 Feature 的默认值构造恢复目标，旧协议不写入新增名称格式、USSD 或 RAT 选项。Wi-Fi 通话格式以三键完整一致性决定是否续存旧历史，辅助格式漂移时仍保留界面实际值及用户明确重选的能力。
 - 修改运营商配置时优先走 `ImsModifier`，必要时由当前后端在同一操作事务内触发 `BrokerInstrumentation` fallback，不能跨模式。
 - UI 不直接执行业务写入逻辑，业务动作应放在 ViewModel 或特权入口中。
 

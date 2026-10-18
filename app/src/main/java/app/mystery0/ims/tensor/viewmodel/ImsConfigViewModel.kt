@@ -112,7 +112,7 @@ class ImsConfigViewModel(private val app: Application) : AndroidViewModel(app) {
                         val result = ShizukuProvider.applyTargetConfig(app, snapshot.subId, snapshot.identity, targets)
                         results += result
                         if (result.error == null) {
-                            repository.saveTargets(snapshot.subId, targets, result.identity, result.values)
+                            repository.saveTargets(snapshot.subId, targets, result.identity, result.historyValues)
                             repository.markManualApply(listOf(snapshot.subId))
                         }
                     }

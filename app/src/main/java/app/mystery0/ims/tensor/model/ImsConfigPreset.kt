@@ -2,7 +2,7 @@ package app.mystery0.ims.tensor.model
 
 enum class ImsConfigPreset { RECOMMENDED, CHINA_5G, CHINA_LTE, ALL_ENABLED }
 
-/** 预设只声明目标意图，不读取或写入系统；缺失项目保留当前配置。 */
+/** 预设只声明目标意图，不读取或写入系统；缺失项目保留当前配置。名称格式和 USSD 方式始终由用户选择。 */
 fun imsConfigPreset(preset: ImsConfigPreset): Map<Feature, FeatureValue> {
     val values = when (preset) {
         ImsConfigPreset.RECOMMENDED -> mapOf(
@@ -18,6 +18,7 @@ fun imsConfigPreset(preset: ImsConfigPreset): Map<Feature, FeatureValue> {
                 Feature.FIVE_G_NR to nr, Feature.FIVE_G_THRESHOLDS to nr, Feature.FIVE_G_PLUS_ICON to nr,
                 Feature.ENHANCED_4G_LTE to true, Feature.HIDE_LTE_PLUS_DATA_ICON to false, Feature.SHOW_4G_FOR_LTE to false)
         }
+        // “全部开启”包含始终显示 RAT 开关；整数选项没有“开启”含义，不能选择任意默认值。
         ImsConfigPreset.ALL_ENABLED -> Feature.entries.filter { it.valueType == FeatureValueType.BOOLEAN }.associateWith { true }
     }
     return values.mapValues { FeatureValue(it.value, FeatureValueType.BOOLEAN) }

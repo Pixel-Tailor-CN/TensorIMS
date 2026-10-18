@@ -4,6 +4,7 @@ import android.os.Bundle
 import app.mystery0.ims.tensor.bridge.BridgeProtocol
 import app.mystery0.ims.tensor.bridge.OperationActionPolicy
 import app.mystery0.ims.tensor.bridge.IdentityRequirementPolicy
+import app.mystery0.ims.tensor.model.CarrierConfigChoices
 import app.mystery0.ims.tensor.model.TargetConfigProtocol
 import app.mystery0.ims.tensor.model.validateCaptivePortalUrls
 import app.mystery0.ims.tensor.privileged.CaptivePortalSettingsModifier as Captive
@@ -60,6 +61,9 @@ object OperationArguments {
                     val values = requireNotNull(input.getBundle(TargetConfigProtocol.VALUES))
                     val decoded = TargetConfigProtocol.decode(values)
                     require(decoded.isNotEmpty() && decoded.size == values.size()) { "INVALID_ARGUMENTS: target values" }
+                    require(decoded.all { (feature, value) -> CarrierConfigChoices.isValidTarget(feature, value) }) {
+                        "INVALID_ARGUMENTS: unsupported target choice"
+                    }
                     decoded.values.forEach { require(it.data !is String || it.data.length <= 1024) }
                 } else {
                     val template = legacyTemplate()

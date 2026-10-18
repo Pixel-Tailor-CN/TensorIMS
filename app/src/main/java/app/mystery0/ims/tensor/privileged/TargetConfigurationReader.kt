@@ -46,7 +46,8 @@ internal class TargetConfigurationReader(private val context: Context, val subId
         check(values.isNotEmpty()) { "Carrier configuration contains no supported keys" }
         val defaults = defaults()
         return TargetConfigSnapshot(subId, identity, values,
-            recovery = values.keys.associateWith { TargetConfigMapper.recovery(it, defaults) })
+            recovery = values.keys.associateWith { TargetConfigMapper.recovery(it, defaults) },
+            wfcNameFormatConsistent = TargetConfigMapper.isWfcNameFormatConsistent(raw))
     }
 
     @Suppress("DEPRECATION")
@@ -68,6 +69,7 @@ internal class TargetConfigurationReader(private val context: Context, val subId
             putString(TargetConfigProtocol.IDENTITY, snapshot.identity)
             putBundle(TargetConfigProtocol.VALUES, TargetConfigProtocol.encode(snapshot.values))
             putString(TargetConfigProtocol.ERROR, snapshot.error)
+            putBoolean(TargetConfigProtocol.WFC_NAME_FORMAT_CONSISTENT, snapshot.wfcNameFormatConsistent)
             putBundle(TargetConfigProtocol.RECOVERY, Bundle().apply {
                 snapshot.recovery.forEach { (feature, policy) -> putString(feature.name, policy.name) }
             })

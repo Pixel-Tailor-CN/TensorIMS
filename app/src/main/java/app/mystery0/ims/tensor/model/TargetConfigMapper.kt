@@ -15,11 +15,21 @@ object TargetConfigMapper {
         Feature.UT to "carrier_supports_ss_over_ut_bool",
         Feature.HIDE_LTE_PLUS_DATA_ICON to "hide_lte_plus_data_icon_bool",
         Feature.SHOW_4G_FOR_LTE to "show_4g_for_lte_data_icon_bool",
+        Feature.ALWAYS_SHOW_DATA_RAT_ICON to "always_show_data_rat_icon_bool",
     )
     const val NR_KEY = "carrier_nr_availabilities_int_array"
     const val NAME_ENABLED = "carrier_name_override_bool"
     const val NAME = "carrier_name_string"
     const val USER_AGENT = "ims.ims_user_agent_string"
+    const val WFC_NAME_FORMAT = "wfc_spn_format_idx_int"
+    const val WFC_DATA_NAME_FORMAT = "wfc_data_spn_format_idx_int"
+    const val WFC_FLIGHT_MODE_NAME_FORMAT = "wfc_flight_mode_spn_format_idx_int"
+    const val USSD_METHOD = "carrier_ussd_method_int"
+
+    private val choiceKeys = mapOf(
+        Feature.VOWIFI_NAME_FORMAT to WFC_NAME_FORMAT,
+        Feature.USSD_METHOD to USSD_METHOD,
+    )
 
     val parameters = setOf(Feature.FIVE_G_THRESHOLDS, Feature.FIVE_G_PLUS_ICON)
 
@@ -30,7 +40,6 @@ object TargetConfigMapper {
             "editable_wfc_mode_bool" to true,
             "editable_wfc_roaming_mode_bool" to true,
             "show_wifi_calling_icon_in_status_bar_bool" to true,
-            "wfc_spn_format_idx_int" to 6,
         )
         Feature.VONR -> mapOf(primaryKeys.getValue(feature) to true, "vonr_setting_visibility_bool" to true)
         Feature.CROSS_SIM -> mapOf(primaryKeys.getValue(feature) to true,
@@ -46,7 +55,7 @@ object TargetConfigMapper {
         )
         Feature.ENHANCED_4G_LTE -> mapOf("editable_enhanced_4g_lte_bool" to true,
             "enhanced_4g_lte_on_by_default_bool" to true, "hide_enhanced_4g_lte_bool" to false)
-        Feature.CARRIER_NAME, Feature.IMS_USER_AGENT -> emptyMap()
+        Feature.CARRIER_NAME, Feature.IMS_USER_AGENT, Feature.VOWIFI_NAME_FORMAT, Feature.USSD_METHOD -> emptyMap()
         else -> mapOf(primaryKeys.getValue(feature) to true)
     }
 
@@ -59,6 +68,8 @@ object TargetConfigMapper {
     fun keys(feature: Feature): Set<String> = when (feature) {
         Feature.CARRIER_NAME -> setOf(NAME_ENABLED, NAME)
         Feature.IMS_USER_AGENT -> setOf(USER_AGENT)
+        Feature.VOWIFI_NAME_FORMAT -> setOf(WFC_NAME_FORMAT, WFC_DATA_NAME_FORMAT, WFC_FLIGHT_MODE_NAME_FORMAT)
+        Feature.USSD_METHOD -> setOf(USSD_METHOD)
         else -> enabledValues(feature).keys
     }
 
@@ -70,8 +81,17 @@ object TargetConfigMapper {
     fun matches(values: Map<String, Any>, expected: Map<String, Any>): Boolean =
         expected.all { (key, value) -> equivalent(values[key], value) }
 
+    /** 历史格式代表三个键的组合，不能仅凭语音侧相同就认定完整目标仍然成立。 */
+    fun isWfcNameFormatConsistent(values: Map<String, Any>): Boolean {
+        val selected = values[WFC_NAME_FORMAT] as? Int ?: return false
+        return CarrierConfigChoices.isSelectable(Feature.VOWIFI_NAME_FORMAT, selected) &&
+            (values[WFC_DATA_NAME_FORMAT] as? Int) == selected &&
+            (values[WFC_FLIGHT_MODE_NAME_FORMAT] as? Int) == -1
+    }
+
     fun recovery(feature: Feature, defaults: Map<String, Any>): ConfigRecovery = when {
         feature.valueType == FeatureValueType.STRING -> ConfigRecovery.RESET_REQUIRED
+        feature.valueType == FeatureValueType.INTEGER -> ConfigRecovery.CHOICE
         feature !in parameters -> ConfigRecovery.SWITCH
         enabledValues(feature).all { (key, value) -> defaults[key]?.javaClass == value.javaClass } &&
             !matches(defaults, enabledValues(feature)) -> ConfigRecovery.SYSTEM_DEFAULT
@@ -79,7 +99,18 @@ object TargetConfigMapper {
     }
 
     fun writes(feature: Feature, value: FeatureValue, defaults: Map<String, Any>): Map<String, Any> {
-        require(value.valueType == feature.valueType) { "Invalid target type: ${feature.name}" }
+        require(CarrierConfigChoices.isWellTyped(feature, value)) { "Invalid target type: ${feature.name}" }
+        if (feature.valueType == FeatureValueType.INTEGER) {
+            val selected = value.data as Int
+            require(CarrierConfigChoices.isSelectable(feature, selected)) { "Invalid target choice: ${feature.name}" }
+            return when (feature) {
+                // 只在明确选择格式时同步数据侧，飞行模式沿用普通格式；不修改语言区域配置。
+                Feature.VOWIFI_NAME_FORMAT -> mapOf(WFC_NAME_FORMAT to selected,
+                    WFC_DATA_NAME_FORMAT to selected, WFC_FLIGHT_MODE_NAME_FORMAT to -1)
+                Feature.USSD_METHOD -> mapOf(USSD_METHOD to selected)
+                else -> error("Unsupported integer feature")
+            }
+        }
         if (feature.valueType == FeatureValueType.STRING) {
             val text = (value.data as String).trim()
             require(text.isNotEmpty()) { "Reset carrier configuration to restore ${feature.name}" }
@@ -94,6 +125,7 @@ object TargetConfigMapper {
             ConfigRecovery.SWITCH -> disabledValues(feature)
             ConfigRecovery.SYSTEM_DEFAULT -> defaults.filterKeys { it in keys(feature) }
             ConfigRecovery.RESET_REQUIRED -> error("Reset carrier configuration to restore ${feature.name}")
+            ConfigRecovery.CHOICE -> error("An explicit choice is required for ${feature.name}")
         }
     }
 
@@ -102,6 +134,10 @@ object TargetConfigMapper {
             if (feature != Feature.VONR || sdk >= 34) {
                 (values[key] as? Boolean)?.let { put(feature, FeatureValue(it, FeatureValueType.BOOLEAN)) }
             }
+        }
+        choiceKeys.forEach { (feature, key) ->
+            // 系统扩展值保持原样供界面展示，缺键和错误类型均保留为未知。
+            (values[key] as? Int)?.let { put(feature, FeatureValue(it, FeatureValueType.INTEGER)) }
         }
         (values[NR_KEY] as? IntArray)?.let {
             put(Feature.FIVE_G_NR, FeatureValue(it.any { mode -> mode == 1 || mode == 2 }, FeatureValueType.BOOLEAN))

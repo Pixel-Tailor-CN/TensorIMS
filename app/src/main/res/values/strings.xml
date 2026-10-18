@@ -109,6 +109,12 @@
     <string name="vowifi_desc">Make and receive calls over Wi-Fi networks in weak signal areas</string>
     <string name="vowifi_roaming">VoWiFi While Roaming</string>
     <string name="vowifi_roaming_desc">Allow Wi-Fi Calling while roaming (subject to carrier support and fees)</string>
+    <string name="vowifi_name_format">Wi-Fi Calling name format</string>
+    <string name="vowifi_name_format_desc">Choose how the carrier name appears during Wi-Fi Calling. The wording follows the system language and ROM.</string>
+    <string name="vowifi_format_carrier_only">Carrier name only</string>
+    <string name="vowifi_format_wifi_calling">Carrier + Wi-Fi Calling</string>
+    <string name="vowifi_format_wifi">Carrier + Wi-Fi</string>
+    <string name="vowifi_format_vowifi">Carrier + VoWifi</string>
     <string name="vt">VT (Carrier Video Calling)</string>
     <string name="vt_desc">Enable native carrier video calling in the dialer</string>
     <string name="vonr">VoNR (5G HD Calling)</string>
@@ -117,6 +123,17 @@
     <string name="cross_sim_desc">Use secondary SIM data for primary SIM calling when primary SIM has no service</string>
     <string name="ut">UT Supplementary Services</string>
     <string name="ut_desc">Configure call forwarding, call waiting, etc. over data without network fallback</string>
+    <string name="ussd_method">USSD connection method</string>
+    <string name="ussd_method_desc">Choose how USSD requests use CS or IMS. Requires support from the device and carrier.</string>
+    <string name="ussd_method_hint">CS uses the traditional cellular voice network; IMS uses IMS services. This setting does not change the preferred network type or force LTE only.</string>
+    <string name="ussd_cs_preferred">CS preferred</string>
+    <string name="ussd_cs_preferred_desc">Try IMS when CS has no service</string>
+    <string name="ussd_ims_preferred">IMS preferred</string>
+    <string name="ussd_ims_preferred_desc">Allow fallback to CS when needed</string>
+    <string name="ussd_cs_only">CS only</string>
+    <string name="ussd_cs_only_desc">Send requests only through CS</string>
+    <string name="ussd_ims_only">IMS only</string>
+    <string name="ussd_ims_only_desc">Send requests through IMS without fallback to CS</string>
     <string name="_5g_nr">5G NR (NSA/SA)</string>
     <string name="_5g_nr_desc">Enable 5G mobile network support (Non-Standalone and Standalone)</string>
     <string name="_5g_thresholds">5G Signal Strength Thresholds</string>
@@ -129,6 +146,8 @@
     <string name="hide_lte_plus_data_icon_desc">Show standard 4G/LTE icon without \'+\' even during carrier aggregation</string>
     <string name="show_4g_for_lte">Show 4G for LTE</string>
     <string name="show_4g_for_lte_desc">Display \"4G\" icon instead of \"LTE\" on the status bar</string>
+    <string name="always_show_data_rat_icon">Always show cellular network type</string>
+    <string name="always_show_data_rat_icon_desc">Show 2G/3G/4G/5G even on Wi-Fi or with mobile data off. Behavior depends on the system and may use the default data SIM setting.</string>
 
     <!-- Button -->
     <string name="apply_config">Apply</string>
@@ -214,6 +233,10 @@
     <string name="ims_reset_required">These settings have no direct off switch, or their complete default parameters cannot be read. Use Reset carrier configuration below to clear all CarrierConfig overrides for the selected SIM and restore any backed-up persistent VoLTE settings.</string>
     <string name="ims_open_reset">Reset carrier configuration</string>
     <string name="ims_string_reset_hint">Enter a nonempty custom value. To restore, use Reset carrier configuration at the bottom of this IMS configuration page. Empty text does not restore a value.</string>
+    <string name="ims_choice_current">Current: %1$s</string>
+    <string name="ims_choice_other">Other system value (%1$d)</string>
+    <string name="ims_choice_unknown_hint">The current system value is not among these choices. It is preserved until you select another value.</string>
+    <string name="ims_choice_apply_reset_hint">Confirm your choice, then tap Apply changes. To restore carrier defaults, select one SIM and use Reset carrier configuration below; this clears all carrier configuration overrides for that SIM.</string>
     <string name="ims_system_default_hint">Turning off restores system-provided default parameters, not carrier defaults.</string>
     <string name="ims_unknown">Unsupported or unreadable</string>
     <string name="ims_mixed">Varies by SIM</string>

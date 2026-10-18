@@ -1,6 +1,6 @@
 package app.mystery0.ims.tensor.model
 
-enum class ConfigRecovery { SWITCH, SYSTEM_DEFAULT, RESET_REQUIRED }
+enum class ConfigRecovery { SWITCH, CHOICE, SYSTEM_DEFAULT, RESET_REQUIRED }
 
 /** values 中缺项表示未知或不支持，不表示关闭。identity 只保存 SIM 标识摘要。 */
 data class TargetConfigSnapshot(
@@ -9,7 +9,12 @@ data class TargetConfigSnapshot(
     val values: Map<Feature, FeatureValue> = emptyMap(),
     val error: String? = null,
     val recovery: Map<Feature, ConfigRecovery> = emptyMap(),
-)
+    val wfcNameFormatConsistent: Boolean = false,
+) {
+    /** 显示保留语音侧原值；三项格式不一致时，不续存可能覆盖外部修改的旧历史。 */
+    val historyValues: Map<Feature, FeatureValue> get() =
+        if (wfcNameFormatConsistent) values else values - Feature.VOWIFI_NAME_FORMAT
+}
 
 fun commonValues(values: List<Map<Feature, FeatureValue>>): Map<Feature, FeatureValue> =
     values.firstOrNull().orEmpty().filter { (feature, value) -> values.all { it[feature] == value } }
@@ -21,7 +26,7 @@ fun stageTargetEdits(state: ImsEditorState, values: Map<Feature, FeatureValue>):
     val edits = state.edits.toMutableMap()
     var skipped = false
     values.forEach { (feature, supplied) ->
-        if (feature !in state.supported || supplied.valueType != feature.valueType ||
+        if (feature !in state.supported || !CarrierConfigChoices.isValidTarget(feature, supplied) ||
             (state.subId == -1 && feature.valueType == FeatureValueType.STRING)) {
             skipped = true
             return@forEach
@@ -63,6 +68,9 @@ fun confirmedTargetHistory(
 fun legacyTargets(config: Map<Feature, FeatureValue>): Map<Feature, FeatureValue> =
     config.filter { (feature, value) ->
         when {
+            !CarrierConfigChoices.isWellTyped(feature, value) -> false
+            // 旧写入协议不认识这些项目，不能把异常旧历史里的值迁移成新覆盖意图。
+            feature in setOf(Feature.VOWIFI_NAME_FORMAT, Feature.USSD_METHOD, Feature.ALWAYS_SHOW_DATA_RAT_ICON) -> false
             feature in setOf(Feature.FIVE_G_THRESHOLDS, Feature.FIVE_G_PLUS_ICON) ->
                 config[Feature.FIVE_G_NR]?.data == true && value.data == true
             value.valueType == FeatureValueType.STRING -> (value.data as String).isNotBlank()

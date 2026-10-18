@@ -34,7 +34,7 @@ fun TargetFeatureSection(
     state: ImsEditorState,
     enabled: Boolean,
     onEdit: (Feature, FeatureValue) -> Unit,
-    onStringClick: (Feature) -> Unit,
+    onValueClick: (Feature) -> Unit,
     onExplainReset: () -> Unit,
 ) {
     if (features.isEmpty()) return
@@ -48,7 +48,7 @@ fun TargetFeatureSection(
             val value = state.values[feature]?.data
             val supported = feature in state.supported
             val resetOnly = state.recovery(feature) == ConfigRecovery.RESET_REQUIRED
-            var mixedMenu by remember(feature) { mutableStateOf(false) }
+            var mixedMenu by remember(feature, state.subId) { mutableStateOf(false) }
             val bool = value as? Boolean
             fun change(checked: Boolean) = onEdit(feature, FeatureValue(checked, FeatureValueType.BOOLEAN))
 
@@ -111,15 +111,34 @@ fun TargetFeatureSection(
                         enabled = itemEnabled,
                         first = first,
                         last = last,
-                        onClick = if (itemEnabled) { { onStringClick(feature) } } else null,
+                        onClick = if (itemEnabled) { { onValueClick(feature) } } else null,
                         summaryContent = summaryContent,
                         trailing = {
                             TextButton(
-                                onClick = { onStringClick(feature) },
+                                onClick = { onValueClick(feature) },
                                 enabled = itemEnabled,
                             ) {
                                 Text(stringResource(R.string.ims_edit))
                             }
+                        },
+                    )
+                }
+
+                feature.valueType == FeatureValueType.INTEGER -> {
+                    GroupedSettingsItem(
+                        title = stringResource(feature.showTitleRes),
+                        summary = carrierConfigChoiceLabel(feature, value as? Int),
+                        enabled = itemEnabled,
+                        first = first,
+                        last = last,
+                        onClick = if (itemEnabled) { { onValueClick(feature) } } else null,
+                        summaryContent = {
+                            Text(
+                                text = stringResource(feature.showDescriptionRes),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            summaryContent?.invoke()
                         },
                     )
                 }
@@ -203,11 +222,12 @@ fun TargetFeatureSection(
                             },
                         )
                         DropdownMenu(
-                            expanded = mixedMenu,
+                            expanded = mixedMenu && itemEnabled,
                             onDismissRequest = { mixedMenu = false },
                         ) {
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.ims_enable)) },
+                                enabled = itemEnabled,
                                 onClick = {
                                     mixedMenu = false
                                     change(true)
@@ -215,6 +235,7 @@ fun TargetFeatureSection(
                             )
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.ims_disable)) },
+                                enabled = itemEnabled,
                                 onClick = {
                                     mixedMenu = false
                                     change(false)
