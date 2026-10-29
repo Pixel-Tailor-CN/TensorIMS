@@ -1,15 +1,15 @@
 [versions]
-agp = "9.4.1"
+agp = "9.5.0"
 kotlin = "2.4.21"
 
-app-version = "4.0.1"
+app-version = "4.0.2"
 android-compileSdk = "37"
 android-minSdk = "33"
 android-targetSdk = "37"
 android-ndk = "29.0.14206865"
 android-cmake = "3.22.1"
 
-hiddenapibypass = "6.1"
+hiddenapibypass = "6.2"
 shizuku = "13.1.5"
 
 coreKtx = "1.19.1"
@@ -17,7 +17,7 @@ lifecycleRuntimeKtx = "2.11.0"
 activityCompose = "1.13.0"
 navigation = "2.10.2"
 composeBom = "2026.09.00"
-material3 = "1.5.0-beta01"
+material3 = "1.5.0-beta02"
 androidx-splashscreen = "1.2.0"
 lifecycle = "2.11.0"
 material-icons = "1.7.8"
