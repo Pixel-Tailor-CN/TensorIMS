@@ -46,7 +46,7 @@ TensorIMS is a tool that allows you to enable or disable IMS features like Voice
     - **Recommended**: Enables essential 4G/5G calling and network capabilities (VoLTE, VoNR, 5G NR, 5G signal threshold alignment, VT) while keeping VoWiFi disabled.
     - **China 5G**: Full 5G experience for Chinese mainland carriers with VoNR, 5GA/5G+ icon, and 5G signal threshold alignment.
     - **China LTE**: Pure 4G mode with 5G NR & VoNR explicitly disabled for stable cellular connectivity, battery saving, and thermal reduction.
-    - **Enable all**: Enables all available toggleable features at once; name format and USSD choices remain unchanged.
+    - **Enable all**: Enables all available toggleable features at once; name format, USSD, and 5G NR mode choices remain unchanged.
 - **Automation & Persistence**:
     - **Start the embedded service when opening the app**: An optional, default-off setting reuses existing wireless ADB pairing credentials for one connection attempt when the app enters the foreground. Wireless debugging and the required permissions must already be available; failures can be handled with the existing manual controls. This does not start the app in the background after a reboot.
     - **Apply configs when the backend is ready**: Automatically restores saved configurations when the device reboots and the selected backend is ready and authorized.
@@ -64,6 +64,7 @@ TensorIMS is a tool that allows you to enable or disable IMS features like Voice
     - **UT (Supplementary Services)**: Enable call forwarding, call waiting, and other supplementary services over UT.
     - **USSD Connection Method**: Choose CS preferred, IMS preferred (with CS fallback), CS only, or IMS only. IMS USSD requires device and carrier support; this option does not change the preferred network type or force LTE-only mode.
     - **5G NR**: Enable 5G NSA (Non-Standalone) and SA (Standalone) networks.
+    - **5G NR Mode**: Choose NSA + SA (the default when 5G NR is turned on), SA only, or NSA only. SA only stops NSA; where SA is not available, the SIM uses LTE. NSA only disables standalone 5G. The mode applies only while 5G NR is on; turning 5G NR off allows no 5G architecture.
     - **5G Signal Strength Thresholds**: Option to apply custom 5G signal strength thresholds.
     - **5G+/5GA Icon**: Configure the carrier thresholds used by Android to expose the enhanced 5G icon.
     - **Enhanced 4G LTE (LTE+)**: Enable the system carrier configuration used for LTE+/4G+ support.
@@ -75,7 +76,7 @@ TensorIMS is a tool that allows you to enable or disable IMS features like Voice
 
 > **Captive Portal limitation:** TensorIMS verifies the values written to SettingsProvider, but some Android/NetworkStack builds may prefer resource overlays over those values. A successful write therefore does **not** prove that the active network probe URL changed. Reconnect the network and verify behavior on the target device.
 
-The name format and USSD choices are explicit overrides. “Carrier name only” (format `0`) and “CS preferred” (method `0`) do not restore the carrier's original defaults. Removing these overrides requires the configuration reset, which affects other overrides on the selected SIM too. Recommended and mainland China presets leave these choices and the cellular network type visibility setting unchanged.
+The name format, USSD, and 5G NR mode choices are explicit overrides. “Carrier name only” (format `0`) and “CS preferred” (method `0`) do not restore the carrier's original defaults. Removing these overrides requires the configuration reset, which affects other overrides on the selected SIM too. Recommended and mainland China presets leave these choices and the cellular network type visibility setting unchanged; presets that turn on 5G NR keep the current 5G NR mode.
 
 ## Requirements
 
@@ -107,7 +108,7 @@ Compatibility depends on the device and system version. The device list and hist
 
 1. **Check Status**: Ensure the selected backend is running and authorized.
 2. **Select SIM**: Choose the single SIM card or "All SIM" to configure on the home screen.
-3. **IMS Configuration**: Open **IMS configuration**, pick a quick preset ("Recommended", "China 5G", or "China LTE") or adjust switches and choices by category, then tap **Apply changes**. Name format and cellular network type visibility are under **Display**; the USSD method is under **Calling**.
+3. **IMS Configuration**: Open **IMS configuration**, pick a quick preset ("Recommended", "China 5G", or "China LTE") or adjust switches and choices by category, then tap **Apply changes**. Name format and cellular network type visibility are under **Display**; the USSD method is under **Calling**; the 5G NR mode is under **Network**.
 4. **Auto-Restore (Optional)**: Enable "Apply configs when the backend is ready" on the home screen to automatically restore configurations after reboots once the selected backend is ready.
 5. **System Network**: Open **System network** to manage Captive Portal detection URLs with one-tap presets; changes apply globally across the device.
 6. **Advanced Tools**: Use the advanced page to inspect real-time IMS capability snapshots, restart IMS if needed, or reset CarrierConfig overrides in the Danger Zone.
