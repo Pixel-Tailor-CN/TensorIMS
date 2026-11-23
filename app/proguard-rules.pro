@@ -45,5 +45,5 @@
 -keep class app.mystery0.ims.tensor.embedded.ComputerBootstrapMain { public static void main(java.lang.String[]); }
 -keep class app.mystery0.ims.tensor.bridge.** { *; }
 -keep class app.mystery0.ims.tensor.privileged.** extends android.app.Instrumentation { *; }
-# 官方配对二进制的 JNI 注册路径属于第三方 ABI，不能跟随第一方包名迁移。
+# 配对 JNI 的注册路径沿用上游第三方 ABI 契约，不能跟随第一方包名迁移。
 -keep class moe.shizuku.manager.adb.PairingContext { *; }

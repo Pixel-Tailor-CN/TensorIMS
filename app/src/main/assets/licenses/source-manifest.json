@@ -41,9 +41,11 @@
     },
     {
       "name": "org.bouncycastle:bcpkix-jdk18on / bcprov-jdk18on / bcutil-jdk18on",
-      "version": "1.80.2",
+      "version": "1.86",
+      "version_source": "gradle/libs.versions.toml: bcpkix",
       "license": "MIT",
-      "license_source": "https://raw.githubusercontent.com/bcgit/bc-java/r1rv80/LICENSE.html"
+      "license_source": "https://raw.githubusercontent.com/bcgit/bc-java/r1rv80/LICENSE.html",
+      "note": "APK 同时合并保留 1.86 JAR 内的 META-INF/LICENSE.md；BouncyCastle-LICENSE.html 保留上游 r1rv80 原始 MIT 许可文本。"
     }
   ],
   "retained_source": {
