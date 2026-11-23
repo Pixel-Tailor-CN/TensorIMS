@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import app.mystery0.ims.tensor.R
 import app.mystery0.ims.tensor.model.CarrierConfigChoices
 import app.mystery0.ims.tensor.model.Feature
+import app.mystery0.ims.tensor.model.TargetConfigMapper
 
 @Composable
 fun CarrierConfigChoiceDialog(
@@ -59,6 +60,13 @@ fun CarrierConfigChoiceDialog(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
+                if (feature == Feature.FIVE_G_NR_MODE) {
+                    Text(
+                        text = stringResource(R.string._5g_nr_mode_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
                 if (feature == Feature.USSD_METHOD) {
                     Text(
                         text = stringResource(R.string.ussd_method_hint),
@@ -84,14 +92,9 @@ fun CarrierConfigChoiceDialog(
                                 verticalArrangement = Arrangement.spacedBy(2.dp),
                             ) {
                                 Text(carrierConfigChoiceLabel(feature, choice))
-                                if (feature == Feature.USSD_METHOD) {
+                                choiceDescriptionRes(feature, choice)?.let { description ->
                                     Text(
-                                        text = stringResource(when (choice) {
-                                            0 -> R.string.ussd_cs_preferred_desc
-                                            1 -> R.string.ussd_ims_preferred_desc
-                                            2 -> R.string.ussd_cs_only_desc
-                                            else -> R.string.ussd_ims_only_desc
-                                        }),
+                                        text = stringResource(description),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
@@ -121,15 +124,44 @@ fun CarrierConfigChoiceDialog(
     )
 }
 
+private fun choiceDescriptionRes(feature: Feature, choice: Int): Int? = when (feature) {
+    Feature.USSD_METHOD -> when (choice) {
+        0 -> R.string.ussd_cs_preferred_desc
+        1 -> R.string.ussd_ims_preferred_desc
+        2 -> R.string.ussd_cs_only_desc
+        else -> R.string.ussd_ims_only_desc
+    }
+    Feature.FIVE_G_NR_MODE -> when (choice) {
+        0 -> R.string._5g_nr_mode_nsa_sa_desc
+        1 -> R.string._5g_nr_mode_sa_only_desc
+        2 -> R.string._5g_nr_mode_nsa_only_desc
+        else -> null
+    }
+    else -> null
+}
+
 @Composable
 internal fun carrierConfigChoiceLabel(feature: Feature, value: Int?): String {
     if (value == null) return stringResource(R.string.ims_mixed)
+    if (feature == Feature.FIVE_G_NR_MODE && value < 0) {
+        // 负数为实际数组的原样编码，不归入任何可选模式。
+        if (value == -1) return stringResource(R.string._5g_nr_mode_none)
+        val raw = TargetConfigMapper.unknownNrAvailabilities(value)
+            ?: return stringResource(R.string._5g_nr_mode_unrepresentable)
+        return stringResource(R.string._5g_nr_mode_other, raw.joinToString(", "))
+    }
     val label = when (feature) {
         Feature.VOWIFI_NAME_FORMAT -> when (value) {
             0 -> R.string.vowifi_format_carrier_only
             1 -> R.string.vowifi_format_wifi_calling
             4 -> R.string.vowifi_format_wifi
             6 -> R.string.vowifi_format_vowifi
+            else -> null
+        }
+        Feature.FIVE_G_NR_MODE -> when (value) {
+            0 -> R.string._5g_nr_mode_nsa_sa
+            1 -> R.string._5g_nr_mode_sa_only
+            2 -> R.string._5g_nr_mode_nsa_only
             else -> null
         }
         Feature.USSD_METHOD -> when (value) {

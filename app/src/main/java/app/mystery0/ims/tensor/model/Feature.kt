@@ -81,6 +81,13 @@ enum class Feature(
         R.string._5g_nr_desc,
         true,
     ),
+    // 与 FIVE_G_NR 共用 carrier_nr_availabilities_int_array；仅在 5G NR 开启时决定数组内容。
+    FIVE_G_NR_MODE(
+        FeatureValueType.INTEGER,
+        R.string._5g_nr_mode,
+        R.string._5g_nr_mode_desc,
+        0,
+    ),
     FIVE_G_THRESHOLDS(
         FeatureValueType.BOOLEAN,
         R.string._5g_thresholds,

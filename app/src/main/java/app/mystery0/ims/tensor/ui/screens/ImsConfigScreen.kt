@@ -166,7 +166,7 @@ fun ImsConfigScreen(
                     ImsConfigPreset.CHINA_5G to R.string.preset_china_5g,
                     ImsConfigPreset.CHINA_LTE to R.string.preset_china_lte,
                     ImsConfigPreset.ALL_ENABLED to R.string.preset_all_enabled)
-                presets.forEach { (preset, label) -> AssistChip(onClick = { onPreset(imsConfigPreset(preset)) },
+                presets.forEach { (preset, label) -> AssistChip(onClick = { onPreset(imsConfigPreset(preset, state.values)) },
                     enabled = canEdit, label = { Text(stringResource(label)) }) }
             }
 
@@ -174,7 +174,7 @@ fun ImsConfigScreen(
             val groups = listOf(
                 R.string.feature_group_calling to listOf(Feature.VOLTE, Feature.VOWIFI, Feature.VOWIFI_ROAMING,
                     Feature.VONR, Feature.VT, Feature.CROSS_SIM, Feature.UT, Feature.USSD_METHOD),
-                R.string.feature_group_network to listOf(Feature.FIVE_G_NR, Feature.FIVE_G_THRESHOLDS),
+                R.string.feature_group_network to listOf(Feature.FIVE_G_NR, Feature.FIVE_G_NR_MODE, Feature.FIVE_G_THRESHOLDS),
                 R.string.feature_group_display to listOf(Feature.VOWIFI_NAME_FORMAT, Feature.ALWAYS_SHOW_DATA_RAT_ICON,
                     Feature.FIVE_G_PLUS_ICON, Feature.ENHANCED_4G_LTE,
                     Feature.HIDE_LTE_PLUS_DATA_ICON, Feature.SHOW_4G_FOR_LTE),

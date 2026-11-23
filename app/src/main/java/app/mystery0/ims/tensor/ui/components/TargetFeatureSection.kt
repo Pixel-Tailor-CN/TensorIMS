@@ -125,19 +125,29 @@ fun TargetFeatureSection(
                 }
 
                 feature.valueType == FeatureValueType.INTEGER -> {
+                    // 5G NR 关闭时始终写空数组，模式不生效；各卡不同时仍允许选择，只作用于开启 5G 的卡。
+                    val nrOff = feature == Feature.FIVE_G_NR_MODE && state.values[Feature.FIVE_G_NR]?.data == false
+                    val choiceEnabled = itemEnabled && !nrOff
                     GroupedSettingsItem(
                         title = stringResource(feature.showTitleRes),
                         summary = carrierConfigChoiceLabel(feature, value as? Int),
-                        enabled = itemEnabled,
+                        enabled = choiceEnabled,
                         first = first,
                         last = last,
-                        onClick = if (itemEnabled) { { onValueClick(feature) } } else null,
+                        onClick = if (choiceEnabled) { { onValueClick(feature) } } else null,
                         summaryContent = {
                             Text(
                                 text = stringResource(feature.showDescriptionRes),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
+                            if (nrOff) {
+                                Text(
+                                    text = stringResource(R.string._5g_nr_mode_requires_nr),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
                             summaryContent?.invoke()
                         },
                     )

@@ -18,6 +18,10 @@ object TargetConfigMapper {
         Feature.ALWAYS_SHOW_DATA_RAT_ICON to "always_show_data_rat_icon_bool",
     )
     const val NR_KEY = "carrier_nr_availabilities_int_array"
+    private const val NR_NSA = 1
+    private const val NR_SA = 2
+    /** 无法用位掩码表示的未知 NR 数组（元素超出 0..30）。 */
+    const val NR_MODE_UNREPRESENTABLE = Int.MIN_VALUE
     const val NAME_ENABLED = "carrier_name_override_bool"
     const val NAME = "carrier_name_string"
     const val USER_AGENT = "ims.ims_user_agent_string"
@@ -29,6 +33,16 @@ object TargetConfigMapper {
     private val choiceKeys = mapOf(
         Feature.VOWIFI_NAME_FORMAT to WFC_NAME_FORMAT,
         Feature.USSD_METHOD to USSD_METHOD,
+    )
+
+    /**
+     * 5G NR 模式编号：0 = NSA + SA [1, 2]（默认，与旧版开启 5G NR 写入一致），1 = 仅 SA [2]，2 = 仅 NSA [1]。
+     * 0 保持旧行为，便于缺省模式与旧历史等价；1、2 按“收窄到 SA / 收窄到 NSA”排列，不对应系统常量值。
+     */
+    val NR_MODES: Map<Int, IntArray> = linkedMapOf(
+        0 to intArrayOf(NR_NSA, NR_SA),
+        1 to intArrayOf(NR_SA),
+        2 to intArrayOf(NR_NSA),
     )
 
     val parameters = setOf(Feature.FIVE_G_THRESHOLDS, Feature.FIVE_G_PLUS_ICON)
@@ -55,7 +69,8 @@ object TargetConfigMapper {
         )
         Feature.ENHANCED_4G_LTE -> mapOf("editable_enhanced_4g_lte_bool" to true,
             "enhanced_4g_lte_on_by_default_bool" to true, "hide_enhanced_4g_lte_bool" to false)
-        Feature.CARRIER_NAME, Feature.IMS_USER_AGENT, Feature.VOWIFI_NAME_FORMAT, Feature.USSD_METHOD -> emptyMap()
+        Feature.CARRIER_NAME, Feature.IMS_USER_AGENT, Feature.VOWIFI_NAME_FORMAT, Feature.USSD_METHOD,
+        Feature.FIVE_G_NR_MODE -> emptyMap()
         else -> mapOf(primaryKeys.getValue(feature) to true)
     }
 
@@ -70,6 +85,7 @@ object TargetConfigMapper {
         Feature.IMS_USER_AGENT -> setOf(USER_AGENT)
         Feature.VOWIFI_NAME_FORMAT -> setOf(WFC_NAME_FORMAT, WFC_DATA_NAME_FORMAT, WFC_FLIGHT_MODE_NAME_FORMAT)
         Feature.USSD_METHOD -> setOf(USSD_METHOD)
+        Feature.FIVE_G_NR_MODE -> setOf(NR_KEY)
         else -> enabledValues(feature).keys
     }
 
@@ -78,8 +94,55 @@ object TargetConfigMapper {
         else -> first == second
     }
 
+    /** NR 可用性数组只表达集合语义，[2, 1] 与 [1, 2] 视为一致；其他数组参数保持顺序敏感。 */
     fun matches(values: Map<String, Any>, expected: Map<String, Any>): Boolean =
-        expected.all { (key, value) -> equivalent(values[key], value) }
+        expected.all { (key, value) ->
+            val actual = values[key]
+            if (key == NR_KEY && actual is IntArray && value is IntArray) actual.sorted() == value.sorted()
+            else equivalent(actual, value)
+        }
+
+    /**
+     * 实际数组映射为模式：已知组合不区分顺序；其他组合不强行归入选项，以负数位掩码（按位取反）原样保留元素，
+     * 空数组为 -1，元素超出 0..30 时为 [NR_MODE_UNREPRESENTABLE]。负数永远不是可选值，不会进入写入目标。
+     */
+    fun nrModeOf(availabilities: IntArray): Int {
+        val sorted = availabilities.sorted()
+        NR_MODES.entries.firstOrNull { it.value.sorted() == sorted }?.let { return it.key }
+        if (availabilities.any { it !in 0..30 }) return NR_MODE_UNREPRESENTABLE
+        return availabilities.fold(0) { mask, mode -> mask or (1 shl mode) }.inv()
+    }
+
+    /** 未知模式还原为去重排序后的数组元素，供界面原样展示；已知选项或无法表示时返回 null。 */
+    fun unknownNrAvailabilities(mode: Int): List<Int>? {
+        if (mode >= 0 || mode == NR_MODE_UNREPRESENTABLE) return null
+        val mask = mode.inv()
+        return (0..30).filter { mask and (1 shl it) != 0 }
+    }
+
+    /**
+     * 5G NR 开关与模式共用一个键，必须按整体目标计算：目标未包含开关时沿用当前实际开关；
+     * 关闭时始终写空数组，模式不能重新开启 5G；开启且未指定模式时写 [1, 2]，与旧版及旧历史完全一致。
+     */
+    fun targetWrites(
+        targets: Map<Feature, FeatureValue>,
+        current: Map<Feature, FeatureValue>,
+        defaults: Map<String, Any>,
+    ): Map<String, Any> = buildMap {
+        targets.forEach { (feature, value) ->
+            if (feature != Feature.FIVE_G_NR && feature != Feature.FIVE_G_NR_MODE) putAll(writes(feature, value, defaults))
+        }
+        if (Feature.FIVE_G_NR !in targets && Feature.FIVE_G_NR_MODE !in targets) return@buildMap
+        targets[Feature.FIVE_G_NR]?.let {
+            require(CarrierConfigChoices.isWellTyped(Feature.FIVE_G_NR, it)) { "Invalid target type: FIVE_G_NR" }
+        }
+        val mode = targets[Feature.FIVE_G_NR_MODE]?.let {
+            require(CarrierConfigChoices.isValidTarget(Feature.FIVE_G_NR_MODE, it)) { "Invalid target choice: FIVE_G_NR_MODE" }
+            it.data as Int
+        }
+        val enabled = (targets[Feature.FIVE_G_NR] ?: current[Feature.FIVE_G_NR])?.data == true
+        put(NR_KEY, if (!enabled) intArrayOf() else NR_MODES.getValue(mode ?: 0).copyOf())
+    }
 
     /** 历史格式代表三个键的组合，不能仅凭语音侧相同就认定完整目标仍然成立。 */
     fun isWfcNameFormatConsistent(values: Map<String, Any>): Boolean {
@@ -104,6 +167,8 @@ object TargetConfigMapper {
             val selected = value.data as Int
             require(CarrierConfigChoices.isSelectable(feature, selected)) { "Invalid target choice: ${feature.name}" }
             return when (feature) {
+                // 模式单独无法决定写入值，必须与开关一起经 targetWrites 计算。
+                Feature.FIVE_G_NR_MODE -> error("FIVE_G_NR_MODE must be written through targetWrites")
                 // 只在明确选择格式时同步数据侧，飞行模式沿用普通格式；不修改语言区域配置。
                 Feature.VOWIFI_NAME_FORMAT -> mapOf(WFC_NAME_FORMAT to selected,
                     WFC_DATA_NAME_FORMAT to selected, WFC_FLIGHT_MODE_NAME_FORMAT to -1)
@@ -140,7 +205,9 @@ object TargetConfigMapper {
             (values[key] as? Int)?.let { put(feature, FeatureValue(it, FeatureValueType.INTEGER)) }
         }
         (values[NR_KEY] as? IntArray)?.let {
-            put(Feature.FIVE_G_NR, FeatureValue(it.any { mode -> mode == 1 || mode == 2 }, FeatureValueType.BOOLEAN))
+            put(Feature.FIVE_G_NR, FeatureValue(it.any { mode -> mode == NR_NSA || mode == NR_SA }, FeatureValueType.BOOLEAN))
+            // 模式随数组一起可读；关闭（空数组）时也保留实际值，使开关关闭的卡仍能接受自动恢复的模式目标。
+            put(Feature.FIVE_G_NR_MODE, FeatureValue(nrModeOf(it), FeatureValueType.INTEGER))
         }
         for (feature in parameters + Feature.ENHANCED_4G_LTE) {
             val expected = enabledValues(feature)

@@ -28,9 +28,8 @@ internal fun Instrumentation.applyTargetConfiguration(arguments: Bundle) {
         require(targets.isNotEmpty() && targets.size == encoded.size()) { "Invalid target configuration" }
         check(targets.keys.all { it in snapshot.values }) { "Target configuration has unsupported or unreadable features" }
         val defaults = reader.defaults()
-        val expected = targets.flatMap { (feature, value) ->
-            TargetConfigMapper.writes(feature, value, defaults).entries.map { it.key to it.value }
-        }.toMap()
+        // 5G NR 开关与模式共用数组键，按整体目标及写入前实际值计算，避免两项相互覆盖。
+        val expected = TargetConfigMapper.targetWrites(targets, snapshot.values, defaults)
         check(expected.isNotEmpty()) { "No writable targets" }
         check(reader.identity() == identity) { "SIM identity changed before writing" }
         if (!TargetConfigMapper.matches(reader.raw(), expected)) {
