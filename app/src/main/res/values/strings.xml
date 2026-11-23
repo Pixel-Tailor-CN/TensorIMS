@@ -213,6 +213,15 @@
     <string name="preset_china_5g">China 5G</string>
     <string name="preset_china_lte">China LTE</string>
     <string name="preset_all_enabled">Enable all</string>
+    <string name="preset_custom">My preset</string>
+    <string name="preset_save_custom">Save as my preset</string>
+    <string name="preset_update_custom">Update my preset</string>
+    <string name="preset_delete_custom">Delete my preset</string>
+    <string name="preset_update_custom_confirm">Overwrite your saved \"My preset\" with the configuration currently shown on this page. Saving does not write to the system immediately.</string>
+    <string name="preset_delete_custom_confirm">Delete your saved \"My preset\"? This does not affect configurations already applied to the system.</string>
+    <string name="custom_preset_saved">Saved as \"My preset\".</string>
+    <string name="custom_preset_deleted">Deleted \"My preset\".</string>
+    <string name="custom_preset_nothing_to_save">No valid configuration values available to save.</string>
     <string name="more_options">More options</string>
     <string name="captive_portal_presets">Quick presets</string>
     <string name="preset_google">Google</string>

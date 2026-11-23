@@ -47,6 +47,7 @@ TensorIMS is a tool that allows you to enable or disable IMS features like Voice
     - **China 5G**: Full 5G experience for Chinese mainland carriers with VoNR, 5GA/5G+ icon, and 5G signal threshold alignment.
     - **China LTE**: Pure 4G mode with 5G NR & VoNR explicitly disabled for stable cellular connectivity, battery saving, and thermal reduction.
     - **Enable all**: Enables all available toggleable features at once; name format, USSD, and 5G NR mode choices remain unchanged.
+    - **My preset**: Save one custom configuration preset explicitly from the current IMS configuration page (via its dedicated save/update button) and apply it back to the draft with one tap; you still tap **Apply changes** to write it to the system.
 - **Automation & Persistence**:
     - **Start the embedded service when opening the app**: An optional, default-off setting reuses existing wireless ADB pairing credentials for one connection attempt when the app enters the foreground. Wireless debugging and the required permissions must already be available; failures can be handled with the existing manual controls. This does not start the app in the background after a reboot.
     - **Apply configs when the backend is ready**: Automatically restores saved configurations when the device reboots and the selected backend is ready and authorized.

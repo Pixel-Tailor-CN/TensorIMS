@@ -25,9 +25,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.BookmarkAdd
+import androidx.compose.material.icons.rounded.BookmarkAdded
 import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -73,8 +77,11 @@ fun ImsConfigScreen(
     shizukuStatus: ShizukuStatus,
     isOperationInProgress: Boolean,
     state: ImsEditorState,
+    customPreset: Map<Feature, FeatureValue>?,
     onEdit: (Feature, FeatureValue) -> Unit,
     onPreset: (Map<Feature, FeatureValue>) -> Unit,
+    onSaveCustomPreset: () -> Unit,
+    onClearCustomPreset: () -> Unit,
     onLoadHistory: () -> Unit,
     onRefresh: () -> Unit,
     onRetryRead: () -> Unit,
@@ -86,6 +93,8 @@ fun ImsConfigScreen(
     var editingFeature by remember(selectedSim?.subId, backendEpoch, shizukuStatus) { mutableStateOf<Feature?>(null) }
     var showMenu by remember { mutableStateOf(false) }
     var confirmRefresh by remember { mutableStateOf(false) }
+    var confirmUpdateCustomPreset by remember(selectedSim?.subId, backendEpoch, shizukuStatus) { mutableStateOf(false) }
+    var confirmDeleteCustomPreset by remember(selectedSim?.subId, backendEpoch, shizukuStatus) { mutableStateOf(false) }
     var explainReset by remember(selectedSim?.subId, backendEpoch, shizukuStatus) { mutableStateOf(false) }
     val sameSelection = state.subId == selectedSim?.subId
     val ready = sameSelection && state.ready && shizukuStatus == ShizukuStatus.READY
@@ -115,6 +124,12 @@ fun ImsConfigScreen(
                             onClick = { showMenu = false; onLoadHistory() })
                         DropdownMenuItem(text = { Text(stringResource(R.string.ims_reload)) },
                             onClick = { showMenu = false; if (state.edits.isEmpty()) onRefresh() else confirmRefresh = true })
+                        if (customPreset != null) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.preset_delete_custom)) },
+                                onClick = { showMenu = false; confirmDeleteCustomPreset = true },
+                            )
+                        }
                     }
                 } },
             )
@@ -162,12 +177,39 @@ fun ImsConfigScreen(
 
             Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                customPreset?.let { saved ->
+                    AssistChip(
+                        onClick = { onPreset(saved) },
+                        enabled = canEdit,
+                        leadingIcon = {
+                            Icon(Icons.Rounded.Star, contentDescription = null,
+                                modifier = Modifier.size(AssistChipDefaults.IconSize))
+                        },
+                        label = { Text(stringResource(R.string.preset_custom)) },
+                    )
+                }
                 val presets = listOf(ImsConfigPreset.RECOMMENDED to R.string.preset_recommended,
                     ImsConfigPreset.CHINA_5G to R.string.preset_china_5g,
                     ImsConfigPreset.CHINA_LTE to R.string.preset_china_lte,
                     ImsConfigPreset.ALL_ENABLED to R.string.preset_all_enabled)
                 presets.forEach { (preset, label) -> AssistChip(onClick = { onPreset(imsConfigPreset(preset, state.values)) },
                     enabled = canEdit, label = { Text(stringResource(label)) }) }
+                AssistChip(
+                    onClick = {
+                        if (customPreset == null) onSaveCustomPreset() else confirmUpdateCustomPreset = true
+                    },
+                    enabled = canEdit,
+                    leadingIcon = {
+                        Icon(
+                            if (customPreset == null) Icons.Rounded.BookmarkAdd else Icons.Rounded.BookmarkAdded,
+                            contentDescription = null,
+                            modifier = Modifier.size(AssistChipDefaults.IconSize),
+                        )
+                    },
+                    label = {
+                        Text(stringResource(if (customPreset == null) R.string.preset_save_custom else R.string.preset_update_custom))
+                    },
+                )
             }
 
             val resetOnly = state.supported.filter { state.recovery(it) == ConfigRecovery.RESET_REQUIRED }.toSet()
@@ -207,6 +249,36 @@ fun ImsConfigScreen(
         text = { Text(stringResource(R.string.ims_discard_draft)) },
         confirmButton = { TextButton(onClick = { confirmRefresh = false; onRefresh() }) { Text(stringResource(android.R.string.ok)) } },
         dismissButton = { TextButton(onClick = { confirmRefresh = false }) { Text(stringResource(android.R.string.cancel)) } })
+
+    if (confirmUpdateCustomPreset) AlertDialog(
+        onDismissRequest = { confirmUpdateCustomPreset = false },
+        title = { Text(stringResource(R.string.preset_update_custom)) },
+        text = { Text(stringResource(R.string.preset_update_custom_confirm)) },
+        confirmButton = {
+            TextButton(enabled = canEdit, onClick = {
+                confirmUpdateCustomPreset = false
+                onSaveCustomPreset()
+            }) { Text(stringResource(R.string.save)) }
+        },
+        dismissButton = {
+            TextButton(onClick = { confirmUpdateCustomPreset = false }) { Text(stringResource(android.R.string.cancel)) }
+        },
+    )
+
+    if (confirmDeleteCustomPreset) AlertDialog(
+        onDismissRequest = { confirmDeleteCustomPreset = false },
+        title = { Text(stringResource(R.string.preset_delete_custom)) },
+        text = { Text(stringResource(R.string.preset_delete_custom_confirm)) },
+        confirmButton = {
+            TextButton(enabled = canEdit, onClick = {
+                confirmDeleteCustomPreset = false
+                onClearCustomPreset()
+            }) { Text(stringResource(R.string.preset_delete_custom), color = MaterialTheme.colorScheme.error) }
+        },
+        dismissButton = {
+            TextButton(onClick = { confirmDeleteCustomPreset = false }) { Text(stringResource(android.R.string.cancel)) }
+        },
+    )
 
     if (explainReset) AlertDialog(onDismissRequest = { explainReset = false },
         title = { Text(stringResource(R.string.nav_reset_configuration)) },

@@ -9,12 +9,17 @@ import app.mystery0.ims.tensor.model.FeatureValue
 import app.mystery0.ims.tensor.model.FeatureValueType
 import app.mystery0.ims.tensor.model.legacyTargets
 import app.mystery0.ims.tensor.model.confirmedTargetHistory
+import app.mystery0.ims.tensor.model.parseCustomPreset
+import app.mystery0.ims.tensor.model.sanitizeCustomPreset
 import app.mystery0.ims.tensor.privileged.ImsModifier
 import java.io.File
 
 /** 保留原有界面历史，另外记录操作顺序、重置意图和本次开机的恢复进度。 */
 class ConfigurationRepository(private val context: Context) {
     private val state = context.getSharedPreferences("auto_restore", Context.MODE_PRIVATE)
+    private val customPresetPrefs by lazy {
+        context.getSharedPreferences("custom_ims_preset", Context.MODE_PRIVATE)
+    }
     private fun history(subId: Int) =
         context.getSharedPreferences("sim_config_$subId", Context.MODE_PRIVATE)
 
@@ -170,6 +175,30 @@ class ConfigurationRepository(private val context: Context) {
     fun markManualApply(subIds: List<Int>) {
         val boot = bootCount()
         subIds.forEach { subId -> restoreTarget(subId)?.let { markApplied(subId, boot, it) } }
+    }
+
+    /** 读取全局唯一的自定义 IMS 预设；独立于单卡自动恢复历史。 */
+    fun loadCustomPreset(): Map<Feature, FeatureValue>? = parseCustomPreset(customPresetPrefs.all)
+
+    /** 过滤并覆盖保存全局唯一的自定义 IMS 预设；无可保存项时返回 null 且不覆盖既有预设。 */
+    fun saveCustomPreset(targets: Map<Feature, FeatureValue>): Map<Feature, FeatureValue>? {
+        val sanitized = sanitizeCustomPreset(targets)
+        if (sanitized.isEmpty()) return null
+        customPresetPrefs.edit {
+            clear()
+            sanitized.forEach { (feature, value) ->
+                when (value.valueType) {
+                    FeatureValueType.BOOLEAN -> putBoolean(feature.name, value.data as Boolean)
+                    FeatureValueType.STRING -> putString(feature.name, value.data as String)
+                    FeatureValueType.INTEGER -> putInt(feature.name, value.data as Int)
+                }
+            }
+        }
+        return sanitized
+    }
+
+    fun clearCustomPreset() {
+        customPresetPrefs.edit { clear() }
     }
 
     companion object {

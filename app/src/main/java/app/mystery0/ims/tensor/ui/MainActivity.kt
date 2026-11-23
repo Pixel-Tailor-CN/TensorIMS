@@ -190,6 +190,7 @@ class MainActivity : BaseActivity() {
 
             composable(TensorImsRoutes.IMS_CONFIG) {
                 val editorState by imsConfigViewModel.state.collectAsStateWithLifecycle()
+                val customPreset by imsConfigViewModel.customPreset.collectAsStateWithLifecycle()
                 LaunchedEffect(selectedSim?.subId, shizukuStatus, allSimList.map { it.subId }) {
                     imsConfigViewModel.load(selectedSim?.subId, shizukuStatus == ShizukuStatus.READY)
                 }
@@ -198,8 +199,11 @@ class MainActivity : BaseActivity() {
                     shizukuStatus = shizukuStatus,
                     isOperationInProgress = isOperationInProgress,
                     state = editorState,
+                    customPreset = customPreset,
                     onEdit = imsConfigViewModel::edit,
                     onPreset = imsConfigViewModel::editAll,
+                    onSaveCustomPreset = imsConfigViewModel::saveCustomPreset,
+                    onClearCustomPreset = imsConfigViewModel::clearCustomPreset,
                     onLoadHistory = imsConfigViewModel::loadHistory,
                     onRefresh = { imsConfigViewModel.load(selectedSim?.subId, shizukuStatus == ShizukuStatus.READY, discardEdits = true) },
                     onRetryRead = { imsConfigViewModel.load(selectedSim?.subId, shizukuStatus == ShizukuStatus.READY) },

@@ -11,6 +11,7 @@ import app.mystery0.ims.tensor.model.Feature
 import app.mystery0.ims.tensor.model.FeatureValue
 import app.mystery0.ims.tensor.model.ImsEditorState
 import app.mystery0.ims.tensor.model.TargetConfigSnapshot
+import app.mystery0.ims.tensor.model.extractCustomPresetTargets
 import app.mystery0.ims.tensor.model.stageTargetEdits
 import app.mystery0.ims.tensor.model.commonValues
 import app.mystery0.ims.tensor.model.refreshedTargetState
@@ -24,6 +25,8 @@ class ImsConfigViewModel(private val app: Application) : AndroidViewModel(app) {
     private val repository = (app as app.mystery0.ims.tensor.Application).autoRestore.repository
     private val _state = MutableStateFlow(ImsEditorState())
     val state = _state.asStateFlow()
+    private val _customPreset = MutableStateFlow(repository.loadCustomPreset())
+    val customPreset = _customPreset.asStateFlow()
     private var generation = 0
     private var shizukuReady = false
 
@@ -88,6 +91,29 @@ class ImsConfigViewModel(private val app: Application) : AndroidViewModel(app) {
         if (targets.isNullOrEmpty()) {
             _state.value = current.copy(notice = R.string.ims_no_history)
         } else editAll(targets)
+    }
+
+    /** 将当前页面显示的完整配置（已读取值加草稿）显式保存为全局唯一的自定义预设。 */
+    fun saveCustomPreset() {
+        val current = _state.value
+        if (!current.ready || current.applying || ConfigurationOperations.busy.value || !shizukuReady) return
+        val histories = current.snapshots.map { repository.loadTargetsForSim(it.subId, it.identity).orEmpty() }
+        val targets = extractCustomPresetTargets(current, commonValues(histories))
+        val saved = repository.saveCustomPreset(targets)
+        if (saved == null) {
+            _state.value = current.copy(notice = R.string.custom_preset_nothing_to_save)
+        } else {
+            _customPreset.value = saved
+            _state.value = current.copy(notice = R.string.custom_preset_saved)
+        }
+    }
+
+    fun clearCustomPreset() {
+        val current = _state.value
+        if (current.applying || ConfigurationOperations.busy.value) return
+        repository.clearCustomPreset()
+        _customPreset.value = null
+        _state.value = current.copy(notice = R.string.custom_preset_deleted)
     }
 
     fun apply() {

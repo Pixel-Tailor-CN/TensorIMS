@@ -130,6 +130,7 @@ TensorIMS 是一个面向 Google Pixel Tensor 设备的 Android 应用，用于�
 - `FeatureValueType.INTEGER` 用于名称格式、USSD 方式和 5G NR 模式，以 `ConfigRecovery.CHOICE` 表示明确选择，不把 0 解释为恢复运营商默认。VoWiFi 名称格式支持 0/1/4/6，同步写入语音与数据格式并让飞行模式沿用语音格式；开启 VoWiFi 本身及旧历史恢复均不再强制写入格式 6。USSD 支持 0/1/2/3，不联动首选网络类型。5G NR 模式 0/1/2 对应 `[1, 2]`/`[2]`/`[1]`，与 `FIVE_G_NR` 共用 `carrier_nr_availabilities_int_array`，写入由 `TargetConfigMapper.targetWrites` 按整体目标及当前开关计算：关闭始终写空数组，开启未指定模式写 `[1, 2]`；读取不区分顺序，其他组合以负数编码原样显示，不得归入选项。推荐与国内预设保留这些选项及 RAT 显示设置，开启 5G NR 的预设沿用当前已知模式；“全部开启”只选择布尔项。
 - 参数类只有在 `CarrierConfigManager.getDefaultConfig()` 提供完整、类型匹配的默认参数时支持单项恢复；界面必须说明它是系统默认参数、不是运营商默认。字符串和无完整默认参数的覆盖项独立分组，恢复引导至高级工具重置，不能用空字符串或省略键假装恢复；不引入原值备份，不为单项恢复清空全卡覆盖。
 - 新历史以 `_config_version=2` 保存稀疏、明确的目标及 SIM 身份摘要 `_target_identity`，逐卡回读成功才保存；自动恢复新历史同样检查身份并回读。旧历史保留只写开启项的语义，旧 false 不迁移为禁用。批量部分失败保留待应用目标，只保存成功卡历史；持久化 VoLTE 与 Captive Portal 不参与此协议。
+- 用户自定义 IMS 预设全局仅允许保存 1 个，独立保存在 `custom_ims_preset` SharedPreferences（两包独立），由 IMS 配置页预设栏的独立按钮显式保存/更新、右上角菜单删除；点击应用到草稿仍需手动点击“应用更改”才写入系统。该预设不参与自动恢复，且不随“应用更改”、后台自动恢复或单卡重置自动覆写或删除。
 - 历史沿用版本 2 保存整数选项；v1 默认补齐范围固定为旧版 15 个 Feature，不从新增 Feature 的默认值构造恢复目标，旧协议不写入新增名称格式、USSD、RAT 或 5G NR 模式选项，旧历史开启 5G NR 仍恢复为 `[1, 2]`。Wi-Fi 通话格式以三键完整一致性决定是否续存旧历史，辅助格式漂移时仍保留界面实际值及用户明确重选的能力。
 - 修改运营商配置时优先走 `ImsModifier`，必要时由当前后端在同一操作事务内触发 `BrokerInstrumentation` fallback，不能跨模式。
 - UI 不直接执行业务写入逻辑，业务动作应放在 ViewModel 或特权入口中。

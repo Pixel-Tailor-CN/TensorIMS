@@ -213,6 +213,15 @@
     <string name="preset_china_5g">国内 5G</string>
     <string name="preset_china_lte">国内 LTE</string>
     <string name="preset_all_enabled">全部开启</string>
+    <string name="preset_custom">我的配置</string>
+    <string name="preset_save_custom">保存为我的配置</string>
+    <string name="preset_update_custom">更新我的配置</string>
+    <string name="preset_delete_custom">删除我的配置</string>
+    <string name="preset_update_custom_confirm">将用当前页面显示的配置覆盖已保存的“我的配置”。保存后不会立即写入系统。</string>
+    <string name="preset_delete_custom_confirm">确定删除已保存的“我的配置”？不会影响当前已应用的系统配置。</string>
+    <string name="custom_preset_saved">已保存为“我的配置”。</string>
+    <string name="custom_preset_deleted">已删除“我的配置”。</string>
+    <string name="custom_preset_nothing_to_save">当前没有可保存的有效配置项。</string>
     <string name="more_options">更多选项</string>
     <string name="captive_portal_presets">常用预设</string>
     <string name="preset_google">Google 官方</string>

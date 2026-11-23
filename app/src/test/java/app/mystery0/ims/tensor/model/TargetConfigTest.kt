@@ -451,4 +451,119 @@ class TargetConfigTest {
             mapOf(Feature.VOLTE to bool(true)), mapOf(Feature.VONR to bool(false)),
             mapOf(Feature.VOLTE to bool(false), Feature.VONR to bool(false))))
     }
+
+    @Test
+    fun `自定义预设过滤非法值空白字符串及关闭 5G 时的 NR 模式`() {
+        val raw = mapOf(
+            Feature.VOLTE to bool(true),
+            Feature.FIVE_G_NR to bool(false),
+            Feature.FIVE_G_NR_MODE to integer(1),
+            Feature.VOWIFI_NAME_FORMAT to integer(99),
+            Feature.USSD_METHOD to integer(2),
+            Feature.CARRIER_NAME to FeatureValue("  China Mobile  ", FeatureValueType.STRING),
+            Feature.IMS_USER_AGENT to FeatureValue("   ", FeatureValueType.STRING),
+        )
+        assertEquals(
+            mapOf(
+                Feature.VOLTE to bool(true),
+                Feature.FIVE_G_NR to bool(false),
+                Feature.USSD_METHOD to integer(2),
+                Feature.CARRIER_NAME to FeatureValue("China Mobile", FeatureValueType.STRING),
+            ),
+            sanitizeCustomPreset(raw),
+        )
+        assertEquals(
+            mapOf(Feature.FIVE_G_NR to bool(true), Feature.FIVE_G_NR_MODE to integer(1)),
+            sanitizeCustomPreset(mapOf(Feature.FIVE_G_NR to bool(true), Feature.FIVE_G_NR_MODE to integer(1))),
+        )
+        assertTrue(sanitizeCustomPreset(mapOf(Feature.IMS_USER_AGENT to FeatureValue("  ", FeatureValueType.STRING))).isEmpty())
+    }
+
+    @Test
+    fun `自定义预设反序列化忽略未知键与类型错误且全无效时返回空`() {
+        val parsed = parseCustomPreset(mapOf(
+            Feature.VOLTE.name to true,
+            Feature.VONR.name to "not-a-boolean",
+            Feature.USSD_METHOD.name to 1,
+            Feature.VOWIFI_NAME_FORMAT.name to 99,
+            Feature.CARRIER_NAME.name to "  CMCC ",
+            "UNKNOWN_FEATURE" to true,
+        ))
+        assertEquals(
+            mapOf(
+                Feature.VOLTE to bool(true),
+                Feature.USSD_METHOD to integer(1),
+                Feature.CARRIER_NAME to FeatureValue("CMCC", FeatureValueType.STRING),
+            ),
+            parsed,
+        )
+        assertNull(parseCustomPreset(mapOf(Feature.VOLTE.name to 123, "UNKNOWN" to "x")))
+    }
+
+    @Test
+    fun `含字符串的自定义预设在单卡可完整套用而在全卡安全跳过字符串`() {
+        val preset = sanitizeCustomPreset(mapOf(
+            Feature.VOLTE to bool(true),
+            Feature.CARRIER_NAME to FeatureValue("CMCC", FeatureValueType.STRING),
+        ))
+        val snap1 = TargetConfigSnapshot(1, "a",
+            mapOf(Feature.VOLTE to bool(false), Feature.CARRIER_NAME to FeatureValue("", FeatureValueType.STRING)),
+            recovery = mapOf(Feature.VOLTE to ConfigRecovery.SWITCH, Feature.CARRIER_NAME to ConfigRecovery.RESET_REQUIRED))
+        val snap2 = TargetConfigSnapshot(2, "b",
+            mapOf(Feature.VOLTE to bool(false), Feature.CARRIER_NAME to FeatureValue("", FeatureValueType.STRING)),
+            recovery = mapOf(Feature.VOLTE to ConfigRecovery.SWITCH, Feature.CARRIER_NAME to ConfigRecovery.RESET_REQUIRED))
+
+        val single = stageTargetEdits(ImsEditorState(subId = 1, snapshots = listOf(snap1)), preset)
+        assertFalse(single.skipped)
+        assertEquals(preset, single.edits)
+
+        val all = stageTargetEdits(ImsEditorState(subId = -1, snapshots = listOf(snap1, snap2)), preset)
+        assertTrue(all.skipped)
+        assertEquals(mapOf(Feature.VOLTE to bool(true)), all.edits)
+    }
+
+    @Test
+    fun `提取自定义预设排除未主动修改的系统默认字符串和不可关闭的重置项`() {
+        val snapshot = TargetConfigSnapshot(
+            subId = 1,
+            identity = "a",
+            values = mapOf(
+                Feature.VOLTE to bool(true),
+                Feature.VONR to bool(false),
+                Feature.FIVE_G_PLUS_ICON to bool(false),
+                Feature.CARRIER_NAME to FeatureValue("T-Mobile", FeatureValueType.STRING),
+                Feature.IMS_USER_AGENT to FeatureValue("default-ua", FeatureValueType.STRING),
+            ),
+            recovery = mapOf(
+                Feature.VOLTE to ConfigRecovery.SWITCH,
+                Feature.VONR to ConfigRecovery.SWITCH,
+                Feature.FIVE_G_PLUS_ICON to ConfigRecovery.RESET_REQUIRED,
+                Feature.CARRIER_NAME to ConfigRecovery.RESET_REQUIRED,
+                Feature.IMS_USER_AGENT to ConfigRecovery.RESET_REQUIRED,
+            ),
+        )
+        // 用户只改了 VoNR，未碰字符串与不可关闭的 RESET_REQUIRED 项
+        val state = ImsEditorState(subId = 1, snapshots = listOf(snapshot), edits = mapOf(Feature.VONR to bool(true)))
+        assertEquals(
+            mapOf(Feature.VOLTE to bool(true), Feature.VONR to bool(true)),
+            extractCustomPresetTargets(state),
+        )
+        // 用户主动编辑了 Carrier Name，且历史中保留过自定义 UA（与当前一致）时应保留
+        val withExplicitStrings = state.copy(
+            edits = mapOf(
+                Feature.VONR to bool(true),
+                Feature.CARRIER_NAME to FeatureValue("  Custom Carrier  ", FeatureValueType.STRING),
+            ),
+        )
+        val savedHistory = mapOf(Feature.IMS_USER_AGENT to FeatureValue("default-ua", FeatureValueType.STRING))
+        assertEquals(
+            mapOf(
+                Feature.VOLTE to bool(true),
+                Feature.VONR to bool(true),
+                Feature.CARRIER_NAME to FeatureValue("Custom Carrier", FeatureValueType.STRING),
+                Feature.IMS_USER_AGENT to FeatureValue("default-ua", FeatureValueType.STRING),
+            ),
+            extractCustomPresetTargets(withExplicitStrings, savedHistory),
+        )
+    }
 }
