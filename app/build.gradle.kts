@@ -22,6 +22,16 @@ val gitVersionName: String =
         )
     }.standardOutput.asText.get().trim()
 val appVersionName: String = libs.versions.app.version.get()
+val expectedVersionCode: Int = appVersionName.split(".").let { parts ->
+    if (parts.size != 3 || parts.any { it.toIntOrNull() == null }) {
+        throw GradleException("app-version must follow MAJOR.MINOR.PATCH: $appVersionName")
+    }
+    val (major, minor, patch) = parts.map(String::toInt)
+    if (minor !in 0..99 || patch !in 0..99) {
+        throw GradleException("app-version minor and patch must be in 0..99: $appVersionName")
+    }
+    major * 10000 + minor * 100 + patch
+}
 val nativeStarterEmulator = providers.gradleProperty("tensorimsNativeStarterEmulator")
     .map(String::toBoolean).getOrElse(false)
 val requestedNativeBuildTasks = gradle.startParameter.taskNames
@@ -54,8 +64,12 @@ android {
         applicationId = packageName
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = gitVersionCode
+        // 静态整数字面量供 F-Droid 自动更新检测使用；按 MAJOR * 10000 + MINOR * 100 + PATCH 维护。
+        versionCode = 40002
         versionName = appVersionName
+        check(versionCode == expectedVersionCode) {
+            "Static versionCode ($versionCode) must match app-version ($appVersionName -> $expectedVersionCode)"
+        }
         ndk {
             abiFilters.add("arm64-v8a")
             if (nativeStarterEmulator) abiFilters.add("x86_64")
