@@ -65,7 +65,7 @@ android {
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         // 静态整数字面量供 F-Droid 自动更新检测使用；按 MAJOR * 10000 + MINOR * 100 + PATCH 维护。
-        versionCode = 40002
+        versionCode = 40003
         versionName = appVersionName
         check(versionCode == expectedVersionCode) {
             "Static versionCode ($versionCode) must match app-version ($appVersionName -> $expectedVersionCode)"
