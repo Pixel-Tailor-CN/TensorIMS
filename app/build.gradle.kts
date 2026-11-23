@@ -64,6 +64,8 @@ android {
             cmake {
                 cppFlags += "-std=c++17"
                 arguments += "-DANDROID_STL=c++_static"
+                // 显式构建配对 JNI 与电脑启动器，BoringSSL 通过 Prefab 静态链接。
+                targets += listOf("tensorims_starter", "adb")
             }
         }
     }
@@ -126,6 +128,7 @@ android {
         aidl = true
         buildConfig = true
         compose = true
+        prefab = true
     }
     lint {
         checkReleaseBuilds = false
@@ -147,6 +150,7 @@ dependencies {
     implementation(libs.shizuku.api)
     implementation(libs.hiddenapibypass)
     implementation(libs.bcpkix)
+    implementation(libs.boringssl)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

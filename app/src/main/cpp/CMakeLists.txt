@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.22.1)
 project(tensorims_starter LANGUAGES CXX)
 
+# 无线配对 JNI 与电脑启动器共用 NDK 工具链，两个安装包均从源码构建。
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../../../../third_party/shizuku-adb"
+                 "${CMAKE_CURRENT_BINARY_DIR}/shizuku-adb")
+
 add_executable(tensorims_starter native_starter.cpp)
 set_target_properties(tensorims_starter PROPERTIES
     OUTPUT_NAME "tensorims_starter"

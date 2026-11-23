@@ -6,7 +6,7 @@ import java.lang.reflect.Modifier
 
 class PairingNativeAbiTest {
     @Test fun javaMethodsMatchTheOfficialShizukuJniRegistrationTable() {
-        // 只校验注册契约，不在 JVM 加载仅 arm64 Android 可执行的 libadb.so。
+        // 只校验注册契约，不在宿主 JVM 加载面向 Android 编译的 libadb.so。
         val type = Class.forName("moe.shizuku.manager.adb.PairingContext", false, javaClass.classLoader)
         val methods = type.declaredMethods.filter { Modifier.isNative(it.modifiers) }.associateBy { it.name }
         assertEquals(setOf("nativeConstructor", "nativeMsg", "nativeInitCipher", "nativeEncrypt", "nativeDecrypt", "nativeDestroy"), methods.keys)

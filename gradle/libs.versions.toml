@@ -23,8 +23,10 @@ lifecycle = "2.11.0"
 material-icons = "1.7.8"
 junit = "4.13.2"
 bcpkix = "1.86"
+boringssl = "20250114"
 
 [libraries]
+boringssl = { module = "io.github.vvb2060.ndk:boringssl", version.ref = "boringssl" }
 bcpkix = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bcpkix" }
 shizuku-api = { module = "dev.rikka.shizuku:api", version.ref = "shizuku" }
 shizuku-provider = { module = "dev.rikka.shizuku:provider", version.ref = "shizuku" }

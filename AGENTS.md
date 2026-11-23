@@ -29,6 +29,7 @@ TensorIMS 是一个面向 Google Pixel Tensor 设备的 Android 应用，用于�
 - `minSdk`：`33`
 - Java/Kotlin JVM target：`21`
 - APK ABI：正式与默认 debug 仅 `arm64-v8a`；显式模拟器 debug 构建可增加 `x86_64`。Android 安装目录使用 ISA 名，ARM64 是 `arm64`，不能与 APK ABI 名 `arm64-v8a` 混用。
+- 原生配对库 `libadb.so` 从 `third_party/shizuku-adb/adb_pairing.cpp` 编译，通过 Prefab 静态链接 Maven Central 的 `io.github.vvb2060.ndk:boringssl`，版本统一维护在 `gradle/libs.versions.toml`。不使用 BoringSSL 子模块；该依赖是预编译静态库，不能描述为所有原生依赖均从源码构建。使用 NDK libc++ 静态链接，只导出 `JNI_OnLoad`，保持 16 KB 页对齐；两个 flavor 共用 JNI 源码构建，禁止恢复 APK 提取库或系统私有 libcrypto 依赖。具体来源与升级验证见 `third_party/shizuku-adb/README.md`。
 - UI：Jetpack Compose + Material 3 + Navigation Compose
 - 版本号：`versionCode` 由 Git commit 数生成，`versionName` 来自 `gradle/libs.versions.toml` 的 `app-version`
 
