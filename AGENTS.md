@@ -22,9 +22,9 @@ TensorIMS 是一个面向 Google Pixel Tensor 设备的 Android 应用，用于�
 ## 构建环境
 
 - Gradle wrapper：`9.8.0`
-- Android Gradle Plugin：`9.5.0`
+- Android Gradle Plugin：`9.5.2`
 - Kotlin：`2.4.21`
-- `compileSdk`：`37`
+- `compileSdk`：`37.2`
 - `targetSdk`：`37`
 - `minSdk`：`33`
 - Java/Kotlin JVM target：`21`

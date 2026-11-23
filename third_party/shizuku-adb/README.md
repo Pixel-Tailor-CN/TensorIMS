@@ -7,8 +7,8 @@
 - Shizuku 上游审阅提交：`b844bc491f1790c72328e1a8e5b2349f8978f0ea`。
 - 官方 v13.6.0 发布提交：`2650830c5b099ae0dd34fedf614d4f592ca05d65`。
 - `adb_pairing.cpp` 来自发布提交，与审阅提交逐字节相同；保留 SPAKE2、HKDF、AES-128-GCM 和 JNI 注册实现。
-- BoringSSL 依赖：`io.github.vvb2060.ndk:boringssl:20250114`，来自 Maven Central，与上游 Shizuku v13.6.0 使用的版本一致。它是第三方维护的开源 Android 封装，不是 Google 官方 Maven 包。
-- 封装仓库：`https://github.com/vvb2060/BoringSSL_Android`，对应提交 `20b87e2e25a793531c9cd651c629c62976b42e2b`；BoringSSL 源码提交为 `571a7432a19592c620fa316abde47770dad4f82b`。
+- BoringSSL 依赖：`io.github.vvb2060.ndk:boringssl:20251124`，来自 Maven Central。它是第三方维护的开源 Android 封装，不是 Google 官方 Maven 包。
+- 封装仓库：`https://github.com/vvb2060/BoringSSL_Android`，对应提交 `bb1b6bf9f1e1b28f19ef1f036e6b140d980cdd11`；BoringSSL 源码提交为 `79048f1f1d8e6b7f9ca59b95c24486c8149122a4`。
 - Gradle 启用 Prefab，CMake 使用 `find_package(boringssl REQUIRED CONFIG)` 与 `boringssl::crypto_static`。依赖中的 `libcrypto_static.a` 为预编译库，不能将当前构建描述为所有原生依赖均从源码构建。
 - BoringSSL 与 NDK/CMake 版本统一维护在 `gradle/libs.versions.toml`。使用 NDK 的 `c++_static`，不依赖系统私有 libcrypto、libssl 或额外 libcxx prefab。
 - `CMakeLists.txt` 为本项目适配：仅编译配对 JNI，隐藏依赖符号、只导出 `JNI_OnLoad`，设置 16 KB 页对齐。`misc.cpp`、`misc.h` 仅保留来源参考，不参与构建。

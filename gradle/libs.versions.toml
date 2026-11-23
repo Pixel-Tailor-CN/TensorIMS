@@ -1,9 +1,10 @@
 [versions]
-agp = "9.5.0"
+agp = "9.5.2"
 kotlin = "2.4.21"
 
 app-version = "4.0.3"
 android-compileSdk = "37"
+android-compileSdkMinor = "2"
 android-minSdk = "33"
 android-targetSdk = "37"
 android-ndk = "29.0.14206865"
@@ -13,17 +14,17 @@ hiddenapibypass = "6.2"
 shizuku = "13.1.5"
 
 coreKtx = "1.19.1"
-lifecycleRuntimeKtx = "2.11.0"
+lifecycleRuntimeKtx = "2.11.1"
 activityCompose = "1.13.0"
 navigation = "2.10.2"
-composeBom = "2026.09.00"
-material3 = "1.5.0-beta02"
+composeBom = "2026.11.01"
+material3 = "1.5.0"
 androidx-splashscreen = "1.2.0"
-lifecycle = "2.11.0"
+lifecycle = "2.11.1"
 material-icons = "1.7.8"
 junit = "4.13.2"
-bcpkix = "1.86"
-boringssl = "20250114"
+bcpkix = "1.87"
+boringssl = "20251124"
 
 [libraries]
 boringssl = { module = "io.github.vvb2060.ndk:boringssl", version.ref = "boringssl" }

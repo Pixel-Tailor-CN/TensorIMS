@@ -14,7 +14,7 @@ MIT，完整文本见 Shizuku-API-MIT.txt。
 
 BoringSSL（通过 Maven Central 的 Android Prefab 依赖静态链接到 libadb.so）
 Android 封装来源：https://github.com/vvb2060/BoringSSL_Android
-Google、OpenSSL Project、Eric Young、fiat-crypto 等权利人的声明与 OpenSSL、SSLeay、ISC、MIT 等许可，见 BoringSSL-LICENSE.txt。
+Apache License 2.0 及相关权利人声明（Google、OpenSSL Project、Eric Young、fiat-crypto 等），完整文本见 BoringSSL-LICENSE.txt。
 This product includes software developed by the OpenSSL Project for use in the OpenSSL Toolkit (https://www.openssl.org/).
 This product includes cryptographic software written by Eric Young (eay@cryptsoft.com).
 This product includes software written by Tim Hudson (tjh@cryptsoft.com).
