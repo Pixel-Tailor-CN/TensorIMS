@@ -70,7 +70,8 @@ fun legacyTargets(config: Map<Feature, FeatureValue>): Map<Feature, FeatureValue
         when {
             !CarrierConfigChoices.isWellTyped(feature, value) -> false
             // 旧写入协议不认识这些项目，不能把异常旧历史里的值迁移成新覆盖意图。
-            feature in setOf(Feature.VOWIFI_NAME_FORMAT, Feature.USSD_METHOD, Feature.ALWAYS_SHOW_DATA_RAT_ICON) -> false
+            feature in setOf(Feature.VOWIFI_NAME_FORMAT, Feature.USSD_METHOD, Feature.ALWAYS_SHOW_DATA_RAT_ICON,
+                Feature.FIVE_G_NR_MODE) -> false
             feature in setOf(Feature.FIVE_G_THRESHOLDS, Feature.FIVE_G_PLUS_ICON) ->
                 config[Feature.FIVE_G_NR]?.data == true && value.data == true
             value.valueType == FeatureValueType.STRING -> (value.data as String).isNotBlank()

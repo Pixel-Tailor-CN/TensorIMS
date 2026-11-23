@@ -5,6 +5,7 @@ object CarrierConfigChoices {
     private val choices = mapOf(
         Feature.VOWIFI_NAME_FORMAT to listOf(0, 1, 4, 6),
         Feature.USSD_METHOD to listOf(0, 1, 2, 3),
+        Feature.FIVE_G_NR_MODE to TargetConfigMapper.NR_MODES.keys.toList(),
     )
 
     fun selectableValues(feature: Feature): List<Int> = choices[feature].orEmpty()

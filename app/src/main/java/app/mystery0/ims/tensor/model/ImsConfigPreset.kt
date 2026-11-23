@@ -2,8 +2,15 @@ package app.mystery0.ims.tensor.model
 
 enum class ImsConfigPreset { RECOMMENDED, CHINA_5G, CHINA_LTE, ALL_ENABLED }
 
-/** 预设只声明目标意图，不读取或写入系统；缺失项目保留当前配置。名称格式和 USSD 方式始终由用户选择。 */
-fun imsConfigPreset(preset: ImsConfigPreset): Map<Feature, FeatureValue> {
+/**
+ * 预设只声明目标意图，不读取或写入系统；缺失项目保留当前配置。名称格式、USSD 方式和 5G NR 模式始终由用户选择。
+ * current 为界面当前值（实际值加草稿）：预设开启 5G NR 时附带已知的模式，避免把仅 SA / 仅 NSA 改回 NSA + SA；
+ * 未知组合或 5G 关闭时不附带，按缺省模式写入 [1, 2]。
+ */
+fun imsConfigPreset(
+    preset: ImsConfigPreset,
+    current: Map<Feature, FeatureValue> = emptyMap(),
+): Map<Feature, FeatureValue> {
     val values = when (preset) {
         ImsConfigPreset.RECOMMENDED -> mapOf(
             Feature.VOLTE to true, Feature.VT to true, Feature.VOWIFI to false,
@@ -21,5 +28,8 @@ fun imsConfigPreset(preset: ImsConfigPreset): Map<Feature, FeatureValue> {
         // “全部开启”包含始终显示 RAT 开关；整数选项没有“开启”含义，不能选择任意默认值。
         ImsConfigPreset.ALL_ENABLED -> Feature.entries.filter { it.valueType == FeatureValueType.BOOLEAN }.associateWith { true }
     }
-    return values.mapValues { FeatureValue(it.value, FeatureValueType.BOOLEAN) }
+    val targets = values.mapValues { FeatureValue(it.value, FeatureValueType.BOOLEAN) }
+    val mode = current[Feature.FIVE_G_NR_MODE]
+        ?.takeIf { values[Feature.FIVE_G_NR] == true && CarrierConfigChoices.isValidTarget(Feature.FIVE_G_NR_MODE, it) }
+    return if (mode == null) targets else targets + (Feature.FIVE_G_NR_MODE to mode)
 }

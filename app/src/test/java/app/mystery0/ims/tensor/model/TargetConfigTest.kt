@@ -187,6 +187,140 @@ class TargetConfigTest {
             ConfigurationRepository.historyFeatures(2, setOf(Feature.USSD_METHOD.name)))
     }
 
+    private val nrKey = "carrier_nr_availabilities_int_array"
+    private fun nrWrites(targets: Map<Feature, FeatureValue>, current: Map<Feature, FeatureValue> = emptyMap()) =
+        TargetConfigMapper.targetWrites(targets, current, emptyMap())[nrKey] as IntArray?
+
+    @Test
+    fun `5G NR 开启时按模式写入数组而关闭时无论模式都写空数组`() {
+        val expected = mapOf(0 to intArrayOf(1, 2), 1 to intArrayOf(2), 2 to intArrayOf(1))
+        for ((mode, array) in expected) {
+            assertArrayEquals(array, nrWrites(mapOf(Feature.FIVE_G_NR to bool(true), Feature.FIVE_G_NR_MODE to integer(mode))))
+            assertArrayEquals(intArrayOf(), nrWrites(mapOf(Feature.FIVE_G_NR to bool(false), Feature.FIVE_G_NR_MODE to integer(mode))))
+            // 目标未含开关时沿用当前实际开关：开启则改模式，关闭则不能重新开启 5G。
+            assertArrayEquals(array, nrWrites(mapOf(Feature.FIVE_G_NR_MODE to integer(mode)),
+                mapOf(Feature.FIVE_G_NR to bool(true), Feature.FIVE_G_NR_MODE to integer(0))))
+            assertArrayEquals(intArrayOf(), nrWrites(mapOf(Feature.FIVE_G_NR_MODE to integer(mode)),
+                mapOf(Feature.FIVE_G_NR to bool(false), Feature.FIVE_G_NR_MODE to integer(-1))))
+        }
+    }
+
+    @Test
+    fun `未指定模式的 5G 开启与旧版及旧历史完全一致`() {
+        for (current in listOf(emptyMap(), mapOf(Feature.FIVE_G_NR to bool(true), Feature.FIVE_G_NR_MODE to integer(1)))) {
+            assertArrayEquals(intArrayOf(1, 2), nrWrites(mapOf(Feature.FIVE_G_NR to bool(true)), current))
+        }
+        assertArrayEquals(intArrayOf(), nrWrites(mapOf(Feature.FIVE_G_NR to bool(false))))
+        assertArrayEquals(intArrayOf(1, 2), TargetConfigMapper.writes(Feature.FIVE_G_NR, bool(true), emptyMap())[nrKey] as IntArray)
+        // 不涉及 NR 的目标不写数组，其他项目照常映射。
+        assertEquals(mapOf("carrier_volte_available_bool" to true),
+            TargetConfigMapper.targetWrites(mapOf(Feature.VOLTE to bool(true)), emptyMap(), emptyMap()))
+        assertThrows(IllegalStateException::class.java) {
+            TargetConfigMapper.writes(Feature.FIVE_G_NR_MODE, integer(1), emptyMap())
+        }
+        for (bad in listOf(integer(3), integer(-1), bool(true))) {
+            assertThrows(IllegalArgumentException::class.java) {
+                nrWrites(mapOf(Feature.FIVE_G_NR to bool(true), Feature.FIVE_G_NR_MODE to bad))
+            }
+        }
+    }
+
+    @Test
+    fun `NR 数组读取为开关和模式且未知组合原样保留`() {
+        fun read(vararg modes: Int) = TargetConfigMapper.read(mapOf(nrKey to modes), 34)
+        assertEquals(mapOf(Feature.FIVE_G_NR to bool(false), Feature.FIVE_G_NR_MODE to integer(-1)), read())
+        assertEquals(mapOf(Feature.FIVE_G_NR to bool(true), Feature.FIVE_G_NR_MODE to integer(0)), read(1, 2))
+        assertEquals(mapOf(Feature.FIVE_G_NR to bool(true), Feature.FIVE_G_NR_MODE to integer(0)), read(2, 1))
+        assertEquals(mapOf(Feature.FIVE_G_NR to bool(true), Feature.FIVE_G_NR_MODE to integer(1)), read(2))
+        assertEquals(mapOf(Feature.FIVE_G_NR to bool(true), Feature.FIVE_G_NR_MODE to integer(2)), read(1))
+        val other = read(1, 2, 3).getValue(Feature.FIVE_G_NR_MODE).data as Int
+        assertEquals(bool(true), read(1, 2, 3)[Feature.FIVE_G_NR])
+        assertFalse(CarrierConfigChoices.isSelectable(Feature.FIVE_G_NR_MODE, other))
+        assertEquals(listOf(1, 2, 3), TargetConfigMapper.unknownNrAvailabilities(other))
+        assertEquals(listOf(3), TargetConfigMapper.unknownNrAvailabilities(read(3).getValue(Feature.FIVE_G_NR_MODE).data as Int))
+        assertEquals(bool(false), read(3)[Feature.FIVE_G_NR])
+        assertEquals(integer(TargetConfigMapper.NR_MODE_UNREPRESENTABLE), read(1, 99)[Feature.FIVE_G_NR_MODE])
+        assertNull(TargetConfigMapper.unknownNrAvailabilities(TargetConfigMapper.NR_MODE_UNREPRESENTABLE))
+        assertTrue(TargetConfigMapper.read(emptyMap(), 34).isEmpty())
+        assertTrue(TargetConfigMapper.read(mapOf(nrKey to listOf(1, 2)), 34).isEmpty())
+    }
+
+    @Test
+    fun `NR 回读不区分顺序而其他数组参数仍按顺序比较`() {
+        assertTrue(TargetConfigMapper.matches(mapOf(nrKey to intArrayOf(2, 1)), mapOf(nrKey to intArrayOf(1, 2))))
+        assertFalse(TargetConfigMapper.matches(mapOf(nrKey to intArrayOf(2)), mapOf(nrKey to intArrayOf(1, 2))))
+        assertFalse(TargetConfigMapper.matches(mapOf(nrKey to intArrayOf(1, 2, 2)), mapOf(nrKey to intArrayOf(1, 2))))
+        assertFalse(TargetConfigMapper.matches(emptyMap(), mapOf(nrKey to intArrayOf())))
+        val thresholds = "5g_nr_ssrsrp_thresholds_int_array"
+        assertFalse(TargetConfigMapper.matches(mapOf(thresholds to intArrayOf(-98, -108, -118, -128)),
+            mapOf(thresholds to intArrayOf(-128, -118, -108, -98))))
+    }
+
+    @Test
+    fun `各卡 NR 模式不同显示混合且明确选择可进入草稿`() {
+        val feature = Feature.FIVE_G_NR_MODE
+        val state = ImsEditorState(subId = -1, snapshots = listOf(1 to intArrayOf(1, 2), 2 to intArrayOf(2)).map { (id, modes) ->
+            val values = TargetConfigMapper.read(mapOf(nrKey to modes), 34)
+            TargetConfigSnapshot(id, "s$id", values, recovery = values.keys.associateWith { TargetConfigMapper.recovery(it, emptyMap()) })
+        })
+        assertTrue(feature in state.supported)
+        assertNull(state.common[feature])
+        assertEquals(bool(true), state.common[Feature.FIVE_G_NR])
+        assertEquals(ConfigRecovery.CHOICE, state.recovery(feature))
+        val staged = stageTargetEdits(state, mapOf(feature to integer(1)))
+        assertFalse(staged.skipped)
+        assertEquals(mapOf(feature to integer(1)), staged.edits)
+        assertTrue(stageTargetEdits(state, mapOf(feature to integer(3))).skipped)
+        assertTrue(stageTargetEdits(state, mapOf(feature to integer(-1))).skipped)
+    }
+
+    @Test
+    fun `旧历史不补 NR 模式且开启 5G 仍恢复为 NSA 加 SA`() {
+        assertFalse(Feature.FIVE_G_NR_MODE in ConfigurationRepository.historyFeatures(1, setOf(Feature.FIVE_G_NR.name)))
+        assertTrue(ConfigurationRepository.historyFeatures(1, setOf(Feature.FIVE_G_NR_MODE.name)).isEmpty())
+        val old = legacyTargets(mapOf(Feature.FIVE_G_NR to bool(true), Feature.FIVE_G_NR_MODE to integer(1)))
+        assertEquals(mapOf(Feature.FIVE_G_NR to bool(true)), old)
+        assertArrayEquals(intArrayOf(1, 2), nrWrites(old, mapOf(Feature.FIVE_G_NR to bool(true), Feature.FIVE_G_NR_MODE to integer(1))))
+    }
+
+    @Test
+    fun `新历史保存 NR 模式并在回读一致时续存及恢复`() {
+        assertEquals(listOf(Feature.FIVE_G_NR, Feature.FIVE_G_NR_MODE), ConfigurationRepository.historyFeatures(2,
+            setOf(Feature.FIVE_G_NR_MODE.name, Feature.FIVE_G_NR.name, "_config_version")))
+        val saved = confirmedTargetHistory(emptyMap(), mapOf(Feature.FIVE_G_NR to bool(true), Feature.FIVE_G_NR_MODE to integer(1)),
+            TargetConfigMapper.read(mapOf(nrKey to intArrayOf(2)), 34))
+        assertEquals(mapOf(Feature.FIVE_G_NR to bool(true), Feature.FIVE_G_NR_MODE to integer(1)), saved)
+        assertEquals(saved, confirmedTargetHistory(saved, emptyMap(), TargetConfigMapper.read(mapOf(nrKey to intArrayOf(2)), 34)))
+        // 外部改回 NSA + SA 后，旧模式不再续存，开关仍一致则保留。
+        assertEquals(mapOf(Feature.FIVE_G_NR to bool(true)),
+            confirmedTargetHistory(saved, emptyMap(), TargetConfigMapper.read(mapOf(nrKey to intArrayOf(1, 2)), 34)))
+        // 自动恢复：当前 5G 关闭的卡也能按历史开启并写入仅 SA。
+        val off = TargetConfigMapper.read(mapOf(nrKey to intArrayOf()), 34)
+        assertTrue(saved.keys.all { it in off })
+        assertArrayEquals(intArrayOf(2), nrWrites(saved, off))
+    }
+
+    @Test
+    fun `预设沿用已知 NR 模式而全部开启不自行选择模式`() {
+        val sa = mapOf(Feature.FIVE_G_NR to bool(true), Feature.FIVE_G_NR_MODE to integer(1))
+        for (preset in ImsConfigPreset.entries) {
+            assertFalse(Feature.FIVE_G_NR_MODE in imsConfigPreset(preset))
+            val targets = imsConfigPreset(preset, sa)
+            val nrOn = imsConfigPreset(preset)[Feature.FIVE_G_NR] == bool(true)
+            assertEquals(if (nrOn) integer(1) else null, targets[Feature.FIVE_G_NR_MODE])
+            // 只核对共用 NR 键；预设中其他参数项的恢复需要系统默认值，不属于此测试。
+            assertArrayEquals(if (nrOn) intArrayOf(2) else intArrayOf(),
+                nrWrites(targets.filterKeys { it == Feature.FIVE_G_NR || it == Feature.FIVE_G_NR_MODE }, sa))
+        }
+        // 当前关闭或未知组合时不附带模式，开启按缺省 NSA + SA 写入。
+        for (mode in listOf(-1, (1 shl 3).inv())) {
+            val targets = imsConfigPreset(ImsConfigPreset.ALL_ENABLED,
+                mapOf(Feature.FIVE_G_NR to bool(false), Feature.FIVE_G_NR_MODE to integer(mode)))
+            assertFalse(Feature.FIVE_G_NR_MODE in targets)
+            assertArrayEquals(intArrayOf(1, 2), nrWrites(targets.filterKeys { it == Feature.FIVE_G_NR }))
+        }
+    }
+
     @Test
     fun `显示相同仍保留预设和恢复默认的完整目标`() {
         val values = mapOf(Feature.FIVE_G_NR to bool(true), Feature.FIVE_G_THRESHOLDS to bool(false))
