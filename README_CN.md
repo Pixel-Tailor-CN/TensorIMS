@@ -17,6 +17,7 @@
 
 <p align="center">
     <a href="https://github.com/Pixel-Tailor-CN/TensorIMS/releases"><img src="https://img.shields.io/github/v/release/Pixel-Tailor-CN/TensorIMS" alt="GitHub release"></a>
+    <a href="https://f-droid.org/packages/app.mystery0.ims.tensor/"><img alt="F-Droid Version" src="https://img.shields.io/f-droid/v/:app.mystery0.ims.tensor"><a>
     <a href="LICENSE"><img src="https://img.shields.io/github/license/Pixel-Tailor-CN/TensorIMS" alt="License"></a>
     <a href="https://apps.obtainium.imranr.dev/redirect.html?r=obtainium://add/https://github.com/Pixel-Tailor-CN/TensorIMS"><img src="https://img.shields.io/badge/Obtainium-Import-blue?logo=obtainium&logoColor=white" alt="Obtainium"></a>
 </p>
@@ -97,6 +98,8 @@ TensorIMS 是一个允许您在 Google Pixel 手机上启用或禁用 VoLTE（�
 ## 安装
 
 <a href="https://apps.obtainium.imranr.dev/redirect.html?r=obtainium://add/https://github.com/Pixel-Tailor-CN/TensorIMS"><img src="https://raw.githubusercontent.com/ImranR98/Obtainium/refs/heads/main/assets/graphics/badge_obtainium.png" alt="Obtainium" height="96"></a>
+
+<a href="https://f-droid.org/packages/app.mystery0.ims.tensor/"><img src="https://fdroid.gitlab.io/artwork/badge/get-it-on-zh-cn.png" alt="Get it on F-Droid" height="96" /></a>
 
 1. 从 [Releases](https://github.com/Pixel-Tailor-CN/TensorIMS/releases) 选择包名对应的 APK：新装独立应用选 `app.mystery0.ims.tensor`；保留旧应用身份选 `io.github.vvb2060.ims`。两包功能相同，均可选择外置或内置模式。
 2. 安装前核对签名、版本并保护原有数据；不要为解决签名不匹配而先卸载旧版。
