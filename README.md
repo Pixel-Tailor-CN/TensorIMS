@@ -17,7 +17,7 @@
 
 <p align="center">
     <a href="https://github.com/Pixel-Tailor-CN/TensorIMS/releases"><img src="https://img.shields.io/github/v/release/Pixel-Tailor-CN/TensorIMS" alt="GitHub release"></a>
-    <img alt="F-Droid Version" src="https://img.shields.io/f-droid/v/:app.mystery0.ims.tensor">
+    <a href="https://f-droid.org/packages/app.mystery0.ims.tensor/"><img alt="F-Droid Version" src="https://img.shields.io/f-droid/v/:app.mystery0.ims.tensor"><a>
     <a href="LICENSE"><img src="https://img.shields.io/github/license/Pixel-Tailor-CN/TensorIMS" alt="License"></a>
     <a href="https://apps.obtainium.imranr.dev/redirect.html?r=obtainium://add/https://github.com/Pixel-Tailor-CN/TensorIMS"><img src="https://img.shields.io/badge/Obtainium-Import-blue?logo=obtainium&logoColor=white" alt="Obtainium"></a>
 </p>
