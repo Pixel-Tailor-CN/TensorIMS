@@ -1,0 +1,109 @@
+<p><strong>IMS configuration for Google Pixel devices on mainland Chinese carrier networks, independently maintained by Mystery00.</strong>
+Previously <strong>Mystery00/TurboIMS</strong>, now <strong>TensorIMS</strong>. Requires a Google Tensor-powered Pixel device, Android 13+, and privileged access through the backend you explicitly select.</p>
+<p>Development and maintenance primarily focus on China Mobile, China Unicom, and China Telecom. Other carriers are outside the primary maintenance scope because suitable devices, SIMs, and network testing are unavailable. This does not mean other networks cannot work; compatibility must be verified on the target device.</p>
+<h2>About</h2>
+<p>TensorIMS is a tool that allows you to enable or disable IMS features like Voice over LTE (VoLTE), Wi-Fi Calling (VoWiFi), Video Calling (VT), and 5G Voice (VoNR) on Google Pixel phones. External mode uses <a href="https://shizuku.rikka.app/" rel="nofollow">Shizuku</a> or a fork with a compatible API; embedded mode requires independent wireless ADB pairing or existing root approval.</p>
+<h2>Features</h2>
+<ul>
+<li><strong>Structured Information Architecture</strong>:
+<ul>
+<li><strong>Home Screen</strong>: Overview of device and selected backend status, SIM selector, navigation to core modules, and the toggle for "Apply configs when the backend is ready".</li>
+<li><strong>IMS Configuration</strong>: Draft mode configuration organized into "Calling", "Network", "Display", and "Advanced Overrides", with one-tap quick presets and manual fine-tuning.</li>
+<li><strong>System Network</strong>: Dedicated device-level system network settings, offering Captive Portal probe endpoint configuration with popular presets.</li>
+<li><strong>Advanced Tools</strong>: Segregated into "Diagnostics &amp; Maintenance" (IMS status snapshot, restart IMS, application logs) and "Danger Zone" (reset CarrierConfig overrides), alongside Persistent VoLTE management.</li>
+</ul>
+</li>
+<li><strong>One-Tap Quick Presets</strong>:
+<ul>
+<li><strong>Recommended</strong>: Enables essential 4G/5G calling and network capabilities (VoLTE, VoNR, 5G NR, 5G signal threshold alignment, VT) while keeping VoWiFi disabled.</li>
+<li><strong>China 5G</strong>: Full 5G experience for Chinese mainland carriers with VoNR, 5GA/5G+ icon, and 5G signal threshold alignment.</li>
+<li><strong>China LTE</strong>: Pure 4G mode with 5G NR &amp; VoNR explicitly disabled for stable cellular connectivity, battery saving, and thermal reduction.</li>
+<li><strong>Enable all</strong>: Enables all available toggleable features at once; name format, USSD, and 5G NR mode choices remain unchanged.</li>
+<li><strong>My preset</strong>: Save one custom configuration preset explicitly from the current IMS configuration page (via its dedicated save/update button) and apply it back to the draft with one tap; you still tap <strong>Apply changes</strong> to write it to the system.</li>
+</ul>
+</li>
+<li><strong>Automation &amp; Persistence</strong>:
+<ul>
+<li><strong>Start the embedded service when opening the app</strong>: An optional, default-off setting reuses existing wireless ADB pairing credentials for one connection attempt when the app enters the foreground. Wireless debugging and the required permissions must already be available; failures can be handled with the existing manual controls. This does not start the app in the background after a reboot.</li>
+<li><strong>Apply configs when the backend is ready</strong>: Automatically restores saved configurations when the device reboots and the selected backend is ready and authorized.</li>
+<li><strong>Persistent VoLTE (Experimental)</strong>: Leverages system-level VoIMS opt-in to keep VoLTE active across device reboots without needing Shizuku on every restart.</li>
+<li><strong>Configuration Persistence</strong>: Automatically saves configuration history per SIM card or for all SIMs.</li>
+</ul>
+</li>
+<li><strong>Customizable IMS Features</strong>:
+<ul>
+<li><strong>Carrier Name</strong>: Override the carrier name displayed on your device.</li>
+<li><strong>IMS User Agent</strong>: Override the IMS User Agent string.</li>
+<li><strong>VoLTE (Voice over LTE)</strong>: Enable high-definition voice calls over 4G.</li>
+<li><strong>VoWiFi (Wi-Fi Calling)</strong>: Make calls over Wi-Fi networks, with options for Wi-Fi only mode.</li>
+<li><strong>Wi-Fi Calling Name Format</strong>: Choose the carrier name alone, or append “Wi-Fi Calling”, “Wi-Fi”, or “VoWifi”. Text follows the system's resources and language. Enabling VoWiFi leaves the name format unchanged until you choose a format separately.</li>
+<li><strong>VT (Video Calling)</strong>: Enable IMS-based video calls.</li>
+<li><strong>VoNR (Voice over 5G)</strong>: Enable high-definition voice calls over 5G (Requires Android 14+).</li>
+<li><strong>Cross-SIM Calling</strong>: Enable dual-SIM interconnection features.</li>
+<li><strong>UT (Supplementary Services)</strong>: Enable call forwarding, call waiting, and other supplementary services over UT.</li>
+<li><strong>USSD Connection Method</strong>: Choose CS preferred, IMS preferred (with CS fallback), CS only, or IMS only. IMS USSD requires device and carrier support; this option does not change the preferred network type or force LTE-only mode.</li>
+<li><strong>5G NR</strong>: Enable 5G NSA (Non-Standalone) and SA (Standalone) networks.</li>
+<li><strong>5G NR Mode</strong>: Choose NSA + SA (the default when 5G NR is turned on), SA only, or NSA only. SA only stops NSA; where SA is not available, the SIM uses LTE. NSA only disables standalone 5G. The mode applies only while 5G NR is on; turning 5G NR off allows no 5G architecture.</li>
+<li><strong>5G Signal Strength Thresholds</strong>: Option to apply custom 5G signal strength thresholds.</li>
+<li><strong>5G+/5GA Icon</strong>: Configure the carrier thresholds used by Android to expose the enhanced 5G icon.</li>
+<li><strong>Enhanced 4G LTE (LTE+)</strong>: Enable the system carrier configuration used for LTE+/4G+ support.</li>
+<li><strong>Hide Enhanced Data Icon</strong>: Optionally hide the LTE+/4G+ data icon; actual LTE+/4G+ availability still depends on the device, carrier, and current network.</li>
+<li><strong>Show 4G for LTE</strong>: Display the 4G label for LTE data.</li>
+<li><strong>Always Show Cellular Network Type</strong>: Request that the system keep its cellular network type label visible when connected to Wi-Fi or when mobile data is off. Appearance and dual-SIM behavior depend on the system; a 5G label does not confirm an active NR data connection.</li>
+</ul>
+</li>
+<li><strong>System Network / Captive Portal</strong>: Read, override, or remove SettingsProvider values for Android's <code>captive_portal_http_url</code> and <code>captive_portal_https_url</code>, with built-in presets (Google, V2EX, Xiaomi, vivo, Huawei).</li>
+<li><strong>Logcat Viewer</strong>: View and export application logs for troubleshooting.</li>
+</ul>
+<p><strong>Captive Portal limitation:</strong> TensorIMS verifies the values written to SettingsProvider, but some Android/NetworkStack builds may prefer resource overlays over those values. A successful write therefore does <strong>not</strong> prove that the active network probe URL changed. Reconnect the network and verify behavior on the target device.</p>
+<p>The name format, USSD, and 5G NR mode choices are explicit overrides. “Carrier name only” (format <code>0</code>) and “CS preferred” (method <code>0</code>) do not restore the carrier's original defaults. Removing these overrides requires the configuration reset, which affects other overrides on the selected SIM too. Recommended and mainland China presets leave these choices and the cellular network type visibility setting unchanged; presets that turn on 5G NR keep the current 5G NR mode.</p>
+<h2>Requirements</h2>
+<ul>
+<li><strong>Supported Devices</strong>: Google Pixel devices with Google Tensor chips.
+<ul>
+<li>Pixel 6, 6 Pro, 6a</li>
+<li>Pixel 7, 7 Pro, 7a</li>
+<li>Pixel 8, 8 Pro, 8a</li>
+<li>Pixel 9, 9 Pro, 9 Pro XL, 9 Pro Fold, 9a</li>
+<li>Pixel 10, 10 Pro, 10 Pro XL, 10 Pro Fold, 10a</li>
+<li>Pixel 11, 11 Pro, 11 Pro XL, 11 Pro Fold</li>
+<li>Pixel Fold, Pixel Tablet</li>
+<li><strong>Note:</strong> Devices with Qualcomm Snapdragons (Pixel 5 and older) are NOT supported.</li>
+</ul>
+</li>
+<li>Android 13 or higher</li>
+<li>External mode: <a href="https://shizuku.rikka.app/" rel="nofollow">Shizuku</a> installed, running and authorized; embedded mode: explicit wireless ADB pairing or existing root approval</li>
+</ul>
+<h2>Usage</h2>
+<ol>
+<li><strong>Check Status</strong>: Ensure the selected backend is running and authorized.</li>
+<li><strong>Select SIM</strong>: Choose the single SIM card or "All SIM" to configure on the home screen.</li>
+<li><strong>IMS Configuration</strong>: Open <strong>IMS configuration</strong>, pick a quick preset ("Recommended", "China 5G", or "China LTE") or adjust switches and choices by category, then tap <strong>Apply changes</strong>. Name format and cellular network type visibility are under <strong>Display</strong>; the USSD method is under <strong>Calling</strong>; the 5G NR mode is under <strong>Network</strong>.</li>
+<li><strong>Auto-Restore (Optional)</strong>: Enable "Apply configs when the backend is ready" on the home screen to automatically restore configurations after reboots once the selected backend is ready.</li>
+<li><strong>System Network</strong>: Open <strong>System network</strong> to manage Captive Portal detection URLs with one-tap presets; changes apply globally across the device.</li>
+<li><strong>Advanced Tools</strong>: Use the advanced page to inspect real-time IMS capability snapshots, restart IMS if needed, or reset CarrierConfig overrides in the Danger Zone.</li>
+</ol>
+<p>Follow the reset status shown in the app. A status indicating that the reset was requested but remains unconfirmed does not mean restoration has been confirmed successful.
+If the reset request and permission cleanup completed but override removal cannot be independently verified, the backend remains usable. Automatic application is paused, and the affected SIM's previous history is excluded from automatic restoration. Reload the configuration to inspect the result.</p>
+<h2>About this project</h2>
+<p>This project originated as a fork of <a href="https://github.com/Turbo1123/TurboIMS">Turbo1123/TurboIMS</a>. However, due to various stability issues encountered during usage, the codebase has undergone a complete refactoring. This includes rewriting the core logic for SIM card reading and carrier configuration, as well as redesigning the UI and icons.</p>
+<p>This project was previously released as <strong>Mystery00/TurboIMS</strong> and continues to be maintained independently as <strong>TensorIMS</strong>, with no plans to merge future upstream changes. The rename applies only to this maintained version; the original fork relationship and attribution remain on GitHub.</p>
+<div class="markdown-heading"><h2 tabindex="-1" class="heading-element">Credits</h2><a id="user-content-credits" class="anchor" aria-label="Permalink: Credits" href="#credits"><svg data-component="Octicon" class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></div>
+<ul>
+<li><strong><a href="https://github.com/vvb2060/Ims">vvb2060/Ims</a></strong></li>
+<li><strong><a href="https://github.com/nullbytepl/CarrierVanityName">nullbytepl/CarrierVanityName</a></strong>: Carrier name modification logic is derived from this project.</li>
+<li><strong><a href="https://github.com/kyujin-cho/pixel-volte-patch">kyujin-cho/pixel-volte-patch</a></strong></li>
+<li>The app icon is based on an original design from <a href="https://www.iconfont.cn/collections/detail?cid=28924" rel="nofollow">iconfont</a>, modified for use in this project.</li>
+</ul>
+<li><strong><a href="https://github.com/vvb2060/Ims">vvb2060/Ims</a></strong></li>
+<li><strong><a href="https://github.com/nullbytepl/CarrierVanityName">nullbytepl/CarrierVanityName</a></strong>: Carrier name modification logic is derived from this project.</li>
+<li><strong><a href="https://github.com/kyujin-cho/pixel-volte-patch">kyujin-cho/pixel-volte-patch</a></strong></li>
+<li>The app icon is based on an original design from <a href="https://www.iconfont.cn/collections/detail?cid=28924" rel="nofollow">iconfont</a>, modified for use in this project.</li>
+<ul>
+<li><strong><a href="https://github.com/vvb2060/Ims">vvb2060/Ims</a></strong></li>
+<li><strong><a href="https://github.com/nullbytepl/CarrierVanityName">nullbytepl/CarrierVanityName</a></strong>: Carrier name modification logic is derived from this project.</li>
+<li><strong><a href="https://github.com/kyujin-cho/pixel-volte-patch">kyujin-cho/pixel-volte-patch</a></strong></li>
+<li>The app icon is based on an original design from <a href="https://www.iconfont.cn/collections/detail?cid=28924" rel="nofollow">iconfont</a>, modified for use in this project.</li>
+</ul>
+<h2>Disclaimer</h2>
+<p>This application modifies your device's carrier configuration and, when requested, selected device-level network settings. Use it at your own risk. The developers are not responsible for any damage or loss of functionality.</p>
