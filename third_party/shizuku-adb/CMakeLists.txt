@@ -23,7 +23,6 @@ target_link_options(adb PRIVATE
     -Wl,--exclude-libs,ALL
     -Wl,--gc-sections
     -Wl,-z,max-page-size=16384
-    -Wl,--build-id=none
 )
 set_property(TARGET adb APPEND PROPERTY LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/adb.map.txt")
 target_link_libraries(adb PRIVATE boringssl::crypto_static log)
