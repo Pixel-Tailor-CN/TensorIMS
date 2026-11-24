@@ -17,6 +17,7 @@
 
 <p align="center">
     <a href="https://github.com/Pixel-Tailor-CN/TensorIMS/releases"><img src="https://img.shields.io/github/v/release/Pixel-Tailor-CN/TensorIMS" alt="GitHub release"></a>
+    <a href="https://f-droid.org/packages/app.mystery0.ims.tensor/"><img alt="F-Droid Version" src="https://img.shields.io/f-droid/v/app.mystery0.ims.tensor"></a>
     <a href="LICENSE"><img src="https://img.shields.io/github/license/Pixel-Tailor-CN/TensorIMS" alt="License"></a>
     <a href="https://apps.obtainium.imranr.dev/redirect.html?r=obtainium://add/https://github.com/Pixel-Tailor-CN/TensorIMS"><img src="https://img.shields.io/badge/Obtainium-Import-blue?logo=obtainium&logoColor=white" alt="Obtainium"></a>
 </p>
@@ -96,6 +97,8 @@ The name format, USSD, and 5G NR mode choices are explicit overrides. “Carrier
 ## Installation
 
 <a href="https://apps.obtainium.imranr.dev/redirect.html?r=obtainium://add/https://github.com/Pixel-Tailor-CN/TensorIMS"><img src="https://raw.githubusercontent.com/ImranR98/Obtainium/refs/heads/main/assets/graphics/badge_obtainium.png" alt="Obtainium" height="96"></a>
+
+<a href="https://f-droid.org/packages/app.mystery0.ims.tensor/"><img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" alt="Get it on F-Droid" height="96" /></a>
 
 1. Choose the APK by application ID on the [Releases](https://github.com/Pixel-Tailor-CN/TensorIMS/releases) page: `app.mystery0.ims.tensor` for a separate installation, or `io.github.vvb2060.ims` to keep the old application identity. Both include external and embedded modes.
 2. Check the APK signature and version before installation, and preserve existing app data. Do not uninstall the old app to bypass a signature mismatch.
