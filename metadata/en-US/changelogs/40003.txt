@@ -1,0 +1,7 @@
+[Added]
+- Added a custom IMS preset ("My preset") saved via a dedicated preset bar button, applied to draft with one tap, and removable from the menu.
+- Added 5G NR mode selection (NSA + SA, SA only, NSA only) while 5G NR is on.
+
+[Improved]
+- Presets keep the current 5G NR mode; legacy restore stays unchanged.
+- Built libadb.so from JNI source with BoringSSL Prefab and switched versionCode to a static integer for F-Droid.

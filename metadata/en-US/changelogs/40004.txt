@@ -1,0 +1,3 @@
+[Improved]
+- Disabled ELF build-id in native CMake builds for better F-Droid reproducible build compatibility.
+- Added and cleaned up English and Simplified Chinese Fastlane metadata and changelogs for F-Droid.

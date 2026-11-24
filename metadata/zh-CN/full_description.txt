@@ -1,100 +1,24 @@
-<p><strong>聚焦中国大陆运营商网络下的 Google Pixel IMS 配置，由 Mystery00 独立维护。</strong>
-原 <strong>Mystery00/TurboIMS</strong>，现更名为 <strong>TensorIMS</strong>。仅支持搭载 Google Tensor 芯片的 Pixel 设备，需 Android 13+，并通过明确选择的后端取得特权。</p>
-<p>主要适配和维护范围为中国移动、中国联通、中国电信网络下的使用场景。其他运营商因缺少相应设备、SIM 卡及网络测试条件，不作为主要适配和维护对象；这不表示其他网络一定无法使用，实际兼容性需自行验证。</p>
+<p><strong>聚焦中国大陆运营商网络下的 Google Pixel IMS 配置，由 Mystery00 独立维护。</strong>仅支持搭载 Google Tensor 芯片的 Pixel 设备，需 Android 13+，并通过明确选择的后端取得特权。</p>
+<p>主要适配和维护范围为中国移动、中国联通、中国电信网络下的使用场景；其他运营商网络不保证适配，实际兼容性需自行验证。</p>
+
 <h2>关于</h2>
-<p>TensorIMS 是一个允许您在 Google Pixel 手机上启用或禁用 VoLTE（高清语音通话）、VoWiFi（Wi-Fi 通话）、VT（视频通话）和 VoNR（5G 语音）等 IMS 功能的工具。外置模式需要 <a href="https://shizuku.rikka.app/zh-CN/" rel="nofollow">Shizuku</a> 或兼容其 API 的 fork 版本；内置模式需要独立无线 ADB 配对或已有 root。选择模式本身不代表已经获得权限。</p>
-<h2>功能</h2>
+<p>TensorIMS 可读取并修改 Google Pixel 手机的 IMS 与运营商配置，支持开启或关闭 VoLTE、VoWiFi、VT、VoNR、跨卡通话、UT、USSD 方式与 5G NR 模式等功能。外置模式使用 <a href="https://shizuku.rikka.app/zh-CN/">Shizuku</a> 或兼容其 API 的版本；内置模式通过无线调试配对、电脑 ADB 或已有 root 启动独立私有服务。</p>
+
+<h2>主要功能</h2>
 <ul>
-<li><strong>清晰的分层信息架构</strong>：
-<ul>
-<li><strong>首页</strong>：集中展示设备与 Shizuku 状态、SIM 卡选择、功能入口导航，以及“后端就绪后自动应用配置”开关。</li>
-<li><strong>IMS 配置</strong>：采用草稿模式设计，按“通话 / 网络 / 显示 / 高级覆盖”清晰分组管理，支持一键快速预设与按需微调。</li>
-<li><strong>系统网络</strong>：独立管理设备级系统网络设置，提供 Captive Portal 探测地址配置及国内常用预设快捷填入。</li>
-<li><strong>高级工具</strong>：区分“诊断与常规维护”（实时 IMS 状态、重启 IMS、应用日志）与“危险操作”（重置 CarrierConfig 覆盖），并承载持久化 VoLTE 管理。</li>
+<li><strong>IMS 配置（草稿模式）</strong>：实时读取系统 CarrierConfig，按通话、网络、显示与自定义覆盖分组管理；内置推荐配置、国内 5G、国内 LTE、全部开启等预设，并支持保存 1 个专属自定义预设（我的配置）。</li>
+<li><strong>通话与网络选项</strong>：支持 VoLTE、VoWiFi 与漫游 VoWiFi、Wi-Fi 通话名称格式、VT 视频通话、VoNR（需 Android 14+）、Cross-SIM 跨卡通话、UT 补充业务、USSD 连接方式、5G NR 与组网模式（NSA + SA / 仅 SA / 仅 NSA）、5G 信号门限对齐、5G+/5GA 图标、Enhanced 4G LTE（LTE+）、LTE 显示为 4G 及始终显示蜂窝网络类型。</li>
+<li><strong>自动化与持久化</strong>：可选“打开应用时自动启动内置服务”（复用已有无线配对）、可选“后端就绪后自动应用配置”，以及实验性持久化 VoLTE（VoIMS opt-in）。</li>
+<li><strong>系统网络设置</strong>：管理设备级 Captive Portal 联网探测地址（<code>captive_portal_http_url</code> / <code>captive_portal_https_url</code>）并提供常用预设。注：部分系统版本可能优先使用资源 overlay，写入成功不代表实际探测地址必然切换。</li>
+<li><strong>诊断与维护</strong>：查看实时 IMS 注册与能力状态、重启 IMS、应用内日志查看与导出，以及按单卡重置 CarrierConfig 覆盖。</li>
 </ul>
-</li>
-<li><strong>一键快速配置预设</strong>：
-<ul>
-<li><strong>推荐配置</strong>：开启 4G/5G 核心通话与网络能力（VoLTE、VoNR、5G NR、5G 信号门限对齐、VT），默认关闭国内卡暂不支持的 VoWiFi。</li>
-<li><strong>国内 5G</strong>：一键开启国内三大运营商 5G 完整网络体验，包含 VoNR、5GA/5G+ 图标与 5G 信号门限对齐。</li>
-<li><strong>国内 LTE</strong>：纯净 4G 模式，显式关闭 5G NR 与 VoNR，专注网络稳定、省电抗发热及长续航。</li>
-<li><strong>全部开启</strong>：一键开启全部可用功能开关，保留名称格式、USSD 连接方式与 5G NR 模式的选择。</li>
-<li><strong>我的配置</strong>：通过预设栏的独立保存/更新按钮将当前页面配置保存为 1 个专属自定义方案，下次点击即可一键填回草稿（仍需点击“应用更改”生效）。</li>
-</ul>
-</li>
-<li><strong>自动化与持久化</strong>：
-<ul>
-<li><strong>打开应用时自动启动内置服务</strong>：默认关闭。启用后，应用进入前台时使用已有无线 ADB 配对凭据尝试连接一次；需要无线调试与必要权限已经可用，失败后可通过现有手动入口处理。设备重启后仍需打开应用，不会在后台开机启动。</li>
-<li><strong>Shizuku 就绪后自动应用</strong>：可选择在设备重启且当前选定后端启动授权后自动恢复上次成功应用的配置，无需每次开机手动操作。</li>
-<li><strong>持久化 VoLTE（实验性）</strong>：使用系统底层 VoIMS opt-in 接口，启用后正常重启设备无需依赖 Shizuku 即可保持 VoLTE 生效。</li>
-<li><strong>配置持久化</strong>：按 SIM 卡（或全部卡）自动保存配置历史。</li>
-</ul>
-</li>
-<li><strong>可定制的 IMS 功能</strong>：
-<ul>
-<li><strong>运营商名称</strong>：覆盖设备上显示的运营商名称。</li>
-<li><strong>IMS User Agent</strong>：自定义 IMS User Agent 字符串。</li>
-<li><strong>VoLTE（高清语音通话）</strong>：开启 4G 高清语音通话。</li>
-<li><strong>VoWiFi（Wi-Fi 通话）</strong>：通过 Wi-Fi 网络拨打电话。</li>
-<li><strong>Wi-Fi 通话名称格式</strong>：可选择仅显示运营商名称，或添加“Wi-Fi 通话”“Wi-Fi”“VoWifi”后缀。文字由系统资源和语言决定；开启 VoWiFi 时不再强制修改名称，需单独选择格式。</li>
-<li><strong>漫游 VoWiFi</strong>：可选择漫游时默认启用 VoWiFi。</li>
-<li><strong>VT（视频通话）</strong>：开启基于 IMS 的视频通话。</li>
-<li><strong>VoNR（5G 语音）</strong>：开启 5G 高清语音通话（需要 Android 14+）。</li>
-<li><strong>Cross-SIM Calling（跨卡通话）</strong>：开启双卡互连功能。</li>
-<li><strong>UT（补充业务）</strong>：通过 UT 开启呼叫转移、呼叫等待等补充服务。</li>
-<li><strong>USSD 连接方式</strong>：可选择 CS 优先、IMS 优先（允许回退 CS）、仅 CS 或仅 IMS。IMS USSD 仍需设备与运营商支持，该选项不会修改首选网络类型或强制 LTE only。</li>
-<li><strong>5G NR</strong>：开启 5G NSA（非独立组网）和 SA（独立组网）网络。</li>
-<li><strong>5G NR 模式</strong>：可选择 NSA + SA（开启 5G NR 时的默认值）、仅 SA 或仅 NSA。仅 SA 不再使用 NSA，没有 SA 的地方使用 LTE；仅 NSA 禁用独立组网 5G。模式只在 5G NR 开启时生效，关闭 5G NR 时不允许任何 5G 组网方式。</li>
-<li><strong>5G 信号强度阈值</strong>：可选择是否应用自定义的 5G 信号强度阈值。</li>
-<li><strong>5G+/5GA 图标</strong>：配置 Android 显示增强 5G 图标时使用的运营商阈值。</li>
-<li><strong>Enhanced 4G LTE（LTE+）</strong>：开启系统用于 LTE+/4G+ 的增强型 4G LTE 配置。</li>
-<li><strong>隐藏增强型数据图标</strong>：可选择隐藏 LTE+/4G+ 数据图标；实际 LTE+/4G+ 可用性仍取决于设备、运营商和当前网络。</li>
-<li><strong>LTE 显示为 4G</strong>：将 LTE 数据网络显示为 4G 图标。</li>
-<li><strong>始终显示蜂窝网络类型</strong>：连接 Wi-Fi 或关闭移动数据时，仍请求系统显示蜂窝网络类型。实际显示及双卡行为由系统决定，显示 5G 不代表当前存在活跃的 NR 数据连接。</li>
-</ul>
-</li>
-<li><strong>系统网络 / Captive Portal</strong>：读取、覆盖或移除 Android <code>captive_portal_http_url</code> 与 <code>captive_portal_https_url</code> 的 SettingsProvider 值，内置 Google 官方、V2EX、小米、vivo、华为等快捷填入预设。</li>
-<li><strong>Logcat 查看器</strong>：实时查看和一键导出应用日志以排查问题。</li>
-</ul>
-<p><strong>Captive Portal 限制：</strong> TensorIMS 可以确认写入 SettingsProvider 的值，但部分 Android/NetworkStack 版本可能优先使用资源 overlay，因此“写入成功”并不等于当前网络探测一定已经改用新地址。修改后请重新连接网络，并在目标设备上验证实际行为。</p>
-<p>名称格式、USSD 连接方式与 5G NR 模式均为明确的覆盖选项。“仅运营商名称”（格式 <code>0</code>）和“CS 优先”（方式 <code>0</code>）不代表恢复运营商原始默认值；移除覆盖需要使用配置重置，也会影响所选 SIM 的其他覆盖配置。推荐配置与国内预设保留这些选项及蜂窝网络类型显示设置；开启 5G NR 的预设沿用当前 5G NR 模式。</p>
+
 <h2>要求</h2>
 <ul>
-<li><strong>支持设备</strong>：搭载 Google Tensor 芯片的 Pixel 设备。
-<ul>
-<li>Pixel 6, 6 Pro, 6a</li>
-<li>Pixel 7, 7 Pro, 7a</li>
-<li>Pixel 8, 8 Pro, 8a</li>
-<li>Pixel 9, 9 Pro, 9 Pro XL, 9 Pro Fold, 9a</li>
-<li>Pixel 10, 10 Pro, 10 Pro XL, 10 Pro Fold, 10a</li>
-<li>Pixel 11, 11 Pro, 11 Pro XL, 11 Pro Fold</li>
-<li>Pixel Fold, Pixel Tablet</li>
-<li><strong>注意：</strong> 搭载 Qualcomm Snapdragon 芯片的设备（Pixel 5 及更早机型）<strong>不支持</strong>。</li>
+<li>搭载 Google Tensor 芯片的 Pixel 设备（Pixel 6 系列至 Pixel 11 系列、Pixel Fold、Pixel Tablet）；不支持骁龙芯片机型（Pixel 5 及更早机型）。</li>
+<li>Android 13 或更高版本。</li>
+<li>外置模式需安装运行 Shizuku 并授权；内置模式需手动通过无线调试配对、电脑 ADB 或已有 root 启动。</li>
 </ul>
-</li>
-<li>Android 13 或更高版本</li>
-<li>外置模式：已安装并运行 <a href="https://shizuku.rikka.app/zh-CN/" rel="nofollow">Shizuku</a> 并授权；内置模式：由用户手动开启无线调试并独立配对，或批准已有 root</li>
-</ul>
-<h2>使用</h2>
-<ol>
-<li><strong>检查状态</strong>：确保当前选定后端显示就绪且应用已获得权限。</li>
-<li><strong>选择 SIM 卡</strong>：在首页选择要配置的单张 SIM 卡或“所有 SIM”。</li>
-<li><strong>IMS 配置</strong>：进入“IMS 配置”，可直接使用“推荐配置”、“国内 5G”或“国内 LTE”快捷预设，亦可按分组手动调整开关与选项，点击底部“应用更改”生效。名称格式与蜂窝网络类型显示位于“显示”，USSD 连接方式位于“通话”，5G NR 模式位于“网络”。</li>
-<li><strong>自动恢复（可选）</strong>：在首页开启“后端就绪后自动应用配置”，设备重启且当前选定后端启动授权后将自动恢复已保存的配置。</li>
-<li><strong>系统网络</strong>：进入“系统网络”管理 Captive Portal 联网探测地址，可一键选择国内节点预设；该设置作用于全局设备，不随 SIM 切换。</li>
-<li><strong>高级工具</strong>：进入“高级工具”可查看当前 SIM 的实时 IMS 能力快照、卡死时重启 IMS，或在“危险操作”区重置配置覆盖。</li>
-</ol>
-<p>重置结果以界面提示为准；“已请求、尚未确认”不代表已确认恢复成功。
-重置请求和权限清理已完成，但无法独立核验覆盖删除时，后端仍可继续使用；自动应用会暂停，对应 SIM 的旧历史也不会自动恢复。请重新读取配置检查结果。</p>
-<h2>项目说明</h2>
-<p>本项目最初 fork 自 <a href="https://github.com/Turbo1123/TurboIMS">Turbo1123/TurboIMS</a>。在使用原项目的过程中，由于遇到诸多问题，我决定对整个代码库进行彻底重构。这包括重写 SIM 卡读取、运营商配置的核心逻辑，以及重新设计 UI 和图标。</p>
-<p>本项目此前以 <strong>Mystery00/TurboIMS</strong> 的名称发布，现以 <strong>TensorIMS</strong> 继续独立维护，后续不计划合并上游代码。更名仅针对本维护版本；GitHub 上保留原有 fork 关系及来源说明。</p>
-<h2>鸣谢</h2>
-<ul>
-<li><strong><a href="https://github.com/vvb2060/Ims">vvb2060/Ims</a></strong></li>
-<li><strong><a href="https://github.com/nullbytepl/CarrierVanityName">nullbytepl/CarrierVanityName</a></strong>：运营商名称修改功能的代码参考自此项目。</li>
-<li><strong><a href="https://github.com/kyujin-cho/pixel-volte-patch">kyujin-cho/pixel-volte-patch</a></strong></li>
-<li>App 图标源于 <a href="https://www.iconfont.cn/collections/detail?cid=28924" rel="nofollow">iconfont</a> 平台的设计，并在此基础上进行了修改以适配本项目。</li>
-</ul>
+
 <h2>免责声明</h2>
-<p>本应用会修改设备的运营商配置，并在用户主动操作时修改部分设备级网络设置。请自行承担使用风险。开发者对任何功能损坏或损失概不负责。</p>
+<p>本应用会修改设备的运营商配置，并在用户主动操作时修改部分设备级网络设置。请自行承担使用风险，开发者对任何功能损坏或损失概不负责。</p>
